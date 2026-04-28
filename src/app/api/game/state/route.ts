@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
     // Fetch game state
     const { data: game, error: gameError } = await getSupabaseAdmin()
       .from("games")
-      .select("*, rooms!inner(code, seats)")
+      .select("*, rooms!inner(code, seats, host_id)")
       .eq("id", game_id)
       .single();
 
@@ -50,6 +50,8 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       game_id: game.id,
+      room_id: game.room_id,
+      room_code: game.rooms.code,
       board,
       hand: allHands[playerSeat],
       hand_counts: handCounts,
@@ -58,7 +60,12 @@ export async function GET(request: NextRequest) {
       status: game.status,
       scores: { team0: scores[0], team1: scores[1] },
       seat: playerSeat,
-      seats: seats.map((s) => (s ? { display_name: s.display_name } : null)),
+      seats: seats.map((s) =>
+        s ? { user_id: s.user_id, display_name: s.display_name } : null
+      ),
+      host_id: (game.rooms as Record<string, unknown>).host_id ?? null,
+      round: game.round ?? 1,
+      target_score: game.target_score ?? 100,
     });
   } catch {
     return NextResponse.json({ error: "Error interno del servidor." }, { status: 500 });

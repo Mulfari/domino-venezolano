@@ -37,6 +37,8 @@ export function useGameChannel({
   );
 
   useEffect(() => {
+    if (!roomCode || !userId) return;
+
     const supabase = createClient();
     const channelName = `room:${roomCode}`;
 

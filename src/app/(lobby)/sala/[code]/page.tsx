@@ -8,6 +8,13 @@ interface Props {
   params: Promise<{ code: string }>;
 }
 
+export async function generateMetadata({ params }: Props) {
+  const { code } = await params;
+  return {
+    title: `Sala ${code.toUpperCase()}`,
+  };
+}
+
 export default async function RoomPage({ params }: Props) {
   const { code } = await params;
   const supabase = await createClient();

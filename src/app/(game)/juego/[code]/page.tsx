@@ -1,21 +1,49 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
 import { Board } from "@/components/game/board";
 import { Hand } from "@/components/game/hand";
 import { OpponentHand } from "@/components/game/opponent-hand";
 import { ScorePanel } from "@/components/game/score-panel";
 import { TurnIndicator } from "@/components/game/turn-indicator";
 import { GameOverModal } from "@/components/game/game-over-modal";
+import { ChatPanel } from "@/components/chat/chat-panel";
+import { useGameChannel } from "@/lib/realtime/use-game-channel";
 import { useGameStore } from "@/stores/game-store";
+import type { GameEvent } from "@/lib/realtime/events";
 import type { Tile, Seat } from "@/lib/game/types";
 
-/**
- * Relative seat positions from the local player's perspective.
- * mySeat is always at the bottom. Partner is across (top).
- * Left and right opponents are on the sides.
- */
+/* ------------------------------------------------------------------ */
+/*  Types for the /api/game/state response                            */
+/* ------------------------------------------------------------------ */
+interface SeatInfo {
+  user_id: string;
+  display_name: string;
+}
+
+interface GameStateResponse {
+  game_id: string;
+  room_id: string;
+  room_code: string;
+  board: { left: number | null; right: number | null; plays: { tile: Tile; seat: Seat; end: "left" | "right" }[] };
+  hand: Tile[];
+  hand_counts: number[];
+  current_turn: Seat;
+  consecutive_passes: number;
+  status: "dealing" | "playing" | "finished";
+  scores: { team0: number; team1: number };
+  seat: number;
+  seats: (SeatInfo | null)[];
+  host_id: string | null;
+  round: number;
+  target_score: number;
+}
+
+/* ------------------------------------------------------------------ */
+/*  Relative seat positions from the local player's perspective       */
+/* ------------------------------------------------------------------ */
 function getRelativeSeats(mySeat: Seat): {
   bottom: Seat;
   top: Seat;
@@ -30,58 +58,377 @@ function getRelativeSeats(mySeat: Seat): {
   };
 }
 
+/* ------------------------------------------------------------------ */
+/*  Main page component                                               */
+/* ------------------------------------------------------------------ */
 export default function GamePage() {
   const params = useParams<{ code: string }>();
   const router = useRouter();
+  const gameId = params.code; // The [code] param is actually the game UUID
 
+  /* ---- Local UI state ---- */
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [displayName, setDisplayName] = useState("Jugador");
+  const [roomCode, setRoomCode] = useState<string | null>(null);
+  const [roomId, setRoomId] = useState<string | null>(null);
+  const [hostId, setHostId] = useState<string | null>(null);
+  const [handCounts, setHandCounts] = useState<number[]>([7, 7, 7, 7]);
+  const [actionLoading, setActionLoading] = useState(false);
+
+  /* ---- Zustand store ---- */
   const mySeat = useGameStore((s) => s.mySeat);
-  const hands = useGameStore((s) => s.hands);
   const currentTurn = useGameStore((s) => s.currentTurn);
   const players = useGameStore((s) => s.players);
   const status = useGameStore((s) => s.status);
   const selectedTile = useGameStore((s) => s.selectedTile);
-  const playTile = useGameStore((s) => s.playTile);
-  const passTurn = useGameStore((s) => s.passTurn);
   const selectTile = useGameStore((s) => s.selectTile);
   const setMySeat = useGameStore((s) => s.setMySeat);
   const setPlayers = useGameStore((s) => s.setPlayers);
   const setGameState = useGameStore((s) => s.setGameState);
+  const setScores = useGameStore((s) => s.setScores);
+  const setRound = useGameStore((s) => s.setRound);
+  const setTargetScore = useGameStore((s) => s.setTargetScore);
   const setRoundResult = useGameStore((s) => s.setRoundResult);
+  const updatePlayerConnection = useGameStore((s) => s.updatePlayerConnection);
+  const playTile = useGameStore((s) => s.playTile);
+  const passTurn = useGameStore((s) => s.passTurn);
+  const reset = useGameStore((s) => s.reset);
 
-  // TODO: Replace with real Supabase subscription in Phase 5
-  useEffect(() => {
-    // Placeholder: set up demo state for development
-    if (players.length === 0) {
-      setMySeat(0);
-      setPlayers([
-        { seat: 0, displayName: "Tú", connected: true },
-        { seat: 1, displayName: "Carlos", connected: true },
-        { seat: 2, displayName: "María", connected: true },
-        { seat: 3, displayName: "Pedro", connected: true },
-      ]);
+  /* Ref to keep gameId stable for callbacks */
+  const gameIdRef = useRef(gameId);
+  gameIdRef.current = gameId;
+
+  /* ---------------------------------------------------------------- */
+  /*  Fetch session + game state on mount                             */
+  /* ---------------------------------------------------------------- */
+  const fetchGameState = useCallback(async (gId?: string) => {
+    const targetGameId = gId ?? gameIdRef.current;
+    try {
+      const res = await fetch(`/api/game/state?game_id=${targetGameId}`);
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.error ?? `Error ${res.status}`);
+      }
+      const data: GameStateResponse = await res.json();
+
+      setRoomCode(data.room_code);
+      setRoomId(data.room_id);
+      setHostId(data.host_id);
+      setMySeat(data.seat as Seat);
+      setHandCounts(data.hand_counts);
+
+      // Build player info from seats
+      const playerInfos = data.seats.map((s, i) => ({
+        seat: i as Seat,
+        displayName: s?.display_name ?? `Jugador ${i + 1}`,
+        connected: false, // presence will update this
+      }));
+      setPlayers(playerInfos);
+
+      // Build hands: own hand is real, opponents get empty arrays
+      // (we only know their counts, not their tiles)
+      const handsObj = { 0: [] as Tile[], 1: [] as Tile[], 2: [] as Tile[], 3: [] as Tile[] };
+      handsObj[data.seat as Seat] = data.hand;
+      // For opponent hand counts, we store empty arrays — OpponentHand uses handCounts
       setGameState({
-        board: { left: null, right: null, plays: [] },
-        hands: {
-          0: [[6, 6], [5, 4], [3, 2], [1, 0], [6, 3], [5, 1], [4, 2]],
-          1: [[6, 5], [4, 4], [3, 3], [2, 1], [6, 2], [5, 0], [4, 1]],
-          2: [[6, 4], [5, 5], [3, 1], [2, 0], [6, 1], [5, 3], [4, 0]],
-          3: [[6, 0], [5, 2], [4, 3], [3, 0], [2, 2], [1, 1], [0, 0]],
-        },
-        currentTurn: 0 as Seat,
-        consecutivePasses: 0,
-        status: "playing",
+        board: data.board,
+        hands: handsObj,
+        currentTurn: data.current_turn,
+        consecutivePasses: data.consecutive_passes,
+        status: data.status,
       });
-    }
-  }, [players.length, setMySeat, setPlayers, setGameState]);
 
-  if (mySeat === null) {
+      setScores({ 0: data.scores.team0, 1: data.scores.team1 });
+      setRound(data.round);
+      setTargetScore(data.target_score);
+
+      return data;
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Error al cargar la partida.";
+      setError(msg);
+      return null;
+    }
+  }, [setMySeat, setPlayers, setGameState, setScores, setRound, setTargetScore]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function init() {
+      // Get current user session
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+
+      if (!user) {
+        router.push("/login");
+        return;
+      }
+
+      if (!cancelled) {
+        setUserId(user.id);
+        setDisplayName(
+          user.user_metadata?.display_name || user.email?.split("@")[0] || "Jugador"
+        );
+      }
+
+      // Fetch game state
+      const data = await fetchGameState();
+      if (!cancelled) {
+        if (data) {
+          setLoading(false);
+        }
+      }
+    }
+
+    init();
+    return () => { cancelled = true; };
+  }, [gameId, router, fetchGameState]);
+
+  /* ---------------------------------------------------------------- */
+  /*  Handle realtime game events                                     */
+  /* ---------------------------------------------------------------- */
+  const handleGameEvent = useCallback(
+    (event: GameEvent) => {
+      switch (event.type) {
+        case "tile_played": {
+          // Update hand counts
+          setHandCounts((prev) => {
+            const next = [...prev];
+            if (next[event.seat] > 0) next[event.seat]--;
+            return next;
+          });
+          // If it's not our own play, apply to store
+          if (mySeat !== null && event.seat !== mySeat) {
+            // We can't call playTile for opponents (we don't have their tiles)
+            // Instead, re-fetch the full state to stay in sync
+            fetchGameState();
+          }
+          break;
+        }
+
+        case "turn_passed": {
+          if (mySeat !== null && event.seat !== mySeat) {
+            fetchGameState();
+          }
+          break;
+        }
+
+        case "round_started": {
+          // New round — fetch fresh state with the new game_id
+          // Update URL if game_id changed
+          if (event.game_id !== gameIdRef.current) {
+            router.replace(`/juego/${event.game_id}`);
+            gameIdRef.current = event.game_id;
+          }
+          setRoundResult(null);
+          reset();
+          fetchGameState(event.game_id);
+          break;
+        }
+
+        case "round_ended": {
+          setScores({ 0: event.scores.team0, 1: event.scores.team1 });
+          setRoundResult({
+            winner_team: event.winner_team as (0 | 1 | null),
+            points: event.points,
+            reason: event.reason,
+          });
+          break;
+        }
+
+        case "game_state_sync": {
+          const s = event.state;
+          const handsObj = { 0: [] as Tile[], 1: [] as Tile[], 2: [] as Tile[], 3: [] as Tile[] };
+          if (mySeat !== null) {
+            handsObj[mySeat] = s.hands[mySeat] ?? [];
+          }
+          setHandCounts(s.hands.map((h) => h.length));
+          setGameState({
+            board: s.board,
+            hands: handsObj,
+            currentTurn: s.current_turn,
+            consecutivePasses: s.consecutive_passes,
+            status: s.status,
+          });
+          break;
+        }
+
+        case "player_connected": {
+          updatePlayerConnection(event.seat as Seat, true);
+          break;
+        }
+
+        case "player_disconnected": {
+          updatePlayerConnection(event.seat as Seat, false);
+          break;
+        }
+      }
+    },
+    [mySeat, fetchGameState, setScores, setRoundResult, setGameState, updatePlayerConnection, reset, router]
+  );
+
+  /* ---------------------------------------------------------------- */
+  /*  Subscribe to realtime channel                                   */
+  /* ---------------------------------------------------------------- */
+  useGameChannel({
+    roomCode: roomCode ?? "",
+    userId: userId ?? "",
+    displayName,
+    seat: mySeat ?? 0,
+    onEvent: handleGameEvent,
+    onPresenceChange: (presencePlayers) => {
+      // Update connection status for all seats
+      for (let i = 0; i < 4; i++) {
+        const present = presencePlayers.some((p) => p.seat === i);
+        updatePlayerConnection(i as Seat, present);
+      }
+    },
+  });
+
+  /* ---------------------------------------------------------------- */
+  /*  Action handlers — call API endpoints                            */
+  /* ---------------------------------------------------------------- */
+  async function handlePlayTile(tile: Tile, end: "left" | "right") {
+    if (actionLoading) return;
+    setActionLoading(true);
+
+    // Optimistic update
+    playTile(tile, end);
+    setHandCounts((prev) => {
+      const next = [...prev];
+      if (mySeat !== null && next[mySeat] > 0) next[mySeat]--;
+      return next;
+    });
+
+    try {
+      const res = await fetch("/api/game/play", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ game_id: gameIdRef.current, tile, end }),
+      });
+
+      if (!res.ok) {
+        // Revert optimistic update on failure
+        await fetchGameState();
+        const body = await res.json().catch(() => ({}));
+        console.error("Play failed:", body.error);
+      }
+    } catch (err) {
+      console.error("Play error:", err);
+      await fetchGameState();
+    } finally {
+      setActionLoading(false);
+    }
+  }
+
+  async function handlePass() {
+    if (actionLoading) return;
+    setActionLoading(true);
+
+    // Optimistic update
+    passTurn();
+
+    try {
+      const res = await fetch("/api/game/pass", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ game_id: gameIdRef.current }),
+      });
+
+      if (!res.ok) {
+        await fetchGameState();
+        const body = await res.json().catch(() => ({}));
+        console.error("Pass failed:", body.error);
+      }
+    } catch (err) {
+      console.error("Pass error:", err);
+      await fetchGameState();
+    } finally {
+      setActionLoading(false);
+    }
+  }
+
+  function handlePlaceEnd(end: "left" | "right") {
+    if (selectedTile) {
+      handlePlayTile(selectedTile, end);
+      selectTile(null);
+    }
+  }
+
+  async function handleNextRound() {
+    if (!roomId || actionLoading) return;
+    setActionLoading(true);
+
+    try {
+      const res = await fetch("/api/game/start", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ room_id: roomId }),
+      });
+
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        console.error("Next round failed:", body.error);
+      }
+      // The round_started event from realtime will handle the state update
+    } catch (err) {
+      console.error("Next round error:", err);
+    } finally {
+      setActionLoading(false);
+    }
+  }
+
+  function handleBackToLobby() {
+    router.push("/");
+  }
+
+  /* ---------------------------------------------------------------- */
+  /*  Loading / error states                                          */
+  /* ---------------------------------------------------------------- */
+  if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-950">
-        <p className="text-slate-400 animate-pulse">Cargando partida...</p>
+      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-950 gap-3">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-emerald-500 border-t-transparent" />
+        <p className="text-slate-400 animate-pulse text-sm">Cargando partida...</p>
       </div>
     );
   }
 
+  if (error) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-950 gap-4 px-4">
+        <div className="rounded-2xl bg-red-950/30 border border-red-900/40 p-6 max-w-sm text-center space-y-3">
+          <p className="text-red-400 font-semibold">Error</p>
+          <p className="text-sm text-red-300/80">{error}</p>
+          <button
+            onClick={() => { setError(null); setLoading(true); fetchGameState().then(() => setLoading(false)); }}
+            className="rounded-xl bg-slate-800 hover:bg-slate-700 px-5 py-2 text-sm text-slate-200 transition-colors"
+          >
+            Reintentar
+          </button>
+          <button
+            onClick={() => router.push("/")}
+            className="block mx-auto text-sm text-slate-500 hover:text-slate-300 transition-colors"
+          >
+            Volver al inicio
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (mySeat === null) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-950">
+        <p className="text-slate-400 animate-pulse">Conectando...</p>
+      </div>
+    );
+  }
+
+  /* ---------------------------------------------------------------- */
+  /*  Render the game                                                 */
+  /* ---------------------------------------------------------------- */
   const seats = getRelativeSeats(mySeat);
 
   function getPlayerName(seat: Seat): string {
@@ -92,31 +439,7 @@ export default function GamePage() {
     return players.find((p) => p.seat === seat)?.connected ?? false;
   }
 
-  function handlePlayTile(tile: Tile, end: "left" | "right") {
-    playTile(tile, end);
-    // TODO: Send to server via Supabase in Phase 5
-  }
-
-  function handlePass() {
-    passTurn();
-    // TODO: Send to server via Supabase in Phase 5
-  }
-
-  function handlePlaceEnd(end: "left" | "right") {
-    if (selectedTile) {
-      handlePlayTile(selectedTile, end);
-      selectTile(null);
-    }
-  }
-
-  function handleNextRound() {
-    setRoundResult(null);
-    // TODO: Request next round from server
-  }
-
-  function handleBackToLobby() {
-    router.push("/");
-  }
+  const isHost = userId === hostId;
 
   return (
     <div className="h-screen flex flex-col bg-slate-950 overflow-hidden select-none">
@@ -124,14 +447,26 @@ export default function GamePage() {
       <div className="flex items-start justify-between p-3 sm:p-4 shrink-0">
         <ScorePanel />
         <TurnIndicator />
-        <div className="min-w-[160px]" /> {/* Spacer for balance */}
+        {/* Room code badge */}
+        <div className="min-w-[160px] flex justify-end">
+          {roomCode && (
+            <div className="rounded-lg bg-slate-900/80 border border-slate-800 px-3 py-1.5 text-center">
+              <span className="text-[10px] uppercase tracking-wider text-slate-500 block">
+                Sala
+              </span>
+              <span className="text-xs font-mono font-semibold text-slate-400 tracking-widest">
+                {roomCode}
+              </span>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Partner (top) */}
       <div className="flex justify-center shrink-0 pb-2">
         <OpponentHand
           seat={seats.top}
-          tileCount={hands[seats.top].length}
+          tileCount={handCounts[seats.top] ?? 0}
           playerName={getPlayerName(seats.top)}
           connected={getPlayerConnected(seats.top)}
           isCurrentTurn={currentTurn === seats.top}
@@ -145,7 +480,7 @@ export default function GamePage() {
         <div className="shrink-0 px-2 sm:px-4">
           <OpponentHand
             seat={seats.left}
-            tileCount={hands[seats.left].length}
+            tileCount={handCounts[seats.left] ?? 0}
             playerName={getPlayerName(seats.left)}
             connected={getPlayerConnected(seats.left)}
             isCurrentTurn={currentTurn === seats.left}
@@ -160,7 +495,7 @@ export default function GamePage() {
         <div className="shrink-0 px-2 sm:px-4">
           <OpponentHand
             seat={seats.right}
-            tileCount={hands[seats.right].length}
+            tileCount={handCounts[seats.right] ?? 0}
             playerName={getPlayerName(seats.right)}
             connected={getPlayerConnected(seats.right)}
             isCurrentTurn={currentTurn === seats.right}
@@ -176,9 +511,19 @@ export default function GamePage() {
 
       {/* Game over modal */}
       <GameOverModal
-        onNextRound={handleNextRound}
+        onNextRound={isHost ? handleNextRound : undefined}
         onBackToLobby={handleBackToLobby}
       />
+
+      {/* Chat panel */}
+      {userId && roomCode && (
+        <ChatPanel
+          roomCode={roomCode}
+          gameId={gameIdRef.current}
+          userId={userId}
+          displayName={displayName}
+        />
+      )}
     </div>
   );
 }

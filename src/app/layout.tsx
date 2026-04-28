@@ -1,21 +1,43 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Inter } from "next/font/google";
 import "./globals.css";
 
-const geistSans = Geist({
+const inter = Inter({
   variable: "--font-geist-sans",
   subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
-  title: "Dominó Venezolano",
+  title: {
+    default: "Dominó Venezolano — Juega en línea",
+    template: "%s | Dominó Venezolano",
+  },
   description:
-    "Juega dominó venezolano en línea con tus amigos. Partidas de 4 jugadores en parejas.",
+    "Juega dominó venezolano en línea con tus amigos. Partidas de 4 jugadores en parejas, a 100 puntos. Gratis y en tiempo real.",
+  keywords: [
+    "dominó",
+    "venezolano",
+    "juego en línea",
+    "parejas",
+    "domino online",
+  ],
+  metadataBase: new URL("https://domino.com.ve"),
+  openGraph: {
+    title: "Dominó Venezolano — Juega en línea",
+    description:
+      "Partidas de dominó venezolano en parejas. Crea una sala, invita a tus amigos y juega en tiempo real.",
+    url: "https://domino.com.ve",
+    siteName: "Dominó Venezolano",
+    locale: "es_VE",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Dominó Venezolano",
+    description: "Juega dominó en parejas con tus amigos, gratis y en línea.",
+  },
+  robots: { index: true, follow: true },
 };
 
 export default function RootLayout({
@@ -24,11 +46,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="es"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
-    >
-      <body className="min-h-full flex flex-col bg-slate-950 text-white">
+    <html lang="es" className={`${inter.variable} h-full antialiased`}>
+      <body className="min-h-full flex flex-col bg-slate-950 text-white bg-grid-pattern relative overflow-x-hidden">
+        {/* Ambient gradient blobs */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none fixed inset-0 -z-10 overflow-hidden"
+        >
+          <div className="absolute -top-40 -left-40 h-[500px] w-[500px] rounded-full bg-emerald-600/[0.07] blur-[120px]" />
+          <div className="absolute -bottom-40 -right-40 h-[400px] w-[400px] rounded-full bg-amber-500/[0.05] blur-[120px]" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[600px] w-[600px] rounded-full bg-emerald-500/[0.03] blur-[150px]" />
+        </div>
         {children}
       </body>
     </html>

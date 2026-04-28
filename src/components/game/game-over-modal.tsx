@@ -118,7 +118,7 @@ export function GameOverModal({ onNextRound, onBackToLobby }: GameOverModalProps
             </motion.div>
           )}
 
-          {/* Action button */}
+          {/* Action buttons */}
           {gameOver ? (
             <button
               onClick={onBackToLobby}
@@ -126,13 +126,17 @@ export function GameOverModal({ onNextRound, onBackToLobby }: GameOverModalProps
             >
               Volver al lobby
             </button>
-          ) : (
+          ) : onNextRound ? (
             <button
               onClick={onNextRound}
               className="w-full rounded-xl bg-emerald-600 hover:bg-emerald-500 px-6 py-3 text-sm font-semibold text-white transition-colors"
             >
               Siguiente ronda
             </button>
+          ) : (
+            <p className="text-sm text-slate-400 animate-pulse">
+              Esperando que el host inicie la siguiente ronda...
+            </p>
           )}
         </motion.div>
       </motion.div>
