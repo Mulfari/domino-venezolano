@@ -178,10 +178,15 @@ export function LobbyClient({ user, createRoomAction, joinRoomForm }: Props) {
         </div>
         {user ? (
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-emerald-600/20 border border-emerald-500/30 flex items-center justify-center text-xs font-bold text-emerald-400">
-              {user.displayName.charAt(0).toUpperCase()}
-            </div>
-            <span className="text-sm text-slate-300 hidden sm:block">{user.displayName}</span>
+            <Link
+              href="/perfil"
+              className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+            >
+              <div className="w-8 h-8 rounded-full bg-emerald-600/20 border border-emerald-500/30 flex items-center justify-center text-xs font-bold text-emerald-400">
+                {user.displayName.charAt(0).toUpperCase()}
+              </div>
+              <span className="text-sm text-slate-300 hidden sm:block">{user.displayName}</span>
+            </Link>
           </div>
         ) : (
           <Link
