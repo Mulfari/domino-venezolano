@@ -39,6 +39,10 @@ export default async function RoomPage({ params }: Props) {
     redirect(`/juego/${room.current_game_id}`);
   }
 
+  if (room.status === "finished") {
+    redirect("/");
+  }
+
   return (
     <RoomLobby
       room={room}
