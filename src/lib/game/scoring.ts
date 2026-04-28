@@ -9,16 +9,15 @@ export function calculateHandSum(hand: Tile[]): number {
 }
 
 /**
- * Determines the result of a finished round.
+ * Determines the result of a finished round (Venezuelan rules).
  *
- * Three possible outcomes:
- * - "domino": a player emptied their hand. Their team wins and scores the sum of opponents' tiles.
- * - "locked": 4 consecutive passes. The team with the lower total pip count wins
- *   and scores the difference between the two teams' totals.
+ * Scoring: winner scores the sum of ALL remaining tiles across all 4 players.
+ *
+ * - "domino": a player emptied their hand. Their team scores all remaining pips.
+ * - "locked": 4 consecutive passes. Team with fewer pips wins and scores all remaining pips.
  * - "tied": locked and both teams have the same pip count. No winner, 0 points.
  */
 export function calculateRoundResult(state: GameState): RoundResult {
-  // Check for domino — a player with an empty hand
   const dominoSeat = SEATS.find((s) => {
     const hand = state.hands.get(s);
     return hand !== undefined && hand.length === 0;
@@ -26,12 +25,9 @@ export function calculateRoundResult(state: GameState): RoundResult {
 
   if (dominoSeat !== undefined) {
     const winnerTeam: Team = (dominoSeat % 2) as Team;
-    const losingTeam: Team = winnerTeam === 0 ? 1 : 0;
 
-    // Sum opponents' remaining tiles
-    const opponentSeats = TEAM_SEATS[losingTeam];
     let points = 0;
-    for (const seat of opponentSeats) {
+    for (const seat of SEATS) {
       const hand = state.hands.get(seat) ?? [];
       points += calculateHandSum(hand);
     }
@@ -54,8 +50,12 @@ export function calculateRoundResult(state: GameState): RoundResult {
   }
 
   const winnerTeam: Team = teamSums[0] < teamSums[1] ? 0 : 1;
-  const losingTeam: Team = winnerTeam === 0 ? 1 : 0;
-  const points = teamSums[losingTeam] - teamSums[winnerTeam];
+
+  let points = 0;
+  for (const seat of SEATS) {
+    const hand = state.hands.get(seat) ?? [];
+    points += calculateHandSum(hand);
+  }
 
   return { winner_team: winnerTeam, points, reason: "locked" };
 }

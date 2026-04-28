@@ -79,6 +79,15 @@ export async function POST(request: NextRequest) {
       status: "playing",
     };
 
+    // Enforce double-6 first play on round 1
+    const mustPlayDouble6 = (game.round_number ?? 1) === 1 && board.plays.length === 0;
+    if (mustPlayDouble6 && !(tile[0] === 6 && tile[1] === 6)) {
+      return NextResponse.json(
+        { error: "En la primera ronda debes jugar el doble 6." },
+        { status: 400 }
+      );
+    }
+
     // Apply the move (validates internally)
     let newState: GameState;
     try {

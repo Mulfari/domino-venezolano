@@ -7,7 +7,9 @@ export function ScorePanel() {
   const scores = useGameStore((s) => s.scores);
   const round = useGameStore((s) => s.round);
   const targetScore = useGameStore((s) => s.targetScore);
+  const mySeat = useGameStore((s) => s.mySeat);
 
+  const myTeam = mySeat !== null ? (mySeat % 2) as 0 | 1 : null;
   const teamAWinning = scores[0] > scores[1];
   const teamBWinning = scores[1] > scores[0];
   const tied = scores[0] === scores[1];
@@ -19,14 +21,14 @@ export function ScorePanel() {
           Ronda {round}
         </span>
         <span className="text-[9px] sm:text-[10px] text-[#a8c4a0]/40 ml-1">
-          ({targetScore})
+          meta: {targetScore}
         </span>
       </div>
 
       <div className="flex items-center justify-between gap-2 sm:gap-3">
         <div className="flex flex-col items-center">
-          <span className="text-[9px] sm:text-[10px] uppercase tracking-wider text-[#f5f0e8] font-medium">
-            Eq. A
+          <span className={`text-[9px] sm:text-[10px] uppercase tracking-wider font-medium ${myTeam === 0 ? "text-[#c9a84c]" : "text-[#f5f0e8]"}`}>
+            {myTeam === 0 ? "Tú" : "Ellos"}
           </span>
           <motion.span
             key={scores[0]}
@@ -38,11 +40,11 @@ export function ScorePanel() {
           </motion.span>
         </div>
 
-        <span className="text-[#c9a84c]/40 text-sm sm:text-lg font-light">vs</span>
+        <span className="text-[#c9a84c]/40 text-sm sm:text-lg font-light">—</span>
 
         <div className="flex flex-col items-center">
-          <span className="text-[9px] sm:text-[10px] uppercase tracking-wider text-[#c9a84c] font-medium">
-            Eq. B
+          <span className={`text-[9px] sm:text-[10px] uppercase tracking-wider font-medium ${myTeam === 1 ? "text-[#c9a84c]" : "text-[#f5f0e8]"}`}>
+            {myTeam === 1 ? "Tú" : "Ellos"}
           </span>
           <motion.span
             key={scores[1]}

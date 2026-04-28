@@ -1,11 +1,13 @@
 "use client";
 
+import { motion, AnimatePresence } from "framer-motion";
 import { useGameStore } from "@/stores/game-store";
 
 export function DisconnectOverlay() {
   const players = useGameStore((s) => s.players);
   const status = useGameStore((s) => s.status);
   const mySeat = useGameStore((s) => s.mySeat);
+  const currentTurn = useGameStore((s) => s.currentTurn);
 
   if (status !== "playing") return null;
 
@@ -16,37 +18,31 @@ export function DisconnectOverlay() {
   if (disconnected.length === 0) return null;
 
   const names = disconnected.map((p) => p.displayName).join(", ");
+  const isBlockingTurn = disconnected.some((p) => p.seat === currentTurn);
 
   return (
-    <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-      <div className="rounded-2xl bg-[#163d28] border border-[#c9a84c]/30 p-6 max-w-sm text-center space-y-3 shadow-xl">
-        <div className="w-12 h-12 mx-auto rounded-full bg-[#c9a84c]/20 flex items-center justify-center">
-          <svg
-            className="w-6 h-6 text-[#c9a84c] animate-pulse"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2}
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M8.288 15.038a5.25 5.25 0 017.424 0M5.106 11.856c3.807-3.808 9.98-3.808 13.788 0M1.924 8.674c5.565-5.565 14.587-5.565 20.152 0M12 18.75h.008v.008H12v-.008z"
-            />
-          </svg>
+    <AnimatePresence>
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -20 }}
+        className={`fixed top-16 left-1/2 -translate-x-1/2 z-40 rounded-xl border px-4 py-2.5 shadow-lg flex items-center gap-3 max-w-[90vw] ${
+          isBlockingTurn
+            ? "bg-red-950/90 border-red-800/50"
+            : "bg-[#163d28]/90 border-[#c9a84c]/30"
+        } backdrop-blur-sm`}
+      >
+        <div className="flex items-center gap-1.5">
+          <span className="w-2 h-2 rounded-full bg-red-400 animate-pulse" />
+          <span className="w-2 h-2 rounded-full bg-red-400 animate-pulse [animation-delay:150ms]" />
+          <span className="w-2 h-2 rounded-full bg-red-400 animate-pulse [animation-delay:300ms]" />
         </div>
-        <p className="text-[#c9a84c] font-semibold text-sm">
-          Esperando reconexión
+        <p className="text-xs text-[#f5f0e8]">
+          <span className="font-semibold">{names}</span>
+          {" "}{disconnected.length === 1 ? "desconectado" : "desconectados"}
+          {isBlockingTurn && " — esperando su turno"}
         </p>
-        <p className="text-[#a8c4a0] text-xs">
-          {names} {disconnected.length === 1 ? "se desconectó" : "se desconectaron"}. La partida continúa cuando {disconnected.length === 1 ? "vuelva" : "vuelvan"}.
-        </p>
-        <div className="flex items-center justify-center gap-1.5 pt-1">
-          <span className="w-1.5 h-1.5 rounded-full bg-[#c9a84c] animate-bounce [animation-delay:0ms]" />
-          <span className="w-1.5 h-1.5 rounded-full bg-[#c9a84c] animate-bounce [animation-delay:150ms]" />
-          <span className="w-1.5 h-1.5 rounded-full bg-[#c9a84c] animate-bounce [animation-delay:300ms]" />
-        </div>
-      </div>
-    </div>
+      </motion.div>
+    </AnimatePresence>
   );
 }
