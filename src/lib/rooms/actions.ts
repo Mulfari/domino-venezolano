@@ -437,28 +437,36 @@ export async function startGame(roomId: string) {
     tiles.slice(21, 28),
   ];
 
-  let startingSeat = 0;
-  let highestDouble = -1;
-  for (let s = 0; s < 4; s++) {
-    for (const tile of hands[s]) {
-      if (tile[0] === tile[1] && tile[0] > highestDouble) {
-        highestDouble = tile[0];
-        startingSeat = s;
-      }
-    }
-  }
-
   let previousScores = [0, 0];
   let roundNumber = 1;
+  let previousStarterSeat = -1;
   if (room.current_game_id) {
     const { data: prevGame } = await getSupabaseAdmin()
       .from("games")
-      .select("scores, round_number")
+      .select("scores, round_number, starter_seat")
       .eq("id", room.current_game_id)
       .single();
 
     if (prevGame?.scores) previousScores = prevGame.scores as number[];
     if (prevGame?.round_number) roundNumber = (prevGame.round_number as number) + 1;
+    if (prevGame?.starter_seat !== null && prevGame?.starter_seat !== undefined) {
+      previousStarterSeat = prevGame.starter_seat as number;
+    }
+  }
+
+  let startingSeat: number;
+  if (roundNumber === 1) {
+    startingSeat = 0;
+    for (let s = 0; s < 4; s++) {
+      if (hands[s].some(([a, b]) => a === 6 && b === 6)) {
+        startingSeat = s;
+        break;
+      }
+    }
+  } else {
+    startingSeat = previousStarterSeat >= 0
+      ? ((previousStarterSeat + 1) % 4)
+      : 0;
   }
 
   const boardState = { left: null, right: null, plays: [] };
@@ -468,6 +476,7 @@ export async function startGame(roomId: string) {
     .insert({
       room_id: room.id,
       round_number: roundNumber,
+      starter_seat: startingSeat,
       hands,
       board: boardState,
       board_left: null,
@@ -515,7 +524,7 @@ export async function startGame(roomId: string) {
 
   const startingPlayer = seats[startingSeat];
   if (startingPlayer && isBotUserId(startingPlayer.user_id)) {
-    processBotTurns(game.id).catch(console.error);
+    await processBotTurns(game.id);
   }
 
   return { gameId: game.id };

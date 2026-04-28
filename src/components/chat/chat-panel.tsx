@@ -6,6 +6,7 @@ import { ChatMessage } from "./chat-message";
 
 interface ChatPanelProps {
   roomCode: string;
+  roomId: string | null;
   gameId: string | null;
   userId: string;
   displayName: string;
@@ -13,6 +14,7 @@ interface ChatPanelProps {
 
 export function ChatPanel({
   roomCode,
+  roomId,
   gameId,
   userId,
   displayName,
@@ -25,6 +27,7 @@ export function ChatPanel({
 
   const { messages, sendMessage, loading } = useChat({
     roomCode,
+    roomId,
     gameId,
     userId,
     displayName,

@@ -185,12 +185,12 @@ export async function POST(request: NextRequest) {
 
     await getSupabaseAdmin().removeChannel(channel);
 
-    // If next turn is a bot and round isn't over, process bot turns
+    // If next turn is a bot and round isn't over, await bot turns
     if (newState.status === "playing") {
       const nextSeat = newState.current_turn;
       const nextPlayer = seats[nextSeat];
       if (nextPlayer && isBotUserId(nextPlayer.user_id)) {
-        processBotTurns(game_id).catch(console.error);
+        await processBotTurns(game_id);
       }
     }
 

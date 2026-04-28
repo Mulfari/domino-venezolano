@@ -481,7 +481,7 @@ export default function GamePage() {
         <ScorePanel />
         <div className="flex flex-col items-center gap-0.5 sm:gap-1 min-w-0">
           <TurnIndicator />
-          <TurnTimer />
+          <TurnTimer onAutoPass={handlePass} />
         </div>
         {/* Room code badge + sound */}
         <div className="min-w-0 sm:min-w-[160px] flex items-center justify-end gap-1 sm:gap-2">
@@ -559,6 +559,7 @@ export default function GamePage() {
       {userId && roomCode && (
         <ChatPanel
           roomCode={roomCode}
+          roomId={roomId}
           gameId={gameIdRef.current}
           userId={userId}
           displayName={displayName}

@@ -1,20 +1,30 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { motion } from "framer-motion";
 import { useGameStore } from "@/stores/game-store";
 
-const TURN_DURATION = 60;
+const TURN_DURATION = 30;
 
-export function TurnTimer() {
+interface TurnTimerProps {
+  onAutoPass?: () => void;
+}
+
+export function TurnTimer({ onAutoPass }: TurnTimerProps) {
   const currentTurn = useGameStore((s) => s.currentTurn);
   const status = useGameStore((s) => s.status);
   const mySeat = useGameStore((s) => s.mySeat);
+  const canPassFn = useGameStore((s) => s.canPass);
   const [seconds, setSeconds] = useState(TURN_DURATION);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const autoPassedRef = useRef(false);
+
+  const isMyTurn = mySeat !== null && currentTurn === mySeat;
+  const canPass = canPassFn();
 
   useEffect(() => {
     setSeconds(TURN_DURATION);
+    autoPassedRef.current = false;
     if (status !== "playing") return;
 
     intervalRef.current = setInterval(() => {
@@ -26,9 +36,15 @@ export function TurnTimer() {
     };
   }, [currentTurn, status]);
 
+  useEffect(() => {
+    if (seconds === 0 && isMyTurn && canPass && !autoPassedRef.current && onAutoPass) {
+      autoPassedRef.current = true;
+      onAutoPass();
+    }
+  }, [seconds, isMyTurn, canPass, onAutoPass]);
+
   if (status !== "playing") return null;
 
-  const isMyTurn = mySeat !== null && currentTurn === mySeat;
   const pct = seconds / TURN_DURATION;
   const urgent = seconds <= 10;
 

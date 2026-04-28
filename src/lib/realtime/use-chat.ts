@@ -15,12 +15,13 @@ interface ChatMessage {
 
 interface UseChatOptions {
   roomCode: string;
+  roomId: string | null;
   gameId: string | null;
   userId: string;
   displayName: string;
 }
 
-export function useChat({ roomCode, gameId, userId, displayName }: UseChatOptions) {
+export function useChat({ roomCode, roomId, gameId, userId, displayName }: UseChatOptions) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [loading, setLoading] = useState(true);
   const channelRef = useRef<RealtimeChannel | null>(null);
@@ -102,15 +103,17 @@ export function useChat({ roomCode, gameId, userId, displayName }: UseChatOption
       setMessages((prev) => [...prev, chatMsg]);
 
       // Persist to DB (fire and forget)
-      await supabase.from("chat_messages").insert({
-        id,
-        game_id: gameId,
-        player_id: userId,
-        display_name: displayName,
-        message: message.trim(),
-      });
+      if (roomId) {
+        await supabase.from("chat_messages").insert({
+          id,
+          room_id: roomId,
+          game_id: gameId,
+          player_id: userId,
+          message: message.trim(),
+        });
+      }
     },
-    [gameId, userId, displayName]
+    [gameId, roomId, userId, displayName]
   );
 
   return { messages, sendMessage, loading };
