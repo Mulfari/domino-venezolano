@@ -2,6 +2,8 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { RoomLobby } from "./room-lobby";
 
+export const dynamic = "force-dynamic";
+
 interface Props {
   params: Promise<{ code: string }>;
 }

@@ -3,6 +3,8 @@ import { createRoom } from "@/lib/rooms/actions";
 import Link from "next/link";
 import { JoinRoomForm } from "./join-room-form";
 
+export const dynamic = "force-dynamic";
+
 export default async function LobbyPage() {
   const supabase = await createClient();
   const {
