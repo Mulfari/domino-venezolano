@@ -5,6 +5,7 @@ import { getValidMoves } from "@/lib/game/engine";
 import { calculateRoundResult } from "@/lib/game/scoring";
 import { processBotTurns } from "@/lib/game/bot-turn";
 import { isBotUserId } from "@/lib/game/bot-engine";
+import { updateProfileStats } from "@/lib/game/update-profile-stats";
 import type { Tile, Seat, BoardState, GameState } from "@/lib/game/types";
 
 export async function POST(request: NextRequest) {
@@ -28,7 +29,7 @@ export async function POST(request: NextRequest) {
     // Fetch game state
     const { data: game, error: gameError } = await getSupabaseAdmin()
       .from("games")
-      .select("*, rooms!games_room_id_fkey(code, seats)")
+      .select("*, rooms!games_room_id_fkey(code, seats, target_score)")
       .eq("id", game_id)
       .single();
 
@@ -159,6 +160,14 @@ export async function POST(request: NextRequest) {
     }
 
     await getSupabaseAdmin().removeChannel(channel);
+
+    // Update profile stats if match is over
+    if (roundResult && newScores) {
+      const targetScore = ((game.rooms as Record<string, unknown>).target_score as number) ?? 100;
+      if (roundResult.winner_team !== null && (newScores[0] >= targetScore || newScores[1] >= targetScore)) {
+        await updateProfileStats(seats, roundResult.winner_team as 0 | 1, targetScore, newScores);
+      }
+    }
 
     // If next turn is a bot and round isn't over, await bot turns
     if (newStatus === "playing") {

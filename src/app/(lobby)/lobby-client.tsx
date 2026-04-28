@@ -209,8 +209,14 @@ function QuickPlayButton({ action }: { action: () => Promise<unknown> }) {
 }
 
 /* ── Main lobby client ────────────────────────── */
+interface PlayerStats {
+  gamesPlayed: number;
+  gamesWon: number;
+  winStreak: number;
+}
+
 interface Props {
-  user: { displayName: string } | null;
+  user: { displayName: string; stats: PlayerStats } | null;
   createRoomAction: (opts: { isPrivate: boolean; password?: string }) => Promise<unknown>;
   quickPlayAction: () => Promise<unknown>;
   joinRoomForm: ReactNode;
@@ -323,9 +329,9 @@ export function LobbyClient({ user, createRoomAction, quickPlayAction, joinRoomF
               transition={{ delay: 0.3 }}
               className="flex gap-3"
             >
-              <StatCard label="Partidas" value="0" />
-              <StatCard label="Victorias" value="0" />
-              <StatCard label="Racha" value="—" />
+              <StatCard label="Partidas" value={String(user.stats.gamesPlayed)} />
+              <StatCard label="Victorias" value={String(user.stats.gamesWon)} />
+              <StatCard label="Racha" value={user.stats.winStreak > 0 ? `${user.stats.winStreak} 🔥` : "—"} />
             </motion.div>
           )}
 
