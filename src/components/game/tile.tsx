@@ -103,6 +103,11 @@ export function DominoTile({
       animate={selected ? { y: -12, scale: 1.08 } : { y: 0, scale: 1 }}
       transition={{ type: "spring", stiffness: 400, damping: 25 }}
       onClick={clickable && !disabled ? onClick : undefined}
+      onKeyDown={clickable && !disabled ? (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onClick?.(); } } : undefined}
+      tabIndex={clickable && !disabled ? 0 : undefined}
+      role={clickable ? "button" : undefined}
+      aria-label={tile ? `Ficha ${tile[0]}-${tile[1]}${selected ? ", seleccionada" : ""}${disabled ? ", no jugable" : ""}` : faceDown ? "Ficha boca abajo" : undefined}
+      aria-disabled={clickable && disabled ? true : undefined}
     >
       <svg
         width={w}
