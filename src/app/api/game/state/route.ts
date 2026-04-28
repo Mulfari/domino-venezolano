@@ -38,7 +38,7 @@ export async function GET(request: NextRequest) {
     // Fetch game state
     const { data: game, error: gameError } = await getSupabaseAdmin()
       .from("games")
-      .select("*, rooms!inner(code, seats, host_id, target_score)")
+      .select("*, rooms!games_room_id_fkey(code, seats, host_id, target_score)")
       .eq("id", game_id)
       .single();
 

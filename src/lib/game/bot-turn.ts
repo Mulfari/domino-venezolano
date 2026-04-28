@@ -10,7 +10,7 @@ export async function processBotTurns(gameId: string) {
   for (let safety = 0; safety < 20; safety++) {
     const { data: game } = await admin
       .from("games")
-      .select("*, rooms!inner(code, seats)")
+      .select("*, rooms!games_room_id_fkey(code, seats)")
       .eq("id", gameId)
       .single();
 
