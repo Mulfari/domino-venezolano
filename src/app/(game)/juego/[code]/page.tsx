@@ -182,9 +182,7 @@ export default function GamePage() {
       // Fetch game state
       const data = await fetchGameState();
       if (!cancelled) {
-        if (data) {
-          setLoading(false);
-        }
+        setLoading(false);
       }
     }
 

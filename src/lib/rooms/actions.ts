@@ -483,14 +483,22 @@ export async function startGame(roomId: string) {
 
   if (gameError) return { error: "No se pudo crear la partida: " + gameError.message };
 
-  const handInserts = seats.map((seat, i) => ({
-    game_id: game.id,
-    player_id: seat!.user_id,
-    seat: i,
-    tiles: hands[i],
-  }));
+  const { isBotUserId } = await import("@/lib/game/bot-engine");
+  const { processBotTurns } = await import("@/lib/game/bot-turn");
 
-  await getSupabaseAdmin().from("game_hands").insert(handInserts);
+  const handInserts = seats
+    .map((seat, i) => ({ seat: seat!, index: i }))
+    .filter(({ seat }) => !isBotUserId(seat.user_id))
+    .map(({ seat, index }) => ({
+      game_id: game.id,
+      player_id: seat.user_id,
+      seat: index,
+      tiles: hands[index],
+    }));
+
+  if (handInserts.length > 0) {
+    await getSupabaseAdmin().from("game_hands").insert(handInserts);
+  }
 
   await getSupabaseAdmin()
     .from("rooms")
@@ -504,6 +512,11 @@ export async function startGame(roomId: string) {
     payload: { type: "round_started", game_id: game.id, current_turn: startingSeat },
   });
   await getSupabaseAdmin().removeChannel(channel);
+
+  const startingPlayer = seats[startingSeat];
+  if (startingPlayer && isBotUserId(startingPlayer.user_id)) {
+    processBotTurns(game.id).catch(console.error);
+  }
 
   return { gameId: game.id };
 }

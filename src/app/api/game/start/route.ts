@@ -131,14 +131,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Write hands to game_hands table for RLS-based access
-    const handInserts = seats.map((seat, i) => ({
-      game_id: game.id,
-      player_id: seat!.user_id,
-      seat: i,
-      tiles: hands[i],
-    }));
-    await getSupabaseAdmin().from("game_hands").insert(handInserts);
+    // Write hands to game_hands table for RLS-based access (skip bots — not real UUIDs)
+    const handInserts = seats
+      .map((seat, i) => ({ seat: seat!, index: i }))
+      .filter(({ seat }) => !isBotUserId(seat.user_id))
+      .map(({ seat, index }) => ({
+        game_id: game.id,
+        player_id: seat.user_id,
+        seat: index,
+        tiles: hands[index],
+      }));
+    if (handInserts.length > 0) {
+      await getSupabaseAdmin().from("game_hands").insert(handInserts);
+    }
 
     // Update room
     await getSupabaseAdmin()
