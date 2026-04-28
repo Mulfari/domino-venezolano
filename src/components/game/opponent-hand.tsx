@@ -25,7 +25,7 @@ export function OpponentHand({
   return (
     <div
       className={`flex items-center gap-2 ${
-        isVertical ? "flex-col" : "flex-col"
+        isVertical ? "flex-col" : "flex-col-reverse"
       }`}
     >
       {/* Player name + status */}

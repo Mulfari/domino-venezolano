@@ -1,28 +1,29 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useSyncExternalStore } from "react";
+
+function subscribe(callback: () => void) {
+  window.addEventListener("resize", callback);
+  window.addEventListener("orientationchange", callback);
+  return () => {
+    window.removeEventListener("resize", callback);
+    window.removeEventListener("orientationchange", callback);
+  };
+}
+
+function getSnapshot() {
+  return window.innerHeight > window.innerWidth && window.innerWidth < 640;
+}
+
+function getServerSnapshot() {
+  return false;
+}
 
 export function LandscapePrompt() {
-  const [show, setShow] = useState(false);
+  const isPortraitMobile = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
   const [dismissed, setDismissed] = useState(false);
 
-  useEffect(() => {
-    function check() {
-      const isPortrait = window.innerHeight > window.innerWidth;
-      const isMobile = window.innerWidth < 640;
-      setShow(isPortrait && isMobile && !dismissed);
-    }
-
-    check();
-    window.addEventListener("resize", check);
-    window.addEventListener("orientationchange", check);
-    return () => {
-      window.removeEventListener("resize", check);
-      window.removeEventListener("orientationchange", check);
-    };
-  }, [dismissed]);
-
-  if (!show) return null;
+  if (!isPortraitMobile || dismissed) return null;
 
   return (
     <div className="fixed inset-0 z-[60] bg-[#163d28]/95 backdrop-blur-sm flex items-center justify-center p-6">
