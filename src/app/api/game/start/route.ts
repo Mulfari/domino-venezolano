@@ -150,7 +150,7 @@ export async function POST(request: NextRequest) {
 
     await getSupabaseAdmin()
       .from("rooms")
-      .update({ status: "playing", current_game_id: game.id })
+      .update({ status: "playing", current_game_id: game.id, started_at: new Date().toISOString() })
       .eq("id", room.id);
 
     const channel = getSupabaseAdmin().channel(`room:${room.code}`);
