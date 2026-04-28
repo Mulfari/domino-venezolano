@@ -70,10 +70,10 @@ export function GameOverModal({ onNextRound, onBackToLobby }: GameOverModalProps
 
   const winnerColor =
     roundResult.winner_team === 0
-      ? "text-emerald-400"
+      ? "text-[#f5f0e8]"
       : roundResult.winner_team === 1
-        ? "text-amber-400"
-        : "text-slate-400";
+        ? "text-[#c9a84c]"
+        : "text-[#a8c4a0]";
 
   const finalWinner =
     scores[0] >= targetScore ? "Equipo A"
@@ -98,7 +98,7 @@ export function GameOverModal({ onNextRound, onBackToLobby }: GameOverModalProps
             initial={{ scale: 0.6, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ type: "spring", stiffness: 200, damping: 20 }}
-            className="w-full max-w-sm rounded-2xl bg-slate-900 border border-slate-700 p-8 text-center space-y-5"
+            className="w-full max-w-sm rounded-2xl bg-[#163d28] border border-[#c9a84c]/30 p-8 text-center space-y-5"
           >
             <motion.div
               initial={{ scale: 0 }}
@@ -113,7 +113,7 @@ export function GameOverModal({ onNextRound, onBackToLobby }: GameOverModalProps
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.5 }}
-              className={`text-2xl font-bold ${iWonMatch ? "text-emerald-400" : "text-red-400"}`}
+              className={`text-2xl font-bold ${iWonMatch ? "text-[#c9a84c]" : "text-red-400"}`}
             >
               {iWonMatch ? "¡Victoria!" : "Derrota"}
             </motion.p>
@@ -122,7 +122,7 @@ export function GameOverModal({ onNextRound, onBackToLobby }: GameOverModalProps
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.7 }}
-              className="text-slate-400 text-sm"
+              className="text-[#a8c4a0] text-sm"
             >
               {finalWinner} gana la partida
             </motion.p>
@@ -134,13 +134,13 @@ export function GameOverModal({ onNextRound, onBackToLobby }: GameOverModalProps
               className="flex items-center justify-center gap-8 py-3"
             >
               <div className="text-center">
-                <p className="text-[10px] uppercase tracking-wider text-emerald-500">Equipo A</p>
-                <p className="text-3xl font-bold text-white">{scores[0]}</p>
+                <p className="text-[10px] uppercase tracking-wider text-[#f5f0e8]">Equipo A</p>
+                <p className="text-3xl font-bold text-[#f5f0e8]">{scores[0]}</p>
               </div>
-              <span className="text-slate-600 text-xl">—</span>
+              <span className="text-[#c9a84c]/40 text-xl">—</span>
               <div className="text-center">
-                <p className="text-[10px] uppercase tracking-wider text-amber-500">Equipo B</p>
-                <p className="text-3xl font-bold text-white">{scores[1]}</p>
+                <p className="text-[10px] uppercase tracking-wider text-[#c9a84c]">Equipo B</p>
+                <p className="text-3xl font-bold text-[#f5f0e8]">{scores[1]}</p>
               </div>
             </motion.div>
 
@@ -149,7 +149,7 @@ export function GameOverModal({ onNextRound, onBackToLobby }: GameOverModalProps
               animate={{ opacity: 1 }}
               transition={{ delay: 1.2 }}
               onClick={onBackToLobby}
-              className="w-full rounded-xl bg-emerald-600 hover:bg-emerald-500 px-6 py-3 text-sm font-semibold text-white transition-colors"
+              className="w-full rounded-xl bg-[#c9a84c] hover:bg-[#dfc06a] px-6 py-3 text-sm font-semibold text-[#2a1a0a] transition-colors"
             >
               Volver al inicio
             </motion.button>
@@ -172,13 +172,13 @@ export function GameOverModal({ onNextRound, onBackToLobby }: GameOverModalProps
           animate={{ scale: 1, opacity: 1, y: 0 }}
           exit={{ scale: 0.8, opacity: 0, y: 20 }}
           transition={{ type: "spring", stiffness: 300, damping: 25 }}
-          className="w-full max-w-sm rounded-2xl bg-slate-900 border border-slate-700 p-6 text-center space-y-4"
+          className="w-full max-w-sm rounded-2xl bg-[#163d28] border border-[#c9a84c]/30 p-6 text-center space-y-4"
         >
           <motion.p
             initial={{ scale: 0.5 }}
             animate={{ scale: 1 }}
             transition={{ delay: 0.2, type: "spring", stiffness: 400 }}
-            className={`text-3xl font-bold ${iWon ? "text-emerald-400" : roundResult.winner_team === null ? "text-slate-300" : "text-red-400"}`}
+            className={`text-3xl font-bold ${iWon ? "text-[#c9a84c]" : roundResult.winner_team === null ? "text-[#a8c4a0]" : "text-red-400"}`}
           >
             {reasonText[roundResult.reason] ?? roundResult.reason}
           </motion.p>
@@ -188,42 +188,42 @@ export function GameOverModal({ onNextRound, onBackToLobby }: GameOverModalProps
               {iWon ? "¡Tu equipo gana!" : `Gana ${winnerTeamLabel}`}
             </p>
           ) : (
-            <p className="text-lg text-slate-400">Sin ganador</p>
+            <p className="text-lg text-[#a8c4a0]">Sin ganador</p>
           )}
 
-          <div className="rounded-xl bg-slate-800/60 border border-slate-700/50 p-3">
-            <p className="text-sm text-slate-400 mb-1">Puntos esta ronda</p>
-            <p className="text-2xl font-bold text-white">+{roundResult.points}</p>
+          <div className="rounded-xl bg-[#1e5c3a]/40 border border-[#c9a84c]/15 p-3">
+            <p className="text-sm text-[#a8c4a0] mb-1">Puntos esta ronda</p>
+            <p className="text-2xl font-bold text-[#f5f0e8]">+{roundResult.points}</p>
           </div>
 
           <div className="flex items-center justify-center gap-6">
             <div className="text-center">
-              <p className="text-[10px] uppercase tracking-wider text-emerald-500">Equipo A</p>
-              <p className="text-xl font-bold text-white">{scores[0]}</p>
+              <p className="text-[10px] uppercase tracking-wider text-[#f5f0e8]">Equipo A</p>
+              <p className="text-xl font-bold text-[#f5f0e8]">{scores[0]}</p>
             </div>
-            <span className="text-slate-600">—</span>
+            <span className="text-[#c9a84c]/40">—</span>
             <div className="text-center">
-              <p className="text-[10px] uppercase tracking-wider text-amber-500">Equipo B</p>
-              <p className="text-xl font-bold text-white">{scores[1]}</p>
+              <p className="text-[10px] uppercase tracking-wider text-[#c9a84c]">Equipo B</p>
+              <p className="text-xl font-bold text-[#f5f0e8]">{scores[1]}</p>
             </div>
           </div>
 
           {onNextRound ? (
             <div className="space-y-2">
-              <div className="relative h-1.5 rounded-full bg-slate-800 overflow-hidden">
+              <div className="relative h-1.5 rounded-full bg-[#1e5c3a]/50 overflow-hidden">
                 <motion.div
                   initial={{ width: "100%" }}
                   animate={{ width: "0%" }}
                   transition={{ duration: AUTO_START_DELAY, ease: "linear" }}
-                  className="absolute inset-y-0 left-0 bg-emerald-500 rounded-full"
+                  className="absolute inset-y-0 left-0 bg-[#c9a84c] rounded-full"
                 />
               </div>
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-[#a8c4a0]/60">
                 Siguiente ronda en {countdown}s
               </p>
             </div>
           ) : (
-            <p className="text-sm text-slate-400 animate-pulse">
+            <p className="text-sm text-[#a8c4a0] animate-pulse">
               Siguiente ronda en breve...
             </p>
           )}

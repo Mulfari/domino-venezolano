@@ -114,7 +114,7 @@ export function Hand({ onPlayTile, onPass }: HandProps) {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.8 }}
             onClick={onPass}
-            className="rounded-xl bg-amber-600 hover:bg-amber-500 px-6 py-2.5 text-sm font-semibold text-white transition-colors"
+            className="rounded-xl bg-[#c9a84c] hover:bg-[#dfc06a] px-6 py-2.5 text-sm font-semibold text-[#2a1a0a] transition-colors"
           >
             Pasar
           </motion.button>

@@ -56,15 +56,15 @@ export default function RootLayout({
         <link rel="icon" href="/icons/icon.svg" type="image/svg+xml" />
         <link rel="apple-touch-icon" href="/icons/icon.svg" />
       </head>
-      <body className="min-h-full flex flex-col bg-slate-950 text-white bg-grid-pattern relative overflow-x-hidden">
+      <body className="min-h-full flex flex-col bg-[#1a3a2a] text-[#f5f0e8] bg-felt relative overflow-x-hidden">
         {/* Ambient gradient blobs */}
         <div
           aria-hidden="true"
           className="pointer-events-none fixed inset-0 -z-10 overflow-hidden"
         >
-          <div className="absolute -top-40 -left-40 h-[500px] w-[500px] rounded-full bg-emerald-600/[0.07] blur-[120px]" />
-          <div className="absolute -bottom-40 -right-40 h-[400px] w-[400px] rounded-full bg-amber-500/[0.05] blur-[120px]" />
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[600px] w-[600px] rounded-full bg-emerald-500/[0.03] blur-[150px]" />
+          <div className="absolute -top-40 -left-40 h-[500px] w-[500px] rounded-full bg-[#1e5c3a]/[0.15] blur-[120px]" />
+          <div className="absolute -bottom-40 -right-40 h-[400px] w-[400px] rounded-full bg-[#c9a84c]/[0.05] blur-[120px]" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[600px] w-[600px] rounded-full bg-[#1e5c3a]/[0.08] blur-[150px]" />
         </div>
         {children}
       </body>

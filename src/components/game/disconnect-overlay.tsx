@@ -19,10 +19,10 @@ export function DisconnectOverlay() {
 
   return (
     <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-      <div className="rounded-2xl bg-slate-900 border border-amber-500/30 p-6 max-w-sm text-center space-y-3 shadow-xl">
-        <div className="w-12 h-12 mx-auto rounded-full bg-amber-500/20 flex items-center justify-center">
+      <div className="rounded-2xl bg-[#163d28] border border-[#c9a84c]/30 p-6 max-w-sm text-center space-y-3 shadow-xl">
+        <div className="w-12 h-12 mx-auto rounded-full bg-[#c9a84c]/20 flex items-center justify-center">
           <svg
-            className="w-6 h-6 text-amber-400 animate-pulse"
+            className="w-6 h-6 text-[#c9a84c] animate-pulse"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -35,16 +35,16 @@ export function DisconnectOverlay() {
             />
           </svg>
         </div>
-        <p className="text-amber-300 font-semibold text-sm">
+        <p className="text-[#c9a84c] font-semibold text-sm">
           Esperando reconexión
         </p>
-        <p className="text-slate-400 text-xs">
+        <p className="text-[#a8c4a0] text-xs">
           {names} {disconnected.length === 1 ? "se desconectó" : "se desconectaron"}. La partida continúa cuando {disconnected.length === 1 ? "vuelva" : "vuelvan"}.
         </p>
         <div className="flex items-center justify-center gap-1.5 pt-1">
-          <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-bounce [animation-delay:0ms]" />
-          <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-bounce [animation-delay:150ms]" />
-          <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-bounce [animation-delay:300ms]" />
+          <span className="w-1.5 h-1.5 rounded-full bg-[#c9a84c] animate-bounce [animation-delay:0ms]" />
+          <span className="w-1.5 h-1.5 rounded-full bg-[#c9a84c] animate-bounce [animation-delay:150ms]" />
+          <span className="w-1.5 h-1.5 rounded-full bg-[#c9a84c] animate-bounce [animation-delay:300ms]" />
         </div>
       </div>
     </div>

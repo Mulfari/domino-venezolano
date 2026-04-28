@@ -15,7 +15,7 @@ export function SoundToggle() {
   return (
     <button
       onClick={toggle}
-      className="rounded-lg bg-slate-900/80 border border-slate-800 px-2.5 py-1.5 text-slate-400 hover:text-white transition-colors"
+      className="rounded-lg bg-[#3a2210]/80 border border-[#c9a84c]/20 px-2.5 py-1.5 text-[#a8c4a0] hover:text-[#f5f0e8] transition-colors"
       aria-label={muted ? "Activar sonido" : "Silenciar"}
       title={muted ? "Activar sonido" : "Silenciar"}
     >

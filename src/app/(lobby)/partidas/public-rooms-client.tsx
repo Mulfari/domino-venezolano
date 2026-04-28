@@ -221,7 +221,7 @@ export function PublicRoomsClient({ initialRooms, userId, displayName }: Props) 
                     {alreadyIn ? (
                       <Link
                         href={`/sala/${room.code}`}
-                        className="rounded-xl bg-amber-600/20 border border-amber-500/30 px-4 py-2 text-sm font-medium text-amber-400 hover:bg-amber-600/30 transition-colors whitespace-nowrap"
+                        className="rounded-xl bg-[#c9a84c]/20 border border-[#c9a84c]/30 px-4 py-2 text-sm font-medium text-[#c9a84c] hover:bg-[#c9a84c]/30 transition-colors whitespace-nowrap"
                       >
                         Volver
                       </Link>

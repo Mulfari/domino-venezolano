@@ -75,21 +75,21 @@ export function Board({ onPlaceEnd }: BoardProps) {
   return (
     <div className="relative flex flex-col items-center justify-center flex-1 min-h-0">
       <div className="relative w-full max-w-2xl mx-auto px-2 sm:px-4">
-        <div className="absolute inset-0 -m-4 sm:-m-8 rounded-3xl bg-emerald-950/30 border border-emerald-900/20" />
+        <div className="absolute inset-0 -m-4 sm:-m-8 rounded-3xl bg-[#1e5c3a]/30 border border-[#c9a84c]/10" />
 
         {board.left !== null && board.right !== null && (
           <div className="relative flex items-center justify-between mb-3 px-2">
             <motion.span
               animate={isMyTurn ? { scale: [1, 1.15, 1] } : {}}
               transition={{ repeat: Infinity, duration: 1.5 }}
-              className={`text-xs font-mono px-2 py-0.5 rounded ${isMyTurn ? "bg-emerald-900/50 text-emerald-400 border border-emerald-700/40" : "text-slate-500"}`}
+              className={`text-xs font-mono px-2 py-0.5 rounded ${isMyTurn ? "bg-[#3a2210]/60 text-[#c9a84c] border border-[#c9a84c]/30" : "text-[#a8c4a0]/50"}`}
             >
               ← {board.left}
             </motion.span>
             <motion.span
               animate={isMyTurn ? { scale: [1, 1.15, 1] } : {}}
               transition={{ repeat: Infinity, duration: 1.5, delay: 0.75 }}
-              className={`text-xs font-mono px-2 py-0.5 rounded ${isMyTurn ? "bg-emerald-900/50 text-emerald-400 border border-emerald-700/40" : "text-slate-500"}`}
+              className={`text-xs font-mono px-2 py-0.5 rounded ${isMyTurn ? "bg-[#3a2210]/60 text-[#c9a84c] border border-[#c9a84c]/30" : "text-[#a8c4a0]/50"}`}
             >
               {board.right} →
             </motion.span>
@@ -110,7 +110,7 @@ export function Board({ onPlaceEnd }: BoardProps) {
                   boxShadow: i === lastLeftIndex ? "0 0 12px rgba(16,185,129,0.5)" : "none",
                 }}
                 transition={{ type: "spring", stiffness: 300, damping: 25 }}
-                className={i === lastLeftIndex ? "rounded ring-1 ring-emerald-500/60" : ""}
+                className={i === lastLeftIndex ? "rounded ring-1 ring-[#c9a84c]/60" : ""}
               >
                 <DominoTile
                   tile={tile}
@@ -135,7 +135,7 @@ export function Board({ onPlaceEnd }: BoardProps) {
                   boxShadow: i === lastRightIndex ? "0 0 12px rgba(16,185,129,0.5)" : "none",
                 }}
                 transition={{ type: "spring", stiffness: 300, damping: 25 }}
-                className={i === lastRightIndex ? "rounded ring-1 ring-emerald-500/60" : ""}
+                className={i === lastRightIndex ? "rounded ring-1 ring-[#c9a84c]/60" : ""}
               >
                 <DominoTile
                   tile={tile}
@@ -148,7 +148,7 @@ export function Board({ onPlaceEnd }: BoardProps) {
           </AnimatePresence>
 
           {board.plays.length === 0 && (
-            <p className="text-slate-600 text-sm">Mesa vacía</p>
+            <p className="text-[#a8c4a0]/50 text-sm">Mesa vacía</p>
           )}
         </div>
 
@@ -162,13 +162,13 @@ export function Board({ onPlaceEnd }: BoardProps) {
             >
               <button
                 onClick={() => onPlaceEnd?.("left")}
-                className="flex items-center gap-1 sm:gap-2 rounded-xl bg-emerald-700/80 hover:bg-emerald-600 active:bg-emerald-500 border border-emerald-500/30 px-3 sm:px-4 py-2.5 sm:py-2 text-xs sm:text-sm font-medium text-white transition-colors"
+                className="flex items-center gap-1 sm:gap-2 rounded-xl bg-[#3a2210]/80 hover:bg-[#4a2c0f] active:bg-[#5c3a1e] border border-[#c9a84c]/30 px-3 sm:px-4 py-2.5 sm:py-2 text-xs sm:text-sm font-medium text-[#f5f0e8] transition-colors"
               >
                 ← Izq ({board.left})
               </button>
               <button
                 onClick={() => onPlaceEnd?.("right")}
-                className="flex items-center gap-1 sm:gap-2 rounded-xl bg-emerald-700/80 hover:bg-emerald-600 active:bg-emerald-500 border border-emerald-500/30 px-3 sm:px-4 py-2.5 sm:py-2 text-xs sm:text-sm font-medium text-white transition-colors"
+                className="flex items-center gap-1 sm:gap-2 rounded-xl bg-[#3a2210]/80 hover:bg-[#4a2c0f] active:bg-[#5c3a1e] border border-[#c9a84c]/30 px-3 sm:px-4 py-2.5 sm:py-2 text-xs sm:text-sm font-medium text-[#f5f0e8] transition-colors"
               >
                 Der ({board.right}) →
               </button>

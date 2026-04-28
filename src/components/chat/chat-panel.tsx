@@ -68,7 +68,7 @@ export function ChatPanel({
       {/* Toggle button */}
       <button
         onClick={open ? () => setOpen(false) : handleOpen}
-        className="fixed bottom-4 right-4 z-50 w-11 h-11 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white flex items-center justify-center shadow-lg transition-colors"
+        className="fixed bottom-4 right-4 z-50 w-11 h-11 rounded-full bg-[#3a2210] hover:bg-[#4a2c0f] text-[#c9a84c] flex items-center justify-center shadow-lg transition-colors border border-[#c9a84c]/30"
         aria-label={open ? "Cerrar chat" : "Abrir chat"}
       >
         {open ? (
@@ -89,16 +89,16 @@ export function ChatPanel({
 
       {/* Slide-out panel */}
       <div
-        className={`fixed top-0 right-0 z-40 h-full w-72 sm:w-80 max-w-[90vw] bg-slate-900 border-l border-slate-800 shadow-2xl flex flex-col transition-transform duration-200 ease-out ${
+        className={`fixed top-0 right-0 z-40 h-full w-72 sm:w-80 max-w-[90vw] bg-[#163d28] border-l border-[#c9a84c]/20 shadow-2xl flex flex-col transition-transform duration-200 ease-out ${
           open ? "translate-x-0" : "translate-x-full"
         }`}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-slate-800 shrink-0">
-          <h2 className="text-sm font-semibold text-slate-200">Chat</h2>
+        <div className="flex items-center justify-between px-4 py-3 border-b border-[#c9a84c]/20 shrink-0">
+          <h2 className="text-sm font-semibold text-[#f5f0e8]">Chat</h2>
           <button
             onClick={() => setOpen(false)}
-            className="text-slate-500 hover:text-slate-300 transition-colors"
+            className="text-[#a8c4a0]/60 hover:text-[#f5f0e8] transition-colors"
             aria-label="Cerrar chat"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
@@ -110,12 +110,12 @@ export function ChatPanel({
         {/* Messages */}
         <div ref={scrollRef} className="flex-1 overflow-y-auto px-3 py-3 space-y-3">
           {loading && (
-            <p className="text-xs text-slate-500 text-center animate-pulse">
+            <p className="text-xs text-[#a8c4a0]/60 text-center animate-pulse">
               Cargando mensajes...
             </p>
           )}
           {!loading && messages.length === 0 && (
-            <p className="text-xs text-slate-600 text-center mt-8">
+            <p className="text-xs text-[#a8c4a0]/40 text-center mt-8">
               No hay mensajes aún. ¡Saluda!
             </p>
           )}
@@ -136,7 +136,7 @@ export function ChatPanel({
             <button
               key={r}
               onClick={() => sendMessage(r)}
-              className="rounded-full bg-slate-800 hover:bg-slate-700 border border-slate-700/50 px-2.5 py-1 text-xs text-slate-300 transition-colors"
+              className="rounded-full bg-[#1e5c3a]/40 hover:bg-[#1e5c3a]/60 border border-[#c9a84c]/15 px-2.5 py-1 text-xs text-[#e8dcc8] transition-colors"
             >
               {r}
             </button>
@@ -144,7 +144,7 @@ export function ChatPanel({
         </div>
 
         {/* Input */}
-        <div className="shrink-0 px-3 py-3 border-t border-slate-800">
+        <div className="shrink-0 px-3 py-3 border-t border-[#c9a84c]/20">
           <div className="flex gap-2">
             <input
               type="text"
@@ -153,12 +153,12 @@ export function ChatPanel({
               onKeyDown={handleKeyDown}
               placeholder="Escribe un mensaje..."
               maxLength={280}
-              className="flex-1 min-w-0 bg-slate-800 text-sm text-slate-200 placeholder-slate-500 rounded-lg px-3 py-2 outline-none focus:ring-1 focus:ring-emerald-500/50"
+              className="flex-1 min-w-0 bg-[#1e5c3a]/30 text-sm text-[#f5f0e8] placeholder-[#a8c4a0]/40 rounded-lg px-3 py-2 outline-none focus:ring-1 focus:ring-[#c9a84c]/50"
             />
             <button
               onClick={handleSend}
               disabled={!input.trim()}
-              className="shrink-0 px-3 py-2 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 disabled:hover:bg-emerald-600 text-white text-sm rounded-lg transition-colors"
+              className="shrink-0 px-3 py-2 bg-[#c9a84c] hover:bg-[#dfc06a] disabled:opacity-40 disabled:hover:bg-[#c9a84c] text-[#2a1a0a] text-sm rounded-lg transition-colors"
               aria-label="Enviar mensaje"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">

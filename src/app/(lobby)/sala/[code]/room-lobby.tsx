@@ -53,7 +53,7 @@ function IconCopy() {
 
 function IconCheck() {
   return (
-    <svg className="w-4 h-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <svg className="w-4 h-4 text-[#a8c4a0]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
       <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
     </svg>
   );
@@ -132,7 +132,7 @@ function SeatCard({
     >
       {isSeatHost && (
         <div className="absolute top-2.5 right-2.5">
-          <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/10 border border-amber-500/30 px-2 py-0.5 text-[10px] font-bold text-amber-400 uppercase tracking-wider">
+          <span className="inline-flex items-center gap-1 rounded-full bg-[#c9a84c]/10 border border-[#c9a84c]/30 px-2 py-0.5 text-[10px] font-bold text-[#c9a84c] uppercase tracking-wider">
             <svg className="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M10 1l2.928 6.856L20 8.59l-5.072 4.578L16.18 20 10 16.42 3.82 20l1.252-6.832L0 8.59l7.072-.734L10 1z" clipRule="evenodd" />
             </svg>

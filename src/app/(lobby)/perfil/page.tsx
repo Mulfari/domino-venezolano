@@ -77,8 +77,8 @@ export default function ProfilePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-950">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-emerald-500 border-t-transparent" />
+      <div className="min-h-screen flex items-center justify-center bg-[#1a3a2a]">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-[#c9a84c] border-t-transparent" />
       </div>
     );
   }
@@ -90,15 +90,15 @@ export default function ProfilePage() {
     : 0;
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-950">
-      <nav className="flex items-center justify-between px-6 py-4 border-b border-slate-800/50">
-        <Link href="/" className="flex items-center gap-2 text-slate-400 hover:text-slate-200 transition-colors text-sm">
+    <div className="min-h-screen flex flex-col bg-[#1a3a2a]">
+      <nav className="flex items-center justify-between px-6 py-4 border-b border-[#c9a84c]/20">
+        <Link href="/" className="flex items-center gap-2 text-[#a8c4a0] hover:text-[#f5f0e8] transition-colors text-sm">
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
           </svg>
           Volver
         </Link>
-        <span className="text-sm font-semibold text-slate-300">Mi Perfil</span>
+        <span className="text-sm font-semibold text-[#f5f0e8]">Mi Perfil</span>
         <div className="w-16" />
       </nav>
 
@@ -112,20 +112,20 @@ export default function ProfilePage() {
           <div className="glass rounded-2xl p-6 text-center space-y-4">
             <div className="text-5xl">{selectedAvatar}</div>
             <div>
-              <label className="block text-xs text-slate-500 mb-1.5">Nombre de jugador</label>
+              <label className="block text-xs text-[#a8c4a0]/60 mb-1.5">Nombre de jugador</label>
               <input
                 type="text"
                 value={displayName}
                 onChange={(e) => setDisplayName(e.target.value)}
                 maxLength={20}
-                className="w-full text-center rounded-xl bg-slate-900/80 border border-slate-700/50 px-4 py-2.5 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 text-sm"
+                className="w-full text-center rounded-xl bg-[#1e5c3a]/30 border border-[#c9a84c]/20 px-4 py-2.5 text-[#f5f0e8] placeholder-[#a8c4a0]/40 focus:outline-none focus:ring-2 focus:ring-[#c9a84c]/50 text-sm"
                 placeholder="Tu nombre"
               />
             </div>
 
             {/* Avatar picker */}
             <div>
-              <label className="block text-xs text-slate-500 mb-2">Elige tu avatar</label>
+              <label className="block text-xs text-[#a8c4a0]/60 mb-2">Elige tu avatar</label>
               <div className="flex flex-wrap justify-center gap-2">
                 {AVATARS.map((a) => (
                   <button
@@ -133,8 +133,8 @@ export default function ProfilePage() {
                     onClick={() => setSelectedAvatar(a)}
                     className={`w-10 h-10 rounded-xl text-xl flex items-center justify-center transition-all ${
                       selectedAvatar === a
-                        ? "bg-emerald-600/30 border-2 border-emerald-500 scale-110"
-                        : "bg-slate-800/60 border border-slate-700/40 hover:bg-slate-700/60"
+                        ? "bg-[#c9a84c]/20 border-2 border-[#c9a84c] scale-110"
+                        : "bg-[#1e5c3a]/40 border border-[#c9a84c]/15 hover:bg-[#1e5c3a]/60"
                     }`}
                   >
                     {a}
@@ -146,7 +146,7 @@ export default function ProfilePage() {
             <button
               onClick={handleSave}
               disabled={saving}
-              className="w-full rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-700 px-4 py-2.5 text-sm font-semibold text-white transition-colors"
+              className="w-full rounded-xl bg-[#c9a84c] hover:bg-[#dfc06a] disabled:bg-[#3a2210]/60 px-4 py-2.5 text-sm font-semibold text-[#2a1a0a] transition-colors"
             >
               {saving ? "Guardando..." : saved ? "✓ Guardado" : "Guardar cambios"}
             </button>
@@ -154,7 +154,7 @@ export default function ProfilePage() {
 
           {/* Stats */}
           <div className="glass rounded-2xl p-6 space-y-4">
-            <h2 className="text-sm font-semibold text-slate-300">Estadísticas</h2>
+            <h2 className="text-sm font-semibold text-[#f5f0e8]">Estadísticas</h2>
             <div className="grid grid-cols-3 gap-3">
               <StatBox label="Partidas" value={String(profile.games_played)} />
               <StatBox label="Victorias" value={String(profile.games_won)} />
@@ -163,7 +163,7 @@ export default function ProfilePage() {
           </div>
 
           {/* Member since */}
-          <div className="text-center text-xs text-slate-600">
+          <div className="text-center text-xs text-[#a8c4a0]/40">
             Miembro desde {new Date(profile.created_at).toLocaleDateString("es-VE", { year: "numeric", month: "long" })}
           </div>
         </motion.div>
@@ -174,9 +174,9 @@ export default function ProfilePage() {
 
 function StatBox({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl bg-slate-900/60 border border-slate-800 p-3 text-center">
-      <p className="text-lg font-bold text-white">{value}</p>
-      <p className="text-[10px] text-slate-500 mt-0.5">{label}</p>
+    <div className="rounded-xl bg-[#1e5c3a]/40 border border-[#c9a84c]/15 p-3 text-center">
+      <p className="text-lg font-bold text-[#f5f0e8]">{value}</p>
+      <p className="text-[10px] text-[#a8c4a0]/60 mt-0.5">{label}</p>
     </div>
   );
 }

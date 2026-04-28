@@ -32,7 +32,7 @@ export function OpponentHand({
       <div className="flex items-center gap-1 sm:gap-2">
         <motion.div
           className={`h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full ${
-            connected ? "bg-emerald-400" : "bg-red-400"
+            connected ? "bg-[#4ade80]" : "bg-red-400"
           }`}
           animate={
             isCurrentTurn
@@ -47,12 +47,12 @@ export function OpponentHand({
         />
         <span
           className={`text-[10px] sm:text-xs font-medium truncate max-w-[60px] sm:max-w-[100px] ${
-            isCurrentTurn ? "text-amber-400" : "text-slate-400"
+            isCurrentTurn ? "text-[#c9a84c]" : "text-[#a8c4a0]"
           }`}
         >
           {playerName}
         </span>
-        <span className="text-[9px] sm:text-[10px] text-slate-600">({tileCount})</span>
+        <span className="text-[9px] sm:text-[10px] text-[#a8c4a0]/40">({tileCount})</span>
       </div>
 
       {/* Face-down tiles */}

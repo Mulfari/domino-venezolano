@@ -419,28 +419,28 @@ export default function GamePage() {
   /* ---------------------------------------------------------------- */
   if (loading) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-950 gap-3">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-emerald-500 border-t-transparent" />
-        <p className="text-slate-400 animate-pulse text-sm">Cargando partida...</p>
+      <div className="min-h-screen flex flex-col items-center justify-center bg-felt gap-3">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-[#c9a84c] border-t-transparent" />
+        <p className="text-[#a8c4a0] animate-pulse text-sm">Cargando partida...</p>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-950 gap-4 px-4">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-felt gap-4 px-4">
         <div className="rounded-2xl bg-red-950/30 border border-red-900/40 p-6 max-w-sm text-center space-y-3">
           <p className="text-red-400 font-semibold">Error</p>
           <p className="text-sm text-red-300/80">{error}</p>
           <button
             onClick={() => { setError(null); setLoading(true); fetchGameState().then(() => setLoading(false)); }}
-            className="rounded-xl bg-slate-800 hover:bg-slate-700 px-5 py-2 text-sm text-slate-200 transition-colors"
+            className="rounded-xl bg-[#3a2210] hover:bg-[#4a2c0f] px-5 py-2 text-sm text-[#f5f0e8] transition-colors"
           >
             Reintentar
           </button>
           <button
             onClick={() => router.push("/")}
-            className="block mx-auto text-sm text-slate-500 hover:text-slate-300 transition-colors"
+            className="block mx-auto text-sm text-[#a8c4a0]/60 hover:text-[#f5f0e8] transition-colors"
           >
             Volver al inicio
           </button>
@@ -451,8 +451,8 @@ export default function GamePage() {
 
   if (mySeat === null) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-950">
-        <p className="text-slate-400 animate-pulse">Conectando...</p>
+      <div className="min-h-screen flex items-center justify-center bg-felt">
+        <p className="text-[#a8c4a0] animate-pulse">Conectando...</p>
       </div>
     );
   }
@@ -473,7 +473,7 @@ export default function GamePage() {
   const isHost = userId === hostId;
 
   return (
-    <div className="h-[100dvh] flex flex-col bg-slate-950 overflow-hidden select-none">
+    <div className="h-[100dvh] flex flex-col bg-felt overflow-hidden select-none">
       {/* Landscape prompt for mobile portrait */}
       <LandscapePrompt />
 
@@ -488,11 +488,11 @@ export default function GamePage() {
         <div className="min-w-0 sm:min-w-[160px] flex items-center justify-end gap-1 sm:gap-2">
           <SoundToggle />
           {roomCode && (
-            <div className="rounded-lg bg-slate-900/80 border border-slate-800 px-2 sm:px-3 py-1 sm:py-1.5 text-center">
-              <span className="text-[10px] uppercase tracking-wider text-slate-500 block leading-tight">
+            <div className="rounded-lg bg-[#3a2210]/80 border border-[#c9a84c]/20 px-2 sm:px-3 py-1 sm:py-1.5 text-center">
+              <span className="text-[10px] uppercase tracking-wider text-[#a8c4a0]/60 block leading-tight">
                 Sala
               </span>
-              <span className="text-[10px] sm:text-xs font-mono font-semibold text-slate-400 tracking-widest">
+              <span className="text-[10px] sm:text-xs font-mono font-semibold text-[#c9a84c] tracking-widest">
                 {roomCode}
               </span>
             </div>
@@ -543,7 +543,7 @@ export default function GamePage() {
       </div>
 
       {/* Player hand (bottom) */}
-      <div className="shrink-0 pt-1 sm:pt-2 border-t border-slate-800/50">
+      <div className="shrink-0 pt-1 sm:pt-2 border-t border-[#c9a84c]/15">
         <Hand onPlayTile={handlePlayTile} onPass={handlePass} />
       </div>
 

@@ -28,7 +28,7 @@ export function TurnIndicator() {
         {/* Pulsing dot */}
         <motion.div
           className={`h-2.5 w-2.5 rounded-full ${
-            isMyTurn ? "bg-amber-400" : "bg-slate-500"
+            isMyTurn ? "bg-[#c9a84c]" : "bg-[#a8c4a0]/50"
           }`}
           animate={{
             scale: [1, 1.4, 1],
@@ -43,7 +43,7 @@ export function TurnIndicator() {
 
         <span
           className={`text-sm font-semibold ${
-            isMyTurn ? "text-amber-400" : "text-slate-400"
+            isMyTurn ? "text-[#c9a84c]" : "text-[#a8c4a0]"
           }`}
         >
           {isMyTurn ? "¡Tu turno!" : `Turno de ${displayName}`}

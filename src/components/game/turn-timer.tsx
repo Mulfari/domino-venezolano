@@ -34,16 +34,16 @@ export function TurnTimer() {
 
   return (
     <div className="flex items-center gap-2">
-      <div className="w-16 h-1.5 rounded-full bg-slate-800 overflow-hidden">
+      <div className="w-16 h-1.5 rounded-full bg-[#1e5c3a]/50 overflow-hidden">
         <motion.div
-          className={`h-full rounded-full ${urgent ? "bg-red-500" : isMyTurn ? "bg-emerald-500" : "bg-slate-600"}`}
+          className={`h-full rounded-full ${urgent ? "bg-red-500" : isMyTurn ? "bg-[#c9a84c]" : "bg-[#a8c4a0]/40"}`}
           initial={{ width: "100%" }}
           animate={{ width: `${pct * 100}%` }}
           transition={{ duration: 0.5 }}
         />
       </div>
       <span
-        className={`text-[10px] font-mono tabular-nums ${urgent ? "text-red-400" : "text-slate-500"}`}
+        className={`text-[10px] font-mono tabular-nums ${urgent ? "text-red-400" : "text-[#a8c4a0]/60"}`}
       >
         {seconds}s
       </span>
