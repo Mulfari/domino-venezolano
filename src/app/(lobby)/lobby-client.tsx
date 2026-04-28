@@ -133,13 +133,58 @@ function FeatureCard({ icon, title, description }: { icon: ReactNode; title: str
 }
 
 /* ── Main lobby client ────────────────────────── */
+/* ── Quick play button ────────────────────────── */
+function QuickPlayButton({ action }: { action: () => Promise<unknown> }) {
+  const [loading, setLoading] = useState(false);
+
+  return (
+    <form
+      action={async () => {
+        setLoading(true);
+        try {
+          await action();
+        } finally {
+          setLoading(false);
+        }
+      }}
+    >
+      <motion.button
+        type="submit"
+        disabled={loading}
+        whileHover={{ scale: loading ? 1 : 1.02 }}
+        whileTap={{ scale: loading ? 1 : 0.97 }}
+        className="w-full rounded-2xl bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 hover:to-amber-300 disabled:from-slate-700 disabled:to-slate-700 px-6 py-4 text-lg font-semibold text-slate-900 transition-all shadow-lg shadow-amber-500/20 disabled:shadow-none disabled:text-slate-400 flex items-center justify-center gap-3"
+      >
+        {loading ? (
+          <>
+            <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24" fill="none">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+            </svg>
+            Buscando partida...
+          </>
+        ) : (
+          <>
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
+            </svg>
+            ¡Jugar ahora!
+          </>
+        )}
+      </motion.button>
+    </form>
+  );
+}
+
+/* ── Main lobby client ────────────────────────── */
 interface Props {
   user: { displayName: string } | null;
   createRoomAction: () => Promise<unknown>;
+  quickPlayAction: () => Promise<unknown>;
   joinRoomForm: ReactNode;
 }
 
-export function LobbyClient({ user, createRoomAction, joinRoomForm }: Props) {
+export function LobbyClient({ user, createRoomAction, quickPlayAction, joinRoomForm }: Props) {
   const tiles = [
     { top: 6, bottom: 6, delay: 0.2, x: "5%", y: "15%" },
     { top: 3, bottom: 5, delay: 0.5, x: "85%", y: "10%" },
@@ -274,13 +319,23 @@ export function LobbyClient({ user, createRoomAction, joinRoomForm }: Props) {
                 <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
               </div>
 
+              {/* Quick play */}
+              <QuickPlayButton action={quickPlayAction} />
+
+              {/* Divider */}
+              <div className="flex items-center gap-4">
+                <div className="flex-1 h-px bg-slate-800" />
+                <span className="text-xs text-slate-500 uppercase tracking-wider">o crea tu propia sala</span>
+                <div className="flex-1 h-px bg-slate-800" />
+              </div>
+
               {/* Create room */}
               <CreateRoomButton action={createRoomAction} />
 
               {/* Divider */}
               <div className="flex items-center gap-4">
                 <div className="flex-1 h-px bg-slate-800" />
-                <span className="text-xs text-slate-500 uppercase tracking-wider">o unete a una sala</span>
+                <span className="text-xs text-slate-500 uppercase tracking-wider">o únete por código</span>
                 <div className="flex-1 h-px bg-slate-800" />
               </div>
 

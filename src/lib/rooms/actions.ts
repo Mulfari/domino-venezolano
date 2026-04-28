@@ -132,7 +132,105 @@ export async function joinRoom(code: string) {
   redirect(`/sala/${upperCode}`);
 }
 
-export async function startGame(roomId: string) {
+export async function quickPlay() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) redirect("/login");
+
+  const displayName =
+    user.user_metadata?.display_name || user.email?.split("@")[0] || "Jugador";
+
+  // 1. Try to find a waiting room with open seats
+  const { data: rooms } = await getSupabaseAdmin()
+    .from("rooms")
+    .select("*")
+    .eq("status", "waiting")
+    .order("created_at", { ascending: true })
+    .limit(10);
+
+  if (rooms) {
+    for (const room of rooms) {
+      const seats = (room.seats ?? [null, null, null, null]) as (
+        | { user_id: string; display_name: string }
+        | null
+      )[];
+
+      // Skip if already in this room
+      if (seats.some((s) => s?.user_id === user.id)) {
+        redirect(`/sala/${room.code}`);
+      }
+
+      const seatIndex = seats.findIndex((s) => s === null);
+      if (seatIndex === -1) continue;
+
+      const newSeats = [...seats];
+      newSeats[seatIndex] = { user_id: user.id, display_name: displayName };
+
+      const { error } = await getSupabaseAdmin()
+        .from("rooms")
+        .update({ seats: newSeats })
+        .eq("id", room.id)
+        .eq("status", "waiting");
+
+      if (error) continue;
+
+      await getSupabaseAdmin().from("room_players").upsert({
+        room_id: room.id,
+        player_id: user.id,
+        seat: seatIndex,
+      }, { onConflict: "room_id,player_id" });
+
+      redirect(`/sala/${room.code}`);
+    }
+  }
+
+  // 2. No available room found — create a new one
+  let code = generateRoomCode();
+  let attempts = 0;
+  while (attempts < 5) {
+    const { data: existing } = await getSupabaseAdmin()
+      .from("rooms")
+      .select("id")
+      .eq("code", code)
+      .eq("status", "waiting")
+      .single();
+
+    if (!existing) break;
+    code = generateRoomCode();
+    attempts++;
+  }
+
+  const seatsData = [
+    { user_id: user.id, display_name: displayName },
+    null,
+    null,
+    null,
+  ];
+
+  const { data: room, error } = await getSupabaseAdmin()
+    .from("rooms")
+    .insert({
+      code,
+      host_id: user.id,
+      status: "waiting",
+      seats: seatsData,
+    })
+    .select("id, code")
+    .single();
+
+  if (error) throw new Error("No se pudo crear la sala: " + error.message);
+
+  await getSupabaseAdmin().from("room_players").upsert({
+    room_id: room.id,
+    player_id: user.id,
+    seat: 0,
+  }, { onConflict: "room_id,player_id" });
+
+  redirect(`/sala/${room.code}`);
+}
   const supabase = await createClient();
   const {
     data: { user },
