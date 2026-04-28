@@ -2,6 +2,7 @@ import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { applyMove, applyPass } from "./engine";
 import { calculateRoundResult } from "./scoring";
 import { chooseBotMove, isBotUserId } from "./bot-engine";
+import { updateProfileStats } from "./update-profile-stats";
 import type { Tile, Seat, BoardState, GameState } from "./types";
 
 export async function processBotTurns(gameId: string) {
@@ -10,7 +11,7 @@ export async function processBotTurns(gameId: string) {
   for (let safety = 0; safety < 20; safety++) {
     const { data: game } = await admin
       .from("games")
-      .select("*, rooms!games_room_id_fkey(code, seats)")
+      .select("*, rooms!games_room_id_fkey(code, seats, target_score)")
       .eq("id", gameId)
       .single();
 
@@ -127,6 +128,18 @@ export async function processBotTurns(gameId: string) {
     }
 
     await admin.removeChannel(channel);
+
+    // Update profile stats and room status if match is over
+    if (roundResult && newScores) {
+      const targetScore = ((game.rooms as Record<string, unknown>).target_score as number) ?? 100;
+      if (roundResult.winner_team !== null && (newScores[0] >= targetScore || newScores[1] >= targetScore)) {
+        await updateProfileStats(seats, roundResult.winner_team as 0 | 1, targetScore, newScores);
+        await admin
+          .from("rooms")
+          .update({ status: "finished", finished_at: new Date().toISOString() })
+          .eq("id", game.room_id);
+      }
+    }
 
     if (newState.status === "finished") break;
   }
