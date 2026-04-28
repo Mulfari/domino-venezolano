@@ -65,7 +65,7 @@ export function GameOverModal({ onNextRound, onBackToLobby }: GameOverModalProps
 
   const winnerTeamLabel =
     roundResult.winner_team !== null
-      ? roundResult.winner_team === 0 ? "Equipo A" : "Equipo B"
+      ? roundResult.winner_team === myTeam ? "Tu equipo" : "Equipo rival"
       : null;
 
   const winnerColor =
@@ -76,8 +76,10 @@ export function GameOverModal({ onNextRound, onBackToLobby }: GameOverModalProps
         : "text-[#a8c4a0]";
 
   const finalWinner =
-    scores[0] >= targetScore ? "Equipo A"
-    : scores[1] >= targetScore ? "Equipo B"
+    scores[0] >= targetScore
+      ? (myTeam === 0 ? "Tu equipo" : "Equipo rival")
+    : scores[1] >= targetScore
+      ? (myTeam === 1 ? "Tu equipo" : "Equipo rival")
     : null;
 
   const iWonMatch = gameOver && myTeam !== null && (
@@ -134,12 +136,16 @@ export function GameOverModal({ onNextRound, onBackToLobby }: GameOverModalProps
               className="flex items-center justify-center gap-8 py-3"
             >
               <div className="text-center">
-                <p className="text-[10px] uppercase tracking-wider text-[#f5f0e8]">Equipo A</p>
+                <p className={`text-[10px] uppercase tracking-wider ${myTeam === 0 ? "text-[#c9a84c]" : "text-[#f5f0e8]"}`}>
+                  {myTeam === 0 ? "Tú" : "Ellos"}
+                </p>
                 <p className="text-3xl font-bold text-[#f5f0e8]">{scores[0]}</p>
               </div>
               <span className="text-[#c9a84c]/40 text-xl">—</span>
               <div className="text-center">
-                <p className="text-[10px] uppercase tracking-wider text-[#c9a84c]">Equipo B</p>
+                <p className={`text-[10px] uppercase tracking-wider ${myTeam === 1 ? "text-[#c9a84c]" : "text-[#f5f0e8]"}`}>
+                  {myTeam === 1 ? "Tú" : "Ellos"}
+                </p>
                 <p className="text-3xl font-bold text-[#f5f0e8]">{scores[1]}</p>
               </div>
             </motion.div>
@@ -198,12 +204,16 @@ export function GameOverModal({ onNextRound, onBackToLobby }: GameOverModalProps
 
           <div className="flex items-center justify-center gap-6">
             <div className="text-center">
-              <p className="text-[10px] uppercase tracking-wider text-[#f5f0e8]">Equipo A</p>
+              <p className={`text-[10px] uppercase tracking-wider ${myTeam === 0 ? "text-[#c9a84c]" : "text-[#f5f0e8]"}`}>
+                {myTeam === 0 ? "Tú" : "Ellos"}
+              </p>
               <p className="text-xl font-bold text-[#f5f0e8]">{scores[0]}</p>
             </div>
             <span className="text-[#c9a84c]/40">—</span>
             <div className="text-center">
-              <p className="text-[10px] uppercase tracking-wider text-[#c9a84c]">Equipo B</p>
+              <p className={`text-[10px] uppercase tracking-wider ${myTeam === 1 ? "text-[#c9a84c]" : "text-[#f5f0e8]"}`}>
+                {myTeam === 1 ? "Tú" : "Ellos"}
+              </p>
               <p className="text-xl font-bold text-[#f5f0e8]">{scores[1]}</p>
             </div>
           </div>
