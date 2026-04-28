@@ -9,6 +9,7 @@ import { OpponentHand } from "@/components/game/opponent-hand";
 import { ScorePanel } from "@/components/game/score-panel";
 import { TurnIndicator } from "@/components/game/turn-indicator";
 import { GameOverModal } from "@/components/game/game-over-modal";
+import { DisconnectOverlay } from "@/components/game/disconnect-overlay";
 import { ChatPanel } from "@/components/chat/chat-panel";
 import { useGameChannel } from "@/lib/realtime/use-game-channel";
 import { useGameStore } from "@/stores/game-store";
@@ -283,11 +284,13 @@ export default function GamePage() {
     seat: mySeat ?? 0,
     onEvent: handleGameEvent,
     onPresenceChange: (presencePlayers) => {
-      // Update connection status for all seats
       for (let i = 0; i < 4; i++) {
         const present = presencePlayers.some((p) => p.seat === i);
         updatePlayerConnection(i as Seat, present);
       }
+    },
+    onReconnected: () => {
+      fetchGameState();
     },
   });
 
@@ -513,6 +516,9 @@ export default function GamePage() {
       <div className="shrink-0 pt-2 border-t border-slate-800/50">
         <Hand onPlayTile={handlePlayTile} onPass={handlePass} />
       </div>
+
+      {/* Disconnect overlay */}
+      <DisconnectOverlay />
 
       {/* Game over modal */}
       <GameOverModal
