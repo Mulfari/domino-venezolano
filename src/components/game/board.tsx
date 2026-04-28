@@ -103,7 +103,7 @@ export function Board({ onPlaceEnd }: BoardProps) {
                     tile={entry.tile}
                     size="small"
                     responsive
-                    rotation={entry.isDouble ? 0 : 90}
+                    orientation={entry.isDouble ? "vertical" : "horizontal"}
                   />
                 </motion.div>
               );

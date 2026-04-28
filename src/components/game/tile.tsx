@@ -10,7 +10,7 @@ interface TileProps {
   tile?: TileType;
   faceDown?: boolean;
   size?: TileSize;
-  rotation?: number;
+  orientation?: "vertical" | "horizontal";
   clickable?: boolean;
   disabled?: boolean;
   selected?: boolean;
@@ -76,7 +76,7 @@ export function DominoTile({
   tile,
   faceDown = false,
   size = "medium",
-  rotation = 0,
+  orientation = "vertical",
   clickable = false,
   disabled = false,
   selected = false,
@@ -86,16 +86,18 @@ export function DominoTile({
 }: TileProps) {
   const isMobile = useIsMobile();
   const config = responsive && isMobile ? mobileSizeConfig : sizeConfig;
-  const { w, h, pip, gap } = config[size];
-  const halfH = (h - gap) / 2;
+  const { w: baseW, h: baseH, pip, gap } = config[size];
   const borderRadius = size === "small" ? 3 : 4;
+
+  const isHorizontal = orientation === "horizontal";
+  const w = isHorizontal ? baseH : baseW;
+  const h = isHorizontal ? baseW : baseH;
 
   const showFace = !faceDown && tile;
 
   return (
     <motion.div
       className={`inline-block ${clickable && !disabled ? "cursor-pointer" : ""}`}
-      style={{ rotate: rotation }}
       whileHover={clickable && !disabled ? { scale: 1.12, y: -6 } : undefined}
       whileTap={clickable && !disabled ? { scale: 0.95 } : undefined}
       animate={selected ? { y: -12, scale: 1.08 } : { y: 0, scale: 1 }}
@@ -127,25 +129,48 @@ export function DominoTile({
         {faceDown ? (
           <>
             <rect x={3} y={3} width={w - 6} height={h - 6} rx={2} fill="#2a1a0a" stroke="#5c3a1e" strokeWidth={0.5} />
-            <line x1={3} y1={h / 2} x2={w - 3} y2={h / 2} stroke="#5c3a1e" strokeWidth={0.5} />
+            {isHorizontal ? (
+              <line x1={w / 2} y1={3} x2={w / 2} y2={h - 3} stroke="#5c3a1e" strokeWidth={0.5} />
+            ) : (
+              <line x1={3} y1={h / 2} x2={w - 3} y2={h / 2} stroke="#5c3a1e" strokeWidth={0.5} />
+            )}
           </>
         ) : showFace ? (
-          <>
-            {/* Top half pips */}
-            <g>
-              <PipDots value={tile[0]} pipSize={pip} halfWidth={w} halfHeight={halfH} />
-            </g>
-            {/* Horizontal divider */}
-            <line
-              x1={3} y1={halfH + gap / 2}
-              x2={w - 3} y2={halfH + gap / 2}
-              stroke="#a8a29e" strokeWidth={0.8}
-            />
-            {/* Bottom half pips */}
-            <g transform={`translate(0, ${halfH + gap})`}>
-              <PipDots value={tile[1]} pipSize={pip} halfWidth={w} halfHeight={halfH} />
-            </g>
-          </>
+          isHorizontal ? (
+            <>
+              {/* Left half pips */}
+              <g>
+                <PipDots value={tile[0]} pipSize={pip} halfWidth={w / 2} halfHeight={h} />
+              </g>
+              {/* Vertical divider */}
+              <line
+                x1={w / 2} y1={3}
+                x2={w / 2} y2={h - 3}
+                stroke="#a8a29e" strokeWidth={0.8}
+              />
+              {/* Right half pips */}
+              <g transform={`translate(${w / 2}, 0)`}>
+                <PipDots value={tile[1]} pipSize={pip} halfWidth={w / 2} halfHeight={h} />
+              </g>
+            </>
+          ) : (
+            <>
+              {/* Top half pips */}
+              <g>
+                <PipDots value={tile[0]} pipSize={pip} halfWidth={w} halfHeight={(h - gap) / 2} />
+              </g>
+              {/* Horizontal divider */}
+              <line
+                x1={3} y1={(h - gap) / 2 + gap / 2}
+                x2={w - 3} y2={(h - gap) / 2 + gap / 2}
+                stroke="#a8a29e" strokeWidth={0.8}
+              />
+              {/* Bottom half pips */}
+              <g transform={`translate(0, ${(h - gap) / 2 + gap})`}>
+                <PipDots value={tile[1]} pipSize={pip} halfWidth={w} halfHeight={(h - gap) / 2} />
+              </g>
+            </>
+          )
         ) : null}
       </svg>
     </motion.div>

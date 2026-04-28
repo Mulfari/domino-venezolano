@@ -72,7 +72,7 @@ export function OpponentHand({
               faceDown
               size="small"
               responsive
-              rotation={isVertical ? 90 : 0}
+              orientation={isVertical ? "horizontal" : "vertical"}
             />
           </motion.div>
         ))}
