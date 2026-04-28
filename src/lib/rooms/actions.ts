@@ -1,7 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import { supabaseAdmin } from "@/lib/supabase/admin";
+import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { redirect } from "next/navigation";
 
 function generateRoomCode(): string {
@@ -28,7 +28,7 @@ export async function createRoom() {
   let code = generateRoomCode();
   let attempts = 0;
   while (attempts < 5) {
-    const { data: existing } = await supabaseAdmin
+    const { data: existing } = await getSupabaseAdmin()
       .from("rooms")
       .select("id")
       .eq("code", code)
@@ -40,7 +40,7 @@ export async function createRoom() {
     attempts++;
   }
 
-  const { data: room, error } = await supabaseAdmin
+  const { data: room, error } = await getSupabaseAdmin()
     .from("rooms")
     .insert({
       code,
@@ -74,7 +74,7 @@ export async function joinRoom(code: string) {
 
   const upperCode = code.toUpperCase().trim();
 
-  const { data: room, error: findError } = await supabaseAdmin
+  const { data: room, error: findError } = await getSupabaseAdmin()
     .from("rooms")
     .select("*")
     .eq("code", upperCode)
@@ -104,7 +104,7 @@ export async function joinRoom(code: string) {
   const newSeats = [...seats];
   newSeats[seatIndex] = { user_id: user.id, display_name: displayName };
 
-  const { error: updateError } = await supabaseAdmin
+  const { error: updateError } = await getSupabaseAdmin()
     .from("rooms")
     .update({ seats: newSeats })
     .eq("id", room.id);
@@ -124,7 +124,7 @@ export async function startGame(roomId: string) {
 
   if (!user) redirect("/login");
 
-  const { data: room } = await supabaseAdmin
+  const { data: room } = await getSupabaseAdmin()
     .from("rooms")
     .select("*")
     .eq("id", roomId)
@@ -175,7 +175,7 @@ export async function startGame(roomId: string) {
     }
   }
 
-  const { data: game, error: gameError } = await supabaseAdmin
+  const { data: game, error: gameError } = await getSupabaseAdmin()
     .from("games")
     .insert({
       room_id: room.id,
@@ -192,7 +192,7 @@ export async function startGame(roomId: string) {
   if (gameError) return { error: "No se pudo crear la partida." };
 
   // Update room status
-  await supabaseAdmin
+  await getSupabaseAdmin()
     .from("rooms")
     .update({ status: "playing", current_game_id: game.id })
     .eq("id", room.id);

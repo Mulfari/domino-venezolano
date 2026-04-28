@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { supabaseAdmin } from "@/lib/supabase/admin";
+import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import type { Tile, Seat } from "@/lib/game/types";
 
 export async function POST(request: NextRequest) {
@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Fetch room
-    const { data: room, error: roomError } = await supabaseAdmin
+    const { data: room, error: roomError } = await getSupabaseAdmin()
       .from("rooms")
       .select("*")
       .eq("id", room_id)
@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
     // Get previous game scores if continuing a match
     let previousScores = [0, 0];
     if (room.current_game_id) {
-      const { data: prevGame } = await supabaseAdmin
+      const { data: prevGame } = await getSupabaseAdmin()
         .from("games")
         .select("scores")
         .eq("id", room.current_game_id)
@@ -95,7 +95,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Create new game
-    const { data: game, error: gameError } = await supabaseAdmin
+    const { data: game, error: gameError } = await getSupabaseAdmin()
       .from("games")
       .insert({
         room_id: room.id,
@@ -114,13 +114,13 @@ export async function POST(request: NextRequest) {
     }
 
     // Update room
-    await supabaseAdmin
+    await getSupabaseAdmin()
       .from("rooms")
       .update({ status: "playing", current_game_id: game.id })
       .eq("id", room.id);
 
     // Broadcast round_started
-    const channel = supabaseAdmin.channel(`room:${room.code}`);
+    const channel = getSupabaseAdmin().channel(`room:${room.code}`);
     await channel.send({
       type: "broadcast",
       event: "game_event",
@@ -130,7 +130,7 @@ export async function POST(request: NextRequest) {
         current_turn: startingSeat,
       },
     });
-    await supabaseAdmin.removeChannel(channel);
+    await getSupabaseAdmin().removeChannel(channel);
 
     return NextResponse.json({ success: true, game_id: game.id });
   } catch {

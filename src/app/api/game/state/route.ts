@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { supabaseAdmin } from "@/lib/supabase/admin";
+import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import type { Tile, Seat, BoardState } from "@/lib/game/types";
 
 export async function GET(request: NextRequest) {
@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Fetch game state
-    const { data: game, error: gameError } = await supabaseAdmin
+    const { data: game, error: gameError } = await getSupabaseAdmin()
       .from("games")
       .select("*, rooms!inner(code, seats)")
       .eq("id", game_id)

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { supabaseAdmin } from "@/lib/supabase/admin";
+import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { applyPass, getValidMoves } from "@/lib/game/engine";
 import { calculateRoundResult } from "@/lib/game/scoring";
 import type { Tile, Seat, BoardState, GameState } from "@/lib/game/types";
@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Fetch game state
-    const { data: game, error: gameError } = await supabaseAdmin
+    const { data: game, error: gameError } = await getSupabaseAdmin()
       .from("games")
       .select("*, rooms!inner(code, seats)")
       .eq("id", game_id)
@@ -80,7 +80,7 @@ export async function POST(request: NextRequest) {
     const newState = applyPass(state, playerSeat as Seat);
 
     // Update DB
-    const { error: updateError } = await supabaseAdmin
+    const { error: updateError } = await getSupabaseAdmin()
       .from("games")
       .update({
         current_turn: newState.current_turn,
@@ -95,7 +95,7 @@ export async function POST(request: NextRequest) {
 
     // Broadcast
     const roomCode = game.rooms.code as string;
-    const channel = supabaseAdmin.channel(`room:${roomCode}`);
+    const channel = getSupabaseAdmin().channel(`room:${roomCode}`);
 
     await channel.send({
       type: "broadcast",
@@ -113,7 +113,7 @@ export async function POST(request: NextRequest) {
         newScores[result.winner_team] += result.points;
       }
 
-      await supabaseAdmin
+      await getSupabaseAdmin()
         .from("games")
         .update({ scores: newScores })
         .eq("id", game_id);
@@ -131,7 +131,7 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    await supabaseAdmin.removeChannel(channel);
+    await getSupabaseAdmin().removeChannel(channel);
 
     return NextResponse.json({ success: true, status: newState.status });
   } catch {
