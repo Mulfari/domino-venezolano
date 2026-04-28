@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { playChatReceived } from "@/lib/sounds/sound-engine";
 import type { RealtimeChannel } from "@supabase/supabase-js";
 
 interface ChatMessage {
@@ -61,6 +62,7 @@ export function useChat({ roomCode, gameId, userId, displayName }: UseChatOption
       const msg = payload as ChatMessage;
       // Ignore our own messages (we already added them locally in sendMessage)
       if (msg.player_id === userId) return;
+      playChatReceived();
       setMessages((prev) => [...prev, msg]);
     });
 

@@ -11,8 +11,10 @@ import { TurnIndicator } from "@/components/game/turn-indicator";
 import { GameOverModal } from "@/components/game/game-over-modal";
 import { DisconnectOverlay } from "@/components/game/disconnect-overlay";
 import { ChatPanel } from "@/components/chat/chat-panel";
+import { SoundToggle } from "@/components/game/sound-toggle";
 import { useGameChannel } from "@/lib/realtime/use-game-channel";
 import { useGameStore } from "@/stores/game-store";
+import { playTilePlace, playPass, playYourTurn, playVictory, playDefeat } from "@/lib/sounds/sound-engine";
 import type { GameEvent } from "@/lib/realtime/events";
 import type { Tile, Seat } from "@/lib/game/types";
 
@@ -188,6 +190,21 @@ export default function GamePage() {
     return () => { cancelled = true; };
   }, [gameId, router, fetchGameState]);
 
+  /* ---- "Your turn" sound ---- */
+  const prevTurnRef = useRef<number | null>(null);
+  useEffect(() => {
+    if (
+      mySeat !== null &&
+      currentTurn === mySeat &&
+      status === "playing" &&
+      prevTurnRef.current !== null &&
+      prevTurnRef.current !== mySeat
+    ) {
+      playYourTurn();
+    }
+    prevTurnRef.current = currentTurn;
+  }, [currentTurn, mySeat, status]);
+
   /* ---------------------------------------------------------------- */
   /*  Handle realtime game events                                     */
   /* ---------------------------------------------------------------- */
@@ -197,23 +214,21 @@ export default function GamePage() {
 
       switch (event.type) {
         case "tile_played": {
-          // If it's our own play, we already updated optimistically — just update hand counts
+          playTilePlace();
           if (currentSeat !== null && event.seat === currentSeat) {
             break;
           }
-          // Update hand counts for opponent plays
           setHandCounts((prev) => {
             const next = [...prev];
             if (next[event.seat] > 0) next[event.seat]--;
             return next;
           });
-          // Re-fetch to get the updated board state
           fetchGameState();
           break;
         }
 
         case "turn_passed": {
-          // If it's our own pass, we already updated optimistically
+          playPass();
           if (currentSeat !== null && event.seat === currentSeat) {
             break;
           }
@@ -234,6 +249,12 @@ export default function GamePage() {
         }
 
         case "round_ended": {
+          const myTeam = currentSeat !== null ? (currentSeat % 2) : null;
+          if (myTeam !== null && event.winner_team === myTeam) {
+            playVictory();
+          } else if (event.winner_team !== null) {
+            playDefeat();
+          }
           setScores({ 0: event.scores.team0, 1: event.scores.team1 });
           setRoundResult({
             winner_team: event.winner_team as (0 | 1 | null),
@@ -456,7 +477,8 @@ export default function GamePage() {
         <ScorePanel />
         <TurnIndicator />
         {/* Room code badge */}
-        <div className="min-w-[160px] flex justify-end">
+        <div className="min-w-[160px] flex items-center justify-end gap-2">
+          <SoundToggle />
           {roomCode && (
             <div className="rounded-lg bg-slate-900/80 border border-slate-800 px-3 py-1.5 text-center">
               <span className="text-[10px] uppercase tracking-wider text-slate-500 block">
