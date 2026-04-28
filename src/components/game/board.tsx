@@ -16,61 +16,50 @@ export function Board({ onPlaceEnd }: BoardProps) {
 
   const isMyTurn = isMyTurnFn();
   const showPlacementOptions = selectedTile !== null && isMyTurn;
-  const lastPlayIndex = board.plays.length - 1;
 
-  function getTileRotation(_play: PlayedTile, index: number, total: number): number {
-    if (total <= 8) return 0;
-    if (index >= 6 && index < 8) return 90;
-    if (index >= 8 && index < 14) return 0;
-    if (index >= 14 && index < 16) return 90;
-    return 0;
-  }
+  function buildOrientedChains(): { leftChain: { tile: Tile; isDouble: boolean }[]; rightChain: { tile: Tile; isDouble: boolean }[] } {
+    if (board.plays.length === 0) return { leftChain: [], rightChain: [] };
 
-  function buildOrientedChains(): { leftChain: Tile[]; rightChain: Tile[]; lastSide: "left" | "right" | null } {
-    if (board.plays.length === 0) return { leftChain: [], rightChain: [], lastSide: null };
-
-    const leftChain: Tile[] = [];
-    const rightChain: Tile[] = [];
+    const leftChain: { tile: Tile; isDouble: boolean }[] = [];
+    const rightChain: { tile: Tile; isDouble: boolean }[] = [];
 
     const firstPlay = board.plays[0];
-    rightChain.push(firstPlay.tile);
+    const isFirstDouble = firstPlay.tile[0] === firstPlay.tile[1];
+    rightChain.push({ tile: firstPlay.tile, isDouble: isFirstDouble });
 
     let runningLeft = firstPlay.tile[0];
     let runningRight = firstPlay.tile[1];
-    let lastSide: "left" | "right" = "right";
 
     for (let i = 1; i < board.plays.length; i++) {
       const play = board.plays[i];
       const { tile, end } = play;
+      const isDouble = tile[0] === tile[1];
 
       if (end === "right") {
         if (tile[0] === runningRight) {
-          rightChain.push(tile);
+          rightChain.push({ tile, isDouble });
           runningRight = tile[1];
         } else {
-          rightChain.push([tile[1], tile[0]]);
+          rightChain.push({ tile: [tile[1], tile[0]], isDouble });
           runningRight = tile[0];
         }
-        lastSide = "right";
       } else {
         if (tile[1] === runningLeft) {
-          leftChain.unshift(tile);
+          leftChain.unshift({ tile, isDouble });
           runningLeft = tile[0];
         } else {
-          leftChain.unshift([tile[1], tile[0]]);
+          leftChain.unshift({ tile: [tile[1], tile[0]], isDouble });
           runningLeft = tile[1];
         }
-        lastSide = "left";
       }
     }
 
-    return { leftChain, rightChain, lastSide };
+    return { leftChain, rightChain };
   }
 
-  const { leftChain, rightChain, lastSide } = buildOrientedChains();
-
-  const lastLeftIndex = lastSide === "left" ? 0 : -1;
-  const lastRightIndex = lastSide === "right" ? rightChain.length - 1 : -1;
+  const { leftChain, rightChain } = buildOrientedChains();
+  const allTiles = [...leftChain, ...rightChain];
+  const lastIndex = allTiles.length - 1;
 
   return (
     <div className="relative flex flex-col items-center justify-center flex-1 min-h-0">
@@ -78,7 +67,7 @@ export function Board({ onPlaceEnd }: BoardProps) {
         <div className="absolute inset-0 -m-4 sm:-m-8 rounded-3xl bg-[#1e5c3a]/30 border border-[#c9a84c]/10" />
 
         {board.left !== null && board.right !== null && (
-          <div className="relative flex items-center justify-between mb-3 px-2">
+          <div className="relative flex items-center justify-between mb-2 px-2">
             <motion.span
               animate={isMyTurn ? { scale: [1, 1.15, 1] } : {}}
               transition={{ repeat: Infinity, duration: 1.5 }}
@@ -96,55 +85,29 @@ export function Board({ onPlaceEnd }: BoardProps) {
           </div>
         )}
 
-        <div className="relative flex items-center justify-center flex-wrap gap-0.5 min-h-[60px] py-4">
+        {/* Tile chain */}
+        <div className="relative flex items-center justify-center flex-wrap gap-[2px] min-h-[70px] py-4 overflow-hidden">
           <AnimatePresence mode="popLayout">
-            {leftChain.map((tile, i) => (
-              <motion.div
-                key={`left-${i}`}
-                layout
-                initial={{ opacity: 0, scale: 0.5, y: -20 }}
-                animate={{
-                  opacity: 1,
-                  scale: 1,
-                  y: 0,
-                  boxShadow: i === lastLeftIndex ? "0 0 12px rgba(16,185,129,0.5)" : "none",
-                }}
-                transition={{ type: "spring", stiffness: 300, damping: 25 }}
-                className={i === lastLeftIndex ? "rounded ring-1 ring-[#c9a84c]/60" : ""}
-              >
-                <DominoTile
-                  tile={tile}
-                  size="medium"
-                  responsive
-                  rotation={getTileRotation(board.plays[0], i, board.plays.length)}
-                />
-              </motion.div>
-            ))}
-          </AnimatePresence>
-
-          <AnimatePresence mode="popLayout">
-            {rightChain.map((tile, i) => (
-              <motion.div
-                key={`right-${i}`}
-                layout
-                initial={{ opacity: 0, scale: 0.5, y: -20 }}
-                animate={{
-                  opacity: 1,
-                  scale: 1,
-                  y: 0,
-                  boxShadow: i === lastRightIndex ? "0 0 12px rgba(16,185,129,0.5)" : "none",
-                }}
-                transition={{ type: "spring", stiffness: 300, damping: 25 }}
-                className={i === lastRightIndex ? "rounded ring-1 ring-[#c9a84c]/60" : ""}
-              >
-                <DominoTile
-                  tile={tile}
-                  size="medium"
-                  responsive
-                  rotation={getTileRotation(board.plays[0], leftChain.length + i, board.plays.length)}
-                />
-              </motion.div>
-            ))}
+            {allTiles.map((entry, i) => {
+              const isLast = i === lastIndex;
+              return (
+                <motion.div
+                  key={`tile-${i}`}
+                  layout
+                  initial={{ opacity: 0, scale: 0.5 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ type: "spring", stiffness: 300, damping: 25 }}
+                  className={`flex items-center justify-center ${isLast ? "ring-1 ring-[#c9a84c]/60 rounded" : ""}`}
+                >
+                  <DominoTile
+                    tile={entry.tile}
+                    size="small"
+                    responsive
+                    rotation={entry.isDouble ? 0 : 90}
+                  />
+                </motion.div>
+              );
+            })}
           </AnimatePresence>
 
           {board.plays.length === 0 && (
@@ -152,6 +115,7 @@ export function Board({ onPlaceEnd }: BoardProps) {
           )}
         </div>
 
+        {/* Placement buttons */}
         <AnimatePresence>
           {showPlacementOptions && board.left !== null && (
             <motion.div
