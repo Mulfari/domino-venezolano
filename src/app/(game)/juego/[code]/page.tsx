@@ -409,6 +409,13 @@ export default function GamePage() {
     }
   }
 
+  function handleAutoPlay() {
+    const moves = useGameStore.getState().validMoves();
+    if (moves.length > 0) {
+      handlePlayTile(moves[0].tile, moves[0].end);
+    }
+  }
+
   function handleBackToLobby() {
     router.push("/");
   }
@@ -481,7 +488,7 @@ export default function GamePage() {
         <ScorePanel />
         <div className="flex flex-col items-center gap-0.5 sm:gap-1 min-w-0">
           <TurnIndicator />
-          <TurnTimer onAutoPass={handlePass} />
+          <TurnTimer onAutoPass={handlePass} onAutoPlay={handleAutoPlay} />
         </div>
         {/* Room code badge + sound */}
         <div className="min-w-0 sm:min-w-[160px] flex items-center justify-end gap-1 sm:gap-2">

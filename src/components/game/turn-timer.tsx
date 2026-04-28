@@ -8,9 +8,10 @@ const TURN_DURATION = 30;
 
 interface TurnTimerProps {
   onAutoPass?: () => void;
+  onAutoPlay?: () => void;
 }
 
-export function TurnTimer({ onAutoPass }: TurnTimerProps) {
+export function TurnTimer({ onAutoPass, onAutoPlay }: TurnTimerProps) {
   const currentTurn = useGameStore((s) => s.currentTurn);
   const status = useGameStore((s) => s.status);
   const mySeat = useGameStore((s) => s.mySeat);
@@ -40,11 +41,15 @@ export function TurnTimer({ onAutoPass }: TurnTimerProps) {
   }, [currentTurn, status]);
 
   useEffect(() => {
-    if (seconds === 0 && isMyTurn && canPass && !autoPassedRef.current && onAutoPass) {
+    if (seconds === 0 && isMyTurn && !autoPassedRef.current) {
       autoPassedRef.current = true;
-      onAutoPass();
+      if (canPass && onAutoPass) {
+        onAutoPass();
+      } else if (!canPass && onAutoPlay) {
+        onAutoPlay();
+      }
     }
-  }, [seconds, isMyTurn, canPass, onAutoPass]);
+  }, [seconds, isMyTurn, canPass, onAutoPass, onAutoPlay]);
 
   if (status !== "playing") return null;
   if (isBot) return null;
