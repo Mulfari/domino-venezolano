@@ -119,6 +119,19 @@ function CreateRoomButton({ action }: { action: () => Promise<unknown> }) {
   );
 }
 
+/* ── Feature card ────────────────────────────── */
+function FeatureCard({ icon, title, description }: { icon: ReactNode; title: string; description: string }) {
+  return (
+    <div className="glass rounded-2xl p-5 text-center space-y-3">
+      <div className="w-12 h-12 rounded-xl bg-emerald-600/10 border border-emerald-500/20 flex items-center justify-center mx-auto text-emerald-400">
+        {icon}
+      </div>
+      <h3 className="text-sm font-semibold text-slate-200">{title}</h3>
+      <p className="text-xs text-slate-400 leading-relaxed">{description}</p>
+    </div>
+  );
+}
+
 /* ── Main lobby client ────────────────────────── */
 interface Props {
   user: { displayName: string } | null;
@@ -299,6 +312,49 @@ export function LobbyClient({ user, createRoomAction, joinRoomForm }: Props) {
         </div>
       </main>
 
+      {/* Features section */}
+      <motion.section
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.6 }}
+        className="relative z-10 px-4 py-12 border-t border-slate-800/50"
+      >
+        <div className="max-w-3xl mx-auto">
+          <h2 className="text-center text-lg font-semibold text-slate-300 mb-8">
+            ¿Por qué jugar aquí?
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+            <FeatureCard
+              icon={
+                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
+                </svg>
+              }
+              title="Tiempo real"
+              description="Juega con tus amigos sin lag. Broadcast instantáneo con Supabase Realtime."
+            />
+            <FeatureCard
+              icon={
+                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 1.5H8.25A2.25 2.25 0 006 3.75v16.5a2.25 2.25 0 002.25 2.25h7.5A2.25 2.25 0 0018 20.25V3.75a2.25 2.25 0 00-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 18.75h3" />
+                </svg>
+              }
+              title="Desde cualquier dispositivo"
+              description="Juega desde tu celular, tablet o computadora. Diseño adaptable y touch-friendly."
+            />
+            <FeatureCard
+              icon={
+                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" />
+                </svg>
+              }
+              title="Parejas venezolanas"
+              description="Reglas auténticas: 4 jugadores, 28 fichas, doble-seis. Partida a 100 puntos."
+            />
+          </div>
+        </div>
+      </motion.section>
+
       {/* Footer */}
       <motion.footer
         initial={{ opacity: 0 }}
@@ -307,7 +363,7 @@ export function LobbyClient({ user, createRoomAction, joinRoomForm }: Props) {
         className="relative z-10 text-center py-6 border-t border-slate-800/50"
       >
         <p className="text-xs text-slate-600">
-          domino.com.ve — Domino de parejas — 28 fichas — Partida a 100 puntos
+          domino.com.ve — Dominó de parejas — 28 fichas — Partida a 100 puntos
         </p>
       </motion.footer>
     </div>
