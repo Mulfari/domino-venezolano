@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
+import { processBotTurns } from "@/lib/game/bot-turn";
+import { isBotUserId } from "@/lib/game/bot-engine";
 import type { Tile } from "@/lib/game/types";
 
 export async function POST(request: NextRequest) {
@@ -156,6 +158,12 @@ export async function POST(request: NextRequest) {
       },
     });
     await getSupabaseAdmin().removeChannel(channel);
+
+    // If starting seat is a bot, process bot turns
+    const startingPlayer = seats[startingSeat];
+    if (startingPlayer && isBotUserId(startingPlayer.user_id)) {
+      processBotTurns(game.id).catch(console.error);
+    }
 
     return NextResponse.json({ success: true, game_id: game.id });
   } catch {

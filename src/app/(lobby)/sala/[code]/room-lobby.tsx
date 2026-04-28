@@ -1,7 +1,7 @@
 "use client";
 
 import { createClient } from "@/lib/supabase/client";
-import { startGame } from "@/lib/rooms/actions";
+import { startGame, addBot, removeBot } from "@/lib/rooms/actions";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -74,15 +74,20 @@ function SeatCard({
   isHost,
   isCurrentUser,
   roomHostId,
+  onAddBot,
+  onRemoveBot,
 }: {
   seat: Seat;
   index: number;
   isHost: boolean;
   isCurrentUser: boolean;
   roomHostId: string;
+  onAddBot?: () => void;
+  onRemoveBot?: () => void;
 }) {
   const team = teamColors[index];
   const direction = seatLabels[index];
+  const isBot = seat?.user_id?.startsWith("bot_") ?? false;
 
   if (!seat) {
     return (
@@ -92,25 +97,26 @@ function SeatCard({
         transition={{ delay: index * 0.1 }}
         className="glass rounded-2xl border border-dashed border-slate-700/50 p-5 flex flex-col items-center justify-center gap-3 min-h-[140px] relative overflow-hidden"
       >
-        {/* Shimmer effect */}
         <div className="absolute inset-0 animate-shimmer" />
-
         <div className="relative">
           <div className="w-12 h-12 rounded-full bg-slate-800/80 border border-slate-700/50 flex items-center justify-center">
             <svg className="w-5 h-5 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
             </svg>
           </div>
-          <motion.div
-            animate={{ scale: [1, 1.4, 1], opacity: [0.3, 0, 0.3] }}
-            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-            className="absolute inset-0 rounded-full border border-slate-600/30"
-          />
         </div>
         <div className="text-center relative">
           <p className="text-sm text-slate-500">Esperando...</p>
           <p className="text-xs text-slate-600 mt-0.5">{direction}</p>
         </div>
+        {isHost && onAddBot && (
+          <button
+            onClick={onAddBot}
+            className="relative text-xs text-blue-400 hover:text-blue-300 transition-colors mt-1"
+          >
+            + Añadir Bot
+          </button>
+        )}
       </motion.div>
     );
   }
@@ -124,7 +130,6 @@ function SeatCard({
       transition={{ delay: index * 0.1, type: "spring", stiffness: 200 }}
       className={`glass rounded-2xl border ${team.border} p-5 flex flex-col items-center justify-center gap-3 min-h-[140px] relative`}
     >
-      {/* Host badge */}
       {isSeatHost && (
         <div className="absolute top-2.5 right-2.5">
           <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/10 border border-amber-500/30 px-2 py-0.5 text-[10px] font-bold text-amber-400 uppercase tracking-wider">
@@ -135,18 +140,23 @@ function SeatCard({
           </span>
         </div>
       )}
+      {isBot && (
+        <div className="absolute top-2.5 left-2.5">
+          <span className="inline-flex items-center gap-1 rounded-full bg-blue-500/10 border border-blue-500/30 px-2 py-0.5 text-[10px] font-bold text-blue-400 uppercase tracking-wider">
+            🤖 Bot
+          </span>
+        </div>
+      )}
 
-      {/* Avatar */}
       <div className={`w-12 h-12 rounded-full ${team.bg} border ${team.border} flex items-center justify-center text-lg font-bold ${team.text}`}>
-        {seat.display_name.charAt(0).toUpperCase()}
+        {isBot ? "🤖" : seat.display_name.charAt(0).toUpperCase()}
       </div>
 
-      {/* Info */}
       <div className="text-center">
         <p className="font-semibold text-white text-sm flex items-center gap-1.5 justify-center">
           {seat.display_name}
           {isCurrentUser && (
-            <span className="text-[10px] text-emerald-400 font-normal">(tu)</span>
+            <span className="text-[10px] text-emerald-400 font-normal">(tú)</span>
           )}
         </p>
         <div className="flex items-center gap-1.5 justify-center mt-1">
@@ -154,6 +164,14 @@ function SeatCard({
           <p className={`text-xs ${team.text}`}>{team.label} — {direction}</p>
         </div>
       </div>
+      {isHost && isBot && onRemoveBot && (
+        <button
+          onClick={onRemoveBot}
+          className="text-xs text-red-400 hover:text-red-300 transition-colors"
+        >
+          Quitar bot
+        </button>
+      )}
     </motion.div>
   );
 }
@@ -237,6 +255,16 @@ export function RoomLobby({ room, userId, displayName }: Props) {
         setTimeout(() => setCopied(false), 2000);
       }
     } catch { /* noop */ }
+  }
+
+  async function handleAddBot() {
+    const result = await addBot(room.id);
+    if (result?.error) setError(result.error);
+  }
+
+  async function handleRemoveBot(seatIndex: number) {
+    const result = await removeBot(room.id, seatIndex);
+    if (result?.error) setError(result.error);
   }
 
   return (
@@ -342,6 +370,8 @@ export function RoomLobby({ room, userId, displayName }: Props) {
                   isHost={isHost}
                   isCurrentUser={seat?.user_id === userId}
                   roomHostId={room.host_id}
+                  onAddBot={() => handleAddBot()}
+                  onRemoveBot={() => handleRemoveBot(i)}
                 />
               ))}
             </div>

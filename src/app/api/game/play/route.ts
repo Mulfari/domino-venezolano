@@ -3,6 +3,8 @@ import { createClient } from "@/lib/supabase/server";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { applyMove } from "@/lib/game/engine";
 import { calculateRoundResult } from "@/lib/game/scoring";
+import { processBotTurns } from "@/lib/game/bot-turn";
+import { isBotUserId } from "@/lib/game/bot-engine";
 import type { Tile, Seat, BoardState, GameState } from "@/lib/game/types";
 
 export async function POST(request: NextRequest) {
@@ -182,6 +184,15 @@ export async function POST(request: NextRequest) {
     }
 
     await getSupabaseAdmin().removeChannel(channel);
+
+    // If next turn is a bot and round isn't over, process bot turns
+    if (newState.status === "playing") {
+      const nextSeat = newState.current_turn;
+      const nextPlayer = seats[nextSeat];
+      if (nextPlayer && isBotUserId(nextPlayer.user_id)) {
+        processBotTurns(game_id).catch(console.error);
+      }
+    }
 
     return NextResponse.json({ success: true, status: newState.status });
   } catch {
