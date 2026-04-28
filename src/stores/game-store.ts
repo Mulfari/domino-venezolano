@@ -105,9 +105,10 @@ export const useGameStore = create<GameStore>((set, get) => ({
   },
 
   validMoves: () => {
-    const { mySeat, hands, board, status } = get();
+    const { mySeat, hands, board, status, round } = get();
     if (mySeat === null || status !== "playing") return [];
-    return getValidMoves(hands[mySeat], board);
+    const mustPlayDouble6 = round === 1 && board.plays.length === 0;
+    return getValidMoves(hands[mySeat], board, mustPlayDouble6);
   },
 
   canPass: () => {

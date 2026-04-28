@@ -86,33 +86,35 @@ export function Board({ onPlaceEnd }: BoardProps) {
         )}
 
         {/* Tile chain */}
-        <div className="relative flex items-center justify-center flex-wrap gap-[2px] min-h-[70px] py-4 overflow-hidden">
-          <AnimatePresence mode="popLayout">
-            {allTiles.map((entry, i) => {
-              const isLast = i === lastIndex;
-              return (
-                <motion.div
-                  key={`tile-${i}`}
-                  layout
-                  initial={{ opacity: 0, scale: 0.5 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ type: "spring", stiffness: 300, damping: 25 }}
-                  className={`flex items-center justify-center ${isLast ? "ring-1 ring-[#c9a84c]/60 rounded" : ""}`}
-                >
-                  <DominoTile
-                    tile={entry.tile}
-                    size="small"
-                    responsive
-                    orientation={entry.isDouble ? "vertical" : "horizontal"}
-                  />
-                </motion.div>
-              );
-            })}
-          </AnimatePresence>
+        <div className="relative min-h-[60px] sm:min-h-[70px] py-3 sm:py-4 overflow-x-auto overflow-y-hidden scrollbar-hide">
+          <div className="flex items-center justify-center gap-[1px] sm:gap-[2px] min-w-min px-2">
+            <AnimatePresence mode="popLayout">
+              {allTiles.map((entry, i) => {
+                const isLast = i === lastIndex;
+                return (
+                  <motion.div
+                    key={`tile-${i}`}
+                    layout
+                    initial={{ opacity: 0, scale: 0.5 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ type: "spring", stiffness: 300, damping: 25 }}
+                    className={`flex-shrink-0 flex items-center justify-center ${isLast ? "ring-1 ring-[#c9a84c]/60 rounded" : ""}`}
+                  >
+                    <DominoTile
+                      tile={entry.tile}
+                      size="small"
+                      responsive
+                      orientation={entry.isDouble ? "vertical" : "horizontal"}
+                    />
+                  </motion.div>
+                );
+              })}
+            </AnimatePresence>
 
-          {board.plays.length === 0 && (
-            <p className="text-[#a8c4a0]/50 text-sm">Mesa vacía</p>
-          )}
+            {board.plays.length === 0 && (
+              <p className="text-[#a8c4a0]/50 text-sm">Mesa vacía</p>
+            )}
+          </div>
         </div>
 
         {/* Placement buttons */}

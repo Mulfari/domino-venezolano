@@ -59,7 +59,8 @@ export async function POST(request: NextRequest) {
     const allHands = game.hands as Tile[][];
     const playerHand = allHands[playerSeat];
     const board = game.board as BoardState;
-    const validMoves = getValidMoves(playerHand, board);
+    const mustPlayDouble6 = (game.round ?? 1) === 1 && board.plays.length === 0;
+    const validMoves = getValidMoves(playerHand, board, mustPlayDouble6);
 
     if (validMoves.length > 0) {
       return NextResponse.json(

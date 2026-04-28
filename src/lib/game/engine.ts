@@ -14,16 +14,22 @@ export function tilesMatch(
 
 /**
  * Returns all valid moves for a hand given the current board state.
- * On an empty board, any tile can be played (though the first move is always [6,6]).
+ * When mustPlayDouble6 is true (round 1, first play), only [6,6] is valid.
  */
 export function getValidMoves(
   hand: Tile[],
-  board: BoardState
+  board: BoardState,
+  mustPlayDouble6 = false
 ): { tile: Tile; end: "left" | "right" }[] {
   const moves: { tile: Tile; end: "left" | "right" }[] = [];
 
-  // Empty board — any tile can be played on either end (they're equivalent)
+  // Empty board
   if (board.left === null || board.right === null) {
+    if (mustPlayDouble6) {
+      const double6 = hand.find((t) => t[0] === 6 && t[1] === 6);
+      if (double6) moves.push({ tile: double6, end: "left" });
+      return moves;
+    }
     for (const tile of hand) {
       moves.push({ tile, end: "left" });
     }
