@@ -191,6 +191,17 @@ export default function GamePage() {
     return () => { cancelled = true; };
   }, [gameId, router, fetchGameState]);
 
+  /* ---- Periodic state refresh (fallback for missed events) ---- */
+  useEffect(() => {
+    if (status !== "playing" || !mySeat) return;
+    const interval = setInterval(() => {
+      if (document.visibilityState === "visible") {
+        fetchGameState();
+      }
+    }, 15_000);
+    return () => clearInterval(interval);
+  }, [status, mySeat, fetchGameState]);
+
   /* ---- "Your turn" sound ---- */
   const prevTurnRef = useRef<number | null>(null);
   useEffect(() => {
