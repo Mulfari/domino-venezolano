@@ -233,9 +233,12 @@ export function GameOverModal({ onNextRound, onBackToLobby }: GameOverModalProps
               </p>
             </div>
           ) : (
-            <p className="text-sm text-[#a8c4a0] animate-pulse">
-              Siguiente ronda en breve...
-            </p>
+            <div className="flex items-center justify-center gap-2 py-1">
+              <div className="h-1.5 w-1.5 rounded-full bg-[#c9a84c] animate-pulse" />
+              <p className="text-sm text-[#a8c4a0]">
+                Esperando al host...
+              </p>
+            </div>
           )}
         </motion.div>
       </motion.div>

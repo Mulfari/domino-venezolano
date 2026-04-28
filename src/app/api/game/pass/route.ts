@@ -161,11 +161,15 @@ export async function POST(request: NextRequest) {
 
     await getSupabaseAdmin().removeChannel(channel);
 
-    // Update profile stats if match is over
+    // Update profile stats and room status if match is over
     if (roundResult && newScores) {
       const targetScore = ((game.rooms as Record<string, unknown>).target_score as number) ?? 100;
       if (roundResult.winner_team !== null && (newScores[0] >= targetScore || newScores[1] >= targetScore)) {
         await updateProfileStats(seats, roundResult.winner_team as 0 | 1, targetScore, newScores);
+        await getSupabaseAdmin()
+          .from("rooms")
+          .update({ status: "finished", finished_at: new Date().toISOString() })
+          .eq("id", game.room_id);
       }
     }
 
