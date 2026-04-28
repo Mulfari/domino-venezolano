@@ -12,8 +12,9 @@ interface BoardProps {
 export function Board({ onPlaceEnd }: BoardProps) {
   const board = useGameStore((s) => s.board);
   const selectedTile = useGameStore((s) => s.selectedTile);
-  const isMyTurn = useGameStore((s) => s.isMyTurn());
+  const isMyTurnFn = useGameStore((s) => s.isMyTurn);
 
+  const isMyTurn = isMyTurnFn();
   const showPlacementOptions = selectedTile !== null && isMyTurn;
 
   /** Determine rotation for a played tile based on its position in the chain. */
@@ -27,43 +28,56 @@ export function Board({ onPlaceEnd }: BoardProps) {
     return 0;
   }
 
-  /** Orient the tile so the matching pip faces the chain. */
-  function orientTile(play: PlayedTile, index: number): Tile {
-    const { tile, end } = play;
-    if (index === 0) return tile;
+  /**
+   * Build oriented tile chains for rendering.
+   * Walk through plays and determine correct tile orientation based on connectivity.
+   */
+  function buildOrientedChains(): { leftChain: Tile[]; rightChain: Tile[] } {
+    if (board.plays.length === 0) return { leftChain: [], rightChain: [] };
 
-    if (end === "right") {
-      // The matching pip should be on the left side (facing the chain)
-      const prevRight = index > 0 ? getChainRight(index - 1) : null;
-      if (prevRight !== null && tile[0] !== prevRight) {
-        return [tile[1], tile[0]];
+    const leftChain: Tile[] = [];
+    const rightChain: Tile[] = [];
+
+    // First tile is always rendered as-is in the right chain
+    const firstPlay = board.plays[0];
+    rightChain.push(firstPlay.tile);
+
+    // Track the running endpoints as we add tiles
+    let runningLeft = firstPlay.tile[0];
+    let runningRight = firstPlay.tile[1];
+
+    // Process remaining plays in order
+    for (let i = 1; i < board.plays.length; i++) {
+      const play = board.plays[i];
+      const { tile, end } = play;
+
+      if (end === "right") {
+        // Connecting to the right end: one pip must match runningRight
+        // Orient so the matching pip is on the left (index 0) of the rendered tile
+        if (tile[0] === runningRight) {
+          rightChain.push(tile);
+          runningRight = tile[1];
+        } else {
+          rightChain.push([tile[1], tile[0]]);
+          runningRight = tile[0];
+        }
+      } else {
+        // Connecting to the left end: one pip must match runningLeft
+        // Orient so the matching pip is on the right (index 1) of the rendered tile
+        if (tile[1] === runningLeft) {
+          leftChain.unshift(tile);
+          runningLeft = tile[0];
+        } else {
+          leftChain.unshift([tile[1], tile[0]]);
+          runningLeft = tile[1];
+        }
       }
-      return tile;
-    } else {
-      // Left end — matching pip on the right side
-      return tile;
     }
+
+    return { leftChain, rightChain };
   }
 
-  function getChainRight(index: number): number | null {
-    if (index < 0 || index >= board.plays.length) return null;
-    const play = board.plays[index];
-    return play.tile[1];
-  }
-
-  // Split plays into left-end plays and right-end plays for rendering
-  const leftPlays: PlayedTile[] = [];
-  const rightPlays: PlayedTile[] = [];
-
-  board.plays.forEach((play, i) => {
-    if (i === 0) {
-      rightPlays.push(play);
-    } else if (play.end === "left") {
-      leftPlays.unshift(play); // prepend so they render left-to-right
-    } else {
-      rightPlays.push(play);
-    }
-  });
+  const { leftChain, rightChain } = buildOrientedChains();
 
   return (
     <div className="relative flex flex-col items-center justify-center flex-1 min-h-0">
@@ -86,9 +100,9 @@ export function Board({ onPlaceEnd }: BoardProps) {
 
         {/* Tile chain */}
         <div className="relative flex items-center justify-center flex-wrap gap-0.5 min-h-[60px] py-4">
-          {/* Left-end plays (reversed order) */}
+          {/* Left-end tiles (rendered left-to-right) */}
           <AnimatePresence mode="popLayout">
-            {leftPlays.map((play, i) => (
+            {leftChain.map((tile, i) => (
               <motion.div
                 key={`left-${i}`}
                 layout
@@ -97,17 +111,17 @@ export function Board({ onPlaceEnd }: BoardProps) {
                 transition={{ type: "spring", stiffness: 300, damping: 25 }}
               >
                 <DominoTile
-                  tile={orientTile(play, i)}
+                  tile={tile}
                   size="medium"
-                  rotation={getTileRotation(play, i, board.plays.length)}
+                  rotation={getTileRotation(board.plays[0], i, board.plays.length)}
                 />
               </motion.div>
             ))}
           </AnimatePresence>
 
-          {/* Right-end plays */}
+          {/* Right-end tiles (rendered left-to-right) */}
           <AnimatePresence mode="popLayout">
-            {rightPlays.map((play, i) => (
+            {rightChain.map((tile, i) => (
               <motion.div
                 key={`right-${i}`}
                 layout
@@ -116,9 +130,9 @@ export function Board({ onPlaceEnd }: BoardProps) {
                 transition={{ type: "spring", stiffness: 300, damping: 25 }}
               >
                 <DominoTile
-                  tile={orientTile(play, leftPlays.length + i)}
+                  tile={tile}
                   size="medium"
-                  rotation={getTileRotation(play, leftPlays.length + i, board.plays.length)}
+                  rotation={getTileRotation(board.plays[0], leftChain.length + i, board.plays.length)}
                 />
               </motion.div>
             ))}

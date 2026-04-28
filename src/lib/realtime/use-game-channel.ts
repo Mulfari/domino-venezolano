@@ -25,6 +25,12 @@ export function useGameChannel({
   const channelRef = useRef<RealtimeChannel | null>(null);
   const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // Use refs for callbacks to avoid stale closures in the channel listener
+  const onEventRef = useRef(onEvent);
+  onEventRef.current = onEvent;
+  const onPresenceChangeRef = useRef(onPresenceChange);
+  onPresenceChangeRef.current = onPresenceChange;
+
   const broadcast = useCallback(
     (event: GameEvent) => {
       channelRef.current?.send({
@@ -48,7 +54,7 @@ export function useGameChannel({
 
     // Listen for broadcast game events
     channel.on("broadcast", { event: "game_event" }, ({ payload }) => {
-      onEvent(payload as GameEvent);
+      onEventRef.current(payload as GameEvent);
     });
 
     // Presence tracking
@@ -61,13 +67,13 @@ export function useGameChannel({
           players.push(presences[0] as PresenceState);
         }
       }
-      onPresenceChange?.(players);
+      onPresenceChangeRef.current?.(players);
     });
 
     channel.on("presence", { event: "join" }, ({ newPresences }) => {
       for (const presence of newPresences) {
         const p = presence as unknown as PresenceState;
-        onEvent({
+        onEventRef.current({
           type: "player_connected",
           seat: p.seat,
           display_name: p.display_name,
@@ -78,7 +84,7 @@ export function useGameChannel({
     channel.on("presence", { event: "leave" }, ({ leftPresences }) => {
       for (const presence of leftPresences) {
         const p = presence as unknown as PresenceState;
-        onEvent({
+        onEventRef.current({
           type: "player_disconnected",
           seat: p.seat,
         });

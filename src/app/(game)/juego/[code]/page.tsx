@@ -96,9 +96,11 @@ export default function GamePage() {
   const passTurn = useGameStore((s) => s.passTurn);
   const reset = useGameStore((s) => s.reset);
 
-  /* Ref to keep gameId stable for callbacks */
+  /* Refs to keep values stable for callbacks */
   const gameIdRef = useRef(gameId);
   gameIdRef.current = gameId;
+  const mySeatRef = useRef(mySeat);
+  mySeatRef.current = mySeat;
 
   /* ---------------------------------------------------------------- */
   /*  Fetch session + game state on mount                             */
@@ -190,33 +192,36 @@ export default function GamePage() {
   /* ---------------------------------------------------------------- */
   const handleGameEvent = useCallback(
     (event: GameEvent) => {
+      const currentSeat = mySeatRef.current;
+
       switch (event.type) {
         case "tile_played": {
-          // Update hand counts
+          // If it's our own play, we already updated optimistically — just update hand counts
+          if (currentSeat !== null && event.seat === currentSeat) {
+            break;
+          }
+          // Update hand counts for opponent plays
           setHandCounts((prev) => {
             const next = [...prev];
             if (next[event.seat] > 0) next[event.seat]--;
             return next;
           });
-          // If it's not our own play, apply to store
-          if (mySeat !== null && event.seat !== mySeat) {
-            // We can't call playTile for opponents (we don't have their tiles)
-            // Instead, re-fetch the full state to stay in sync
-            fetchGameState();
-          }
+          // Re-fetch to get the updated board state
+          fetchGameState();
           break;
         }
 
         case "turn_passed": {
-          if (mySeat !== null && event.seat !== mySeat) {
-            fetchGameState();
+          // If it's our own pass, we already updated optimistically
+          if (currentSeat !== null && event.seat === currentSeat) {
+            break;
           }
+          fetchGameState();
           break;
         }
 
         case "round_started": {
           // New round — fetch fresh state with the new game_id
-          // Update URL if game_id changed
           if (event.game_id !== gameIdRef.current) {
             router.replace(`/juego/${event.game_id}`);
             gameIdRef.current = event.game_id;
@@ -240,10 +245,10 @@ export default function GamePage() {
         case "game_state_sync": {
           const s = event.state;
           const handsObj = { 0: [] as Tile[], 1: [] as Tile[], 2: [] as Tile[], 3: [] as Tile[] };
-          if (mySeat !== null) {
-            handsObj[mySeat] = s.hands[mySeat] ?? [];
+          if (currentSeat !== null) {
+            handsObj[currentSeat] = s.hands[currentSeat] ?? [];
           }
-          setHandCounts(s.hands.map((h) => h.length));
+          setHandCounts(s.hands.map((h: Tile[]) => h.length));
           setGameState({
             board: s.board,
             hands: handsObj,
@@ -265,7 +270,7 @@ export default function GamePage() {
         }
       }
     },
-    [mySeat, fetchGameState, setScores, setRoundResult, setGameState, updatePlayerConnection, reset, router]
+    [fetchGameState, setScores, setRoundResult, setGameState, updatePlayerConnection, reset, router]
   );
 
   /* ---------------------------------------------------------------- */

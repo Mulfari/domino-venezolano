@@ -11,13 +11,19 @@ interface HandProps {
 }
 
 export function Hand({ onPlayTile, onPass }: HandProps) {
-  const myHand = useGameStore((s) => s.myHand());
-  const isMyTurn = useGameStore((s) => s.isMyTurn());
-  const validMoves = useGameStore((s) => s.validMoves());
-  const canPass = useGameStore((s) => s.canPass());
+  const mySeat = useGameStore((s) => s.mySeat);
+  const hands = useGameStore((s) => s.hands);
+  const isMyTurnFn = useGameStore((s) => s.isMyTurn);
+  const validMovesFn = useGameStore((s) => s.validMoves);
+  const canPassFn = useGameStore((s) => s.canPass);
   const selectedTile = useGameStore((s) => s.selectedTile);
   const selectTile = useGameStore((s) => s.selectTile);
   const board = useGameStore((s) => s.board);
+
+  const myHand = mySeat !== null ? hands[mySeat] : [];
+  const isMyTurn = isMyTurnFn();
+  const validMoves = validMovesFn();
+  const canPass = canPassFn();
 
   function isTilePlayable(tile: Tile): boolean {
     return validMoves.some(

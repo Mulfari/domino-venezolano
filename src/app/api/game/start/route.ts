@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
-import type { Tile, Seat } from "@/lib/game/types";
+import type { Tile } from "@/lib/game/types";
 
 export async function POST(request: NextRequest) {
   try {
@@ -38,7 +38,10 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate 4 players
-    const seats = room.seats as ({ user_id: string; display_name: string } | null)[];
+    const seats = (room.seats ?? [null, null, null, null]) as (
+      | { user_id: string; display_name: string }
+      | null
+    )[];
     const filledSeats = seats.filter((s) => s !== null);
     if (filledSeats.length < 4) {
       return NextResponse.json(
@@ -49,15 +52,19 @@ export async function POST(request: NextRequest) {
 
     // Get previous game scores if continuing a match
     let previousScores = [0, 0];
+    let roundNumber = 1;
     if (room.current_game_id) {
       const { data: prevGame } = await getSupabaseAdmin()
         .from("games")
-        .select("scores")
+        .select("scores, round_number")
         .eq("id", room.current_game_id)
         .single();
 
       if (prevGame?.scores) {
         previousScores = prevGame.scores as number[];
+      }
+      if (prevGame?.round_number) {
+        roundNumber = (prevGame.round_number as number) + 1;
       }
     }
 
@@ -94,13 +101,19 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    const boardState = { left: null, right: null, plays: [] };
+
     // Create new game
     const { data: game, error: gameError } = await getSupabaseAdmin()
       .from("games")
       .insert({
         room_id: room.id,
+        round_number: roundNumber,
         hands,
-        board: { left: null, right: null, plays: [] },
+        board: boardState,
+        board_left: null,
+        board_right: null,
+        tiles_played: [],
         current_turn: startingSeat,
         consecutive_passes: 0,
         status: "playing",
@@ -110,8 +123,20 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (gameError || !game) {
-      return NextResponse.json({ error: "No se pudo crear la partida." }, { status: 500 });
+      return NextResponse.json(
+        { error: "No se pudo crear la partida: " + (gameError?.message ?? "unknown") },
+        { status: 500 }
+      );
     }
+
+    // Write hands to game_hands table for RLS-based access
+    const handInserts = seats.map((seat, i) => ({
+      game_id: game.id,
+      player_id: seat!.user_id,
+      seat: i,
+      tiles: hands[i],
+    }));
+    await getSupabaseAdmin().from("game_hands").insert(handInserts);
 
     // Update room
     await getSupabaseAdmin()

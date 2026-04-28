@@ -5,9 +5,11 @@ import { useGameStore } from "@/stores/game-store";
 
 export function TurnIndicator() {
   const currentTurn = useGameStore((s) => s.currentTurn);
-  const isMyTurn = useGameStore((s) => s.isMyTurn());
+  const isMyTurnFn = useGameStore((s) => s.isMyTurn);
   const players = useGameStore((s) => s.players);
   const status = useGameStore((s) => s.status);
+
+  const isMyTurn = isMyTurnFn();
 
   if (status !== "playing") return null;
 

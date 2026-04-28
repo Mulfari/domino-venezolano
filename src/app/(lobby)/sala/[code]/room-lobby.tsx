@@ -165,12 +165,12 @@ export function RoomLobby({ room, userId, displayName }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const router = useRouter();
-  const supabase = createClient();
   const isHost = room.host_id === userId;
   const filledCount = seats.filter((s) => s !== null).length;
   const allReady = filledCount === 4;
 
   useEffect(() => {
+    const supabase = createClient();
     const channel = supabase
       .channel(`room:${room.id}`)
       .on(
@@ -194,7 +194,7 @@ export function RoomLobby({ room, userId, displayName }: Props) {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [room.id, supabase, router]);
+  }, [room.id, router]);
 
   async function handleStart() {
     setStarting(true);
@@ -203,10 +203,13 @@ export function RoomLobby({ room, userId, displayName }: Props) {
       const result = await startGame(room.id);
       if (result?.error) {
         setError(result.error);
+        setStarting(false);
+      } else if (result?.gameId) {
+        // Redirect immediately — don't wait for realtime
+        router.push(`/juego/${result.gameId}`);
       }
     } catch {
       setError("Error al iniciar la partida.");
-    } finally {
       setStarting(false);
     }
   }

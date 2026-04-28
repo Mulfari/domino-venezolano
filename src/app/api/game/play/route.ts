@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
-import { applyMove, getValidMoves } from "@/lib/game/engine";
+import { applyMove } from "@/lib/game/engine";
 import { calculateRoundResult } from "@/lib/game/scoring";
 import type { Tile, Seat, BoardState, GameState } from "@/lib/game/types";
 
@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Fetch game state
+    // Fetch game + room data
     const { data: game, error: gameError } = await getSupabaseAdmin()
       .from("games")
       .select("*, rooms!inner(code, seats)")
@@ -41,8 +41,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Partida no encontrada." }, { status: 404 });
     }
 
-    // Determine player's seat
-    const seats = game.rooms.seats as ({ user_id: string; display_name: string } | null)[];
+    // Determine player's seat from room seats
+    const seats = ((game.rooms as Record<string, unknown>).seats ?? [null, null, null, null]) as (
+      | { user_id: string; display_name: string }
+      | null
+    )[];
     const playerSeat = seats.findIndex((s) => s?.user_id === user.id);
 
     if (playerSeat === -1) {
@@ -58,17 +61,20 @@ export async function POST(request: NextRequest) {
     }
 
     // Reconstruct GameState from DB
+    const allHands = game.hands as Tile[][];
     const hands = new Map<Seat, Tile[]>();
     for (let i = 0; i < 4; i++) {
-      hands.set(i as Seat, (game.hands as Tile[][])[i]);
+      hands.set(i as Seat, allHands[i]);
     }
 
+    const board = game.board as BoardState;
+
     const state: GameState = {
-      board: game.board as BoardState,
+      board,
       hands,
       current_turn: game.current_turn as Seat,
-      consecutive_passes: game.consecutive_passes,
-      status: game.status as "playing",
+      consecutive_passes: game.consecutive_passes ?? 0,
+      status: "playing",
     };
 
     // Apply the move (validates internally)
@@ -86,24 +92,65 @@ export async function POST(request: NextRequest) {
       newHands.push(newState.hands.get(i as Seat) ?? []);
     }
 
-    // Update game in DB
+    // Build the update payload — include scores in the same write if round ended
+    const updatePayload: Record<string, unknown> = {
+      board: newState.board,
+      board_left: newState.board.left,
+      board_right: newState.board.right,
+      tiles_played: newState.board.plays,
+      hands: newHands,
+      current_turn: newState.current_turn,
+      consecutive_passes: newState.consecutive_passes,
+      status: newState.status,
+    };
+
+    // If round ended, calculate scores and include in the same update
+    let roundResult: { winner_team: number | null; points: number; reason: string } | null = null;
+    let newScores: number[] | null = null;
+
+    if (newState.status === "finished") {
+      const result = calculateRoundResult(newState);
+      roundResult = result;
+
+      updatePayload.finished_at = new Date().toISOString();
+
+      // Find the winner seat (the one with empty hand)
+      for (let i = 0; i < 4; i++) {
+        if (newHands[i].length === 0) {
+          updatePayload.winner_seat = i;
+          updatePayload.winning_team = i % 2;
+          break;
+        }
+      }
+
+      // Calculate and include scores in the same update
+      const currentScores = (game.scores as number[]) || [0, 0];
+      newScores = [...currentScores];
+      if (result.winner_team !== null) {
+        newScores[result.winner_team] += result.points;
+      }
+      updatePayload.scores = newScores;
+      updatePayload.points_awarded = result.points;
+    }
+
     const { error: updateError } = await getSupabaseAdmin()
       .from("games")
-      .update({
-        board: newState.board,
-        hands: newHands,
-        current_turn: newState.current_turn,
-        consecutive_passes: newState.consecutive_passes,
-        status: newState.status,
-      })
+      .update(updatePayload)
       .eq("id", game_id);
 
     if (updateError) {
       return NextResponse.json({ error: "Error al actualizar la partida." }, { status: 500 });
     }
 
+    // Update the player's hand in game_hands table
+    await getSupabaseAdmin()
+      .from("game_hands")
+      .update({ tiles: newHands[playerSeat] })
+      .eq("game_id", game_id)
+      .eq("seat", playerSeat);
+
     // Broadcast tile_played event
-    const roomCode = game.rooms.code as string;
+    const roomCode = (game.rooms as Record<string, unknown>).code as string;
     const channel = getSupabaseAdmin().channel(`room:${roomCode}`);
 
     await channel.send({
@@ -112,31 +159,24 @@ export async function POST(request: NextRequest) {
       payload: { type: "tile_played", seat: playerSeat, tile, end },
     });
 
-    // Check if round is over
-    if (newState.status === "finished") {
-      const result = calculateRoundResult(newState);
-
-      // Update scores
-      const currentScores = (game.scores as number[]) || [0, 0];
-      const newScores = [...currentScores];
-      if (result.winner_team !== null) {
-        newScores[result.winner_team] += result.points;
-      }
-
-      await getSupabaseAdmin()
-        .from("games")
-        .update({ scores: newScores })
-        .eq("id", game_id);
+    // If round ended, write to scores table and broadcast
+    if (roundResult && newScores) {
+      const roomId = game.room_id as string;
+      const scoreInserts = [
+        { room_id: roomId, game_id, team: 0, points: roundResult.winner_team === 0 ? roundResult.points : 0 },
+        { room_id: roomId, game_id, team: 1, points: roundResult.winner_team === 1 ? roundResult.points : 0 },
+      ];
+      await getSupabaseAdmin().from("scores").upsert(scoreInserts);
 
       await channel.send({
         type: "broadcast",
         event: "game_event",
         payload: {
           type: "round_ended",
-          winner_team: result.winner_team,
-          points: result.points,
+          winner_team: roundResult.winner_team,
+          points: roundResult.points,
           scores: { team0: newScores[0], team1: newScores[1] },
-          reason: result.reason,
+          reason: roundResult.reason,
         },
       });
     }

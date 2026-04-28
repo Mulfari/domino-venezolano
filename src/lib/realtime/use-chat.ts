@@ -59,6 +59,8 @@ export function useChat({ roomCode, gameId, userId, displayName }: UseChatOption
 
     channel.on("broadcast", { event: "chat_message" }, ({ payload }) => {
       const msg = payload as ChatMessage;
+      // Ignore our own messages (we already added them locally in sendMessage)
+      if (msg.player_id === userId) return;
       setMessages((prev) => [...prev, msg]);
     });
 
@@ -69,7 +71,7 @@ export function useChat({ roomCode, gameId, userId, displayName }: UseChatOption
       supabase.removeChannel(channel);
       channelRef.current = null;
     };
-  }, [roomCode]);
+  }, [roomCode, userId]);
 
   const sendMessage = useCallback(
     async (message: string) => {

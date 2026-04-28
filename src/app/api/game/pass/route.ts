@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
-import { applyPass, getValidMoves } from "@/lib/game/engine";
+import { getValidMoves } from "@/lib/game/engine";
 import { calculateRoundResult } from "@/lib/game/scoring";
 import type { Tile, Seat, BoardState, GameState } from "@/lib/game/types";
 
@@ -35,7 +35,10 @@ export async function POST(request: NextRequest) {
     }
 
     // Determine player's seat
-    const seats = game.rooms.seats as ({ user_id: string; display_name: string } | null)[];
+    const seats = ((game.rooms as Record<string, unknown>).seats ?? [null, null, null, null]) as (
+      | { user_id: string; display_name: string }
+      | null
+    )[];
     const playerSeat = seats.findIndex((s) => s?.user_id === user.id);
 
     if (playerSeat === -1) {
@@ -51,7 +54,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate player truly has no valid moves
-    const playerHand = (game.hands as Tile[][])[playerSeat];
+    const allHands = game.hands as Tile[][];
+    const playerHand = allHands[playerSeat];
     const board = game.board as BoardState;
     const validMoves = getValidMoves(playerHand, board);
 
@@ -65,28 +69,54 @@ export async function POST(request: NextRequest) {
     // Reconstruct GameState
     const hands = new Map<Seat, Tile[]>();
     for (let i = 0; i < 4; i++) {
-      hands.set(i as Seat, (game.hands as Tile[][])[i]);
+      hands.set(i as Seat, allHands[i]);
     }
 
-    const state: GameState = {
-      board,
-      hands,
-      current_turn: game.current_turn as Seat,
-      consecutive_passes: game.consecutive_passes,
-      status: "playing",
+    const consecutivePasses = (game.consecutive_passes ?? 0) as number;
+    const newPasses = consecutivePasses + 1;
+    const locked = newPasses >= 4;
+    const nextTurn = locked ? playerSeat : ((playerSeat + 1) % 4);
+    const newStatus = locked ? "finished" : "playing";
+
+    // Build update payload — include scores in the same write if locked
+    const updatePayload: Record<string, unknown> = {
+      current_turn: nextTurn,
+      consecutive_passes: newPasses,
+      status: newStatus,
     };
 
-    // Apply pass
-    const newState = applyPass(state, playerSeat as Seat);
+    let roundResult: { winner_team: number | null; points: number; reason: string } | null = null;
+    let newScores: number[] | null = null;
 
-    // Update DB
+    if (locked) {
+      updatePayload.finished_at = new Date().toISOString();
+
+      // Build GameState for scoring
+      const state: GameState = {
+        board,
+        hands,
+        current_turn: playerSeat as Seat,
+        consecutive_passes: newPasses,
+        status: "finished",
+      };
+
+      const result = calculateRoundResult(state);
+      roundResult = result;
+
+      const currentScores = (game.scores as number[]) || [0, 0];
+      newScores = [...currentScores];
+      if (result.winner_team !== null) {
+        newScores[result.winner_team] += result.points;
+      }
+
+      updatePayload.scores = newScores;
+      updatePayload.winning_team = result.winner_team;
+      updatePayload.points_awarded = result.points;
+    }
+
     const { error: updateError } = await getSupabaseAdmin()
       .from("games")
-      .update({
-        current_turn: newState.current_turn,
-        consecutive_passes: newState.consecutive_passes,
-        status: newState.status,
-      })
+      .update(updatePayload)
       .eq("id", game_id);
 
     if (updateError) {
@@ -94,7 +124,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Broadcast
-    const roomCode = game.rooms.code as string;
+    const roomCode = (game.rooms as Record<string, unknown>).code as string;
     const channel = getSupabaseAdmin().channel(`room:${roomCode}`);
 
     await channel.send({
@@ -103,37 +133,31 @@ export async function POST(request: NextRequest) {
       payload: { type: "turn_passed", seat: playerSeat },
     });
 
-    // Check if round is locked (4 consecutive passes)
-    if (newState.status === "finished") {
-      const result = calculateRoundResult(newState);
-
-      const currentScores = (game.scores as number[]) || [0, 0];
-      const newScores = [...currentScores];
-      if (result.winner_team !== null) {
-        newScores[result.winner_team] += result.points;
-      }
-
-      await getSupabaseAdmin()
-        .from("games")
-        .update({ scores: newScores })
-        .eq("id", game_id);
+    // If locked, write to scores table and broadcast round_ended
+    if (roundResult && newScores) {
+      const roomId = game.room_id as string;
+      const scoreInserts = [
+        { room_id: roomId, game_id, team: 0, points: roundResult.winner_team === 0 ? roundResult.points : 0 },
+        { room_id: roomId, game_id, team: 1, points: roundResult.winner_team === 1 ? roundResult.points : 0 },
+      ];
+      await getSupabaseAdmin().from("scores").upsert(scoreInserts);
 
       await channel.send({
         type: "broadcast",
         event: "game_event",
         payload: {
           type: "round_ended",
-          winner_team: result.winner_team,
-          points: result.points,
+          winner_team: roundResult.winner_team,
+          points: roundResult.points,
           scores: { team0: newScores[0], team1: newScores[1] },
-          reason: result.reason,
+          reason: roundResult.reason,
         },
       });
     }
 
     await getSupabaseAdmin().removeChannel(channel);
 
-    return NextResponse.json({ success: true, status: newState.status });
+    return NextResponse.json({ success: true, status: newStatus });
   } catch {
     return NextResponse.json({ error: "Error interno del servidor." }, { status: 500 });
   }
