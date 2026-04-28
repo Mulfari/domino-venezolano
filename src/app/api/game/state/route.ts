@@ -1,0 +1,66 @@
+import { NextRequest, NextResponse } from "next/server";
+import { createClient } from "@/lib/supabase/server";
+import { supabaseAdmin } from "@/lib/supabase/admin";
+import type { Tile, Seat, BoardState } from "@/lib/game/types";
+
+export async function GET(request: NextRequest) {
+  try {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      return NextResponse.json({ error: "No autenticado." }, { status: 401 });
+    }
+
+    const { searchParams } = new URL(request.url);
+    const game_id = searchParams.get("game_id");
+
+    if (!game_id) {
+      return NextResponse.json({ error: "Falta game_id." }, { status: 400 });
+    }
+
+    // Fetch game state
+    const { data: game, error: gameError } = await supabaseAdmin
+      .from("games")
+      .select("*, rooms!inner(code, seats)")
+      .eq("id", game_id)
+      .single();
+
+    if (gameError || !game) {
+      return NextResponse.json({ error: "Partida no encontrada." }, { status: 404 });
+    }
+
+    // Determine player's seat
+    const seats = game.rooms.seats as ({ user_id: string; display_name: string } | null)[];
+    const playerSeat = seats.findIndex((s) => s?.user_id === user.id);
+
+    if (playerSeat === -1) {
+      return NextResponse.json({ error: "No estás en esta partida." }, { status: 403 });
+    }
+
+    const allHands = game.hands as Tile[][];
+    const board = game.board as BoardState;
+    const scores = (game.scores as number[]) || [0, 0];
+
+    // Return only the player's own hand + public info
+    // Other players' hand counts are visible but not their tiles
+    const handCounts = allHands.map((h) => h.length);
+
+    return NextResponse.json({
+      game_id: game.id,
+      board,
+      hand: allHands[playerSeat],
+      hand_counts: handCounts,
+      current_turn: game.current_turn as Seat,
+      consecutive_passes: game.consecutive_passes,
+      status: game.status,
+      scores: { team0: scores[0], team1: scores[1] },
+      seat: playerSeat,
+      seats: seats.map((s) => (s ? { display_name: s.display_name } : null)),
+    });
+  } catch {
+    return NextResponse.json({ error: "Error interno del servidor." }, { status: 500 });
+  }
+}
