@@ -341,6 +341,17 @@ export function LobbyClient({ user, createRoomAction, quickPlayAction, joinRoomF
 
               {/* Join room */}
               {joinRoomForm}
+
+              {/* Public rooms link */}
+              <Link
+                href="/partidas"
+                className="w-full rounded-2xl border border-slate-800 hover:border-emerald-500/30 bg-slate-900/50 hover:bg-emerald-500/5 px-6 py-3 text-sm font-medium text-slate-400 hover:text-emerald-400 transition-all flex items-center justify-center gap-2"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 12h16.5m-16.5 3.75h16.5M3.75 19.5h16.5M5.625 4.5h12.75a1.875 1.875 0 010 3.75H5.625a1.875 1.875 0 010-3.75z" />
+                </svg>
+                Ver partidas públicas
+              </Link>
             </motion.div>
           ) : (
             <motion.div
