@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { useIsMobile } from "@/hooks/use-mobile";
 import type { Tile as TileType } from "@/lib/game/types";
 
 type TileSize = "small" | "medium" | "large";
@@ -14,6 +15,7 @@ interface TileProps {
   disabled?: boolean;
   selected?: boolean;
   highlight?: boolean;
+  responsive?: boolean;
   onClick?: () => void;
 }
 
@@ -21,6 +23,12 @@ const sizeConfig: Record<TileSize, { w: number; h: number; pip: number; gap: num
   small: { w: 36, h: 20, pip: 3, gap: 1 },
   medium: { w: 56, h: 30, pip: 4, gap: 2 },
   large: { w: 76, h: 40, pip: 5, gap: 2 },
+};
+
+const mobileSizeConfig: Record<TileSize, { w: number; h: number; pip: number; gap: number }> = {
+  small: { w: 28, h: 16, pip: 2, gap: 1 },
+  medium: { w: 42, h: 22, pip: 3, gap: 1 },
+  large: { w: 58, h: 32, pip: 4, gap: 2 },
 };
 
 /** Pip positions for values 0-6 on a single half, in a 3x3 grid. */
@@ -74,9 +82,12 @@ export function DominoTile({
   disabled = false,
   selected = false,
   highlight = false,
+  responsive = false,
   onClick,
 }: TileProps) {
-  const { w, h, pip, gap } = sizeConfig[size];
+  const isMobile = useIsMobile();
+  const config = responsive && isMobile ? mobileSizeConfig : sizeConfig;
+  const { w, h, pip, gap } = config[size];
   const halfW = (w - gap) / 2;
   const borderRadius = size === "small" ? 3 : 4;
 

@@ -73,9 +73,9 @@ export function Hand({ onPlayTile, onPass }: HandProps) {
   }
 
   return (
-    <div className="flex flex-col items-center gap-3 pb-4 px-2">
+    <div className="flex flex-col items-center gap-2 sm:gap-3 pb-2 sm:pb-4 px-1 sm:px-2">
       {/* Tiles row */}
-      <div className="flex items-end justify-center gap-1.5 sm:gap-2 flex-wrap">
+      <div className="flex items-end justify-center gap-0.5 sm:gap-2 flex-wrap">
         <AnimatePresence mode="popLayout">
           {myHand.map((tile, i) => {
             const playable = isMyTurn && isTilePlayable(tile);
@@ -93,6 +93,7 @@ export function Hand({ onPlayTile, onPass }: HandProps) {
                 <DominoTile
                   tile={tile}
                   size="large"
+                  responsive
                   clickable={isMyTurn}
                   disabled={isMyTurn && !playable}
                   selected={selected}

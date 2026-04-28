@@ -89,7 +89,7 @@ export function ChatPanel({
 
       {/* Slide-out panel */}
       <div
-        className={`fixed top-0 right-0 z-40 h-full w-80 max-w-[85vw] bg-slate-900 border-l border-slate-800 shadow-2xl flex flex-col transition-transform duration-200 ease-out ${
+        className={`fixed top-0 right-0 z-40 h-full w-72 sm:w-80 max-w-[90vw] bg-slate-900 border-l border-slate-800 shadow-2xl flex flex-col transition-transform duration-200 ease-out ${
           open ? "translate-x-0" : "translate-x-full"
         }`}
       >

@@ -29,9 +29,9 @@ export function OpponentHand({
       }`}
     >
       {/* Player name + status */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1 sm:gap-2">
         <motion.div
-          className={`h-2 w-2 rounded-full ${
+          className={`h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full ${
             connected ? "bg-emerald-400" : "bg-red-400"
           }`}
           animate={
@@ -46,13 +46,13 @@ export function OpponentHand({
           }
         />
         <span
-          className={`text-xs font-medium ${
+          className={`text-[10px] sm:text-xs font-medium truncate max-w-[60px] sm:max-w-[100px] ${
             isCurrentTurn ? "text-amber-400" : "text-slate-400"
           }`}
         >
           {playerName}
         </span>
-        <span className="text-[10px] text-slate-600">({tileCount})</span>
+        <span className="text-[9px] sm:text-[10px] text-slate-600">({tileCount})</span>
       </div>
 
       {/* Face-down tiles */}
@@ -71,6 +71,7 @@ export function OpponentHand({
             <DominoTile
               faceDown
               size="small"
+              responsive
               rotation={isVertical ? 90 : 0}
             />
           </motion.div>

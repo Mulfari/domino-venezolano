@@ -74,8 +74,8 @@ export function Board({ onPlaceEnd }: BoardProps) {
 
   return (
     <div className="relative flex flex-col items-center justify-center flex-1 min-h-0">
-      <div className="relative w-full max-w-2xl mx-auto px-4">
-        <div className="absolute inset-0 -m-8 rounded-3xl bg-emerald-950/30 border border-emerald-900/20" />
+      <div className="relative w-full max-w-2xl mx-auto px-2 sm:px-4">
+        <div className="absolute inset-0 -m-4 sm:-m-8 rounded-3xl bg-emerald-950/30 border border-emerald-900/20" />
 
         {board.left !== null && board.right !== null && (
           <div className="relative flex items-center justify-between mb-3 px-2">
@@ -115,6 +115,7 @@ export function Board({ onPlaceEnd }: BoardProps) {
                 <DominoTile
                   tile={tile}
                   size="medium"
+                  responsive
                   rotation={getTileRotation(board.plays[0], i, board.plays.length)}
                 />
               </motion.div>
@@ -139,6 +140,7 @@ export function Board({ onPlaceEnd }: BoardProps) {
                 <DominoTile
                   tile={tile}
                   size="medium"
+                  responsive
                   rotation={getTileRotation(board.plays[0], leftChain.length + i, board.plays.length)}
                 />
               </motion.div>
@@ -156,19 +158,19 @@ export function Board({ onPlaceEnd }: BoardProps) {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 10 }}
-              className="relative flex items-center justify-center gap-4 mt-3"
+              className="relative flex items-center justify-center gap-2 sm:gap-4 mt-2 sm:mt-3"
             >
               <button
                 onClick={() => onPlaceEnd?.("left")}
-                className="flex items-center gap-2 rounded-xl bg-emerald-700/80 hover:bg-emerald-600 border border-emerald-500/30 px-4 py-2 text-sm font-medium text-white transition-colors"
+                className="flex items-center gap-1 sm:gap-2 rounded-xl bg-emerald-700/80 hover:bg-emerald-600 active:bg-emerald-500 border border-emerald-500/30 px-3 sm:px-4 py-2.5 sm:py-2 text-xs sm:text-sm font-medium text-white transition-colors"
               >
-                ← Izquierda ({board.left})
+                ← Izq ({board.left})
               </button>
               <button
                 onClick={() => onPlaceEnd?.("right")}
-                className="flex items-center gap-2 rounded-xl bg-emerald-700/80 hover:bg-emerald-600 border border-emerald-500/30 px-4 py-2 text-sm font-medium text-white transition-colors"
+                className="flex items-center gap-1 sm:gap-2 rounded-xl bg-emerald-700/80 hover:bg-emerald-600 active:bg-emerald-500 border border-emerald-500/30 px-3 sm:px-4 py-2.5 sm:py-2 text-xs sm:text-sm font-medium text-white transition-colors"
               >
-                Derecha ({board.right}) →
+                Der ({board.right}) →
               </button>
             </motion.div>
           )}

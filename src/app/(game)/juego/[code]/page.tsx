@@ -13,6 +13,7 @@ import { GameOverModal } from "@/components/game/game-over-modal";
 import { DisconnectOverlay } from "@/components/game/disconnect-overlay";
 import { ChatPanel } from "@/components/chat/chat-panel";
 import { SoundToggle } from "@/components/game/sound-toggle";
+import { LandscapePrompt } from "@/components/game/landscape-prompt";
 import { useGameChannel } from "@/lib/realtime/use-game-channel";
 import { useGameStore } from "@/stores/game-store";
 import { playTilePlace, playPass, playYourTurn, playVictory, playDefeat } from "@/lib/sounds/sound-engine";
@@ -472,23 +473,26 @@ export default function GamePage() {
   const isHost = userId === hostId;
 
   return (
-    <div className="h-screen flex flex-col bg-slate-950 overflow-hidden select-none">
+    <div className="h-[100dvh] flex flex-col bg-slate-950 overflow-hidden select-none">
+      {/* Landscape prompt for mobile portrait */}
+      <LandscapePrompt />
+
       {/* Top bar: score + turn indicator */}
-      <div className="flex items-start justify-between p-3 sm:p-4 shrink-0">
+      <div className="flex items-start justify-between p-2 sm:p-4 shrink-0 gap-1">
         <ScorePanel />
-        <div className="flex flex-col items-center gap-1">
+        <div className="flex flex-col items-center gap-0.5 sm:gap-1 min-w-0">
           <TurnIndicator />
           <TurnTimer />
         </div>
-        {/* Room code badge */}
-        <div className="min-w-[160px] flex items-center justify-end gap-2">
+        {/* Room code badge + sound */}
+        <div className="min-w-0 sm:min-w-[160px] flex items-center justify-end gap-1 sm:gap-2">
           <SoundToggle />
           {roomCode && (
-            <div className="rounded-lg bg-slate-900/80 border border-slate-800 px-3 py-1.5 text-center">
-              <span className="text-[10px] uppercase tracking-wider text-slate-500 block">
+            <div className="rounded-lg bg-slate-900/80 border border-slate-800 px-2 sm:px-3 py-1 sm:py-1.5 text-center">
+              <span className="text-[10px] uppercase tracking-wider text-slate-500 block leading-tight">
                 Sala
               </span>
-              <span className="text-xs font-mono font-semibold text-slate-400 tracking-widest">
+              <span className="text-[10px] sm:text-xs font-mono font-semibold text-slate-400 tracking-widest">
                 {roomCode}
               </span>
             </div>
@@ -497,7 +501,7 @@ export default function GamePage() {
       </div>
 
       {/* Partner (top) */}
-      <div className="flex justify-center shrink-0 pb-2">
+      <div className="flex justify-center shrink-0 pb-1 sm:pb-2">
         <OpponentHand
           seat={seats.top}
           tileCount={handCounts[seats.top] ?? 0}
@@ -511,7 +515,7 @@ export default function GamePage() {
       {/* Middle row: left opponent, board, right opponent */}
       <div className="flex flex-1 min-h-0 items-center">
         {/* Left opponent */}
-        <div className="shrink-0 px-2 sm:px-4">
+        <div className="shrink-0 px-1 sm:px-4">
           <OpponentHand
             seat={seats.left}
             tileCount={handCounts[seats.left] ?? 0}
@@ -526,7 +530,7 @@ export default function GamePage() {
         <Board onPlaceEnd={handlePlaceEnd} />
 
         {/* Right opponent */}
-        <div className="shrink-0 px-2 sm:px-4">
+        <div className="shrink-0 px-1 sm:px-4">
           <OpponentHand
             seat={seats.right}
             tileCount={handCounts[seats.right] ?? 0}
@@ -539,7 +543,7 @@ export default function GamePage() {
       </div>
 
       {/* Player hand (bottom) */}
-      <div className="shrink-0 pt-2 border-t border-slate-800/50">
+      <div className="shrink-0 pt-1 sm:pt-2 border-t border-slate-800/50">
         <Hand onPlayTile={handlePlayTile} onPass={handlePass} />
       </div>
 
