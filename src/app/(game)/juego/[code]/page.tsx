@@ -14,7 +14,6 @@ import { DisconnectOverlay } from "@/components/game/disconnect-overlay";
 import { ChatPanel } from "@/components/chat/chat-panel";
 import { SoundToggle } from "@/components/game/sound-toggle";
 import { LandscapePrompt } from "@/components/game/landscape-prompt";
-import { RoundStartAnnouncement } from "@/components/game/round-start-announcement";
 import { useGameChannel } from "@/lib/realtime/use-game-channel";
 import { useGameStore } from "@/stores/game-store";
 import { playTilePlace, playPass, playYourTurn, playVictory, playDefeat } from "@/lib/sounds/sound-engine";
@@ -546,9 +545,6 @@ export default function GamePage() {
       <div className="shrink-0 pt-1 sm:pt-2 border-t border-[#c9a84c]/15">
         <Hand onPlayTile={handlePlayTile} onPass={handlePass} />
       </div>
-
-      {/* Round start announcement */}
-      <RoundStartAnnouncement />
 
       {/* Disconnect overlay */}
       <DisconnectOverlay />
