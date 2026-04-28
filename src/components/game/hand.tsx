@@ -68,7 +68,7 @@ export function Hand({ onPlayTile, onPass, disabled = false }: HandProps) {
 
     const ends = getEndsForTile(tile);
 
-    if (ends.length === 1 || board.left === null) {
+    if (ends.length === 1 || board.left === null || board.left === board.right) {
       onPlayTile?.(tile, ends[0]);
       return;
     }
