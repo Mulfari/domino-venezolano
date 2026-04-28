@@ -16,11 +16,9 @@ export function Board({ onPlaceEnd }: BoardProps) {
 
   const isMyTurn = isMyTurnFn();
   const showPlacementOptions = selectedTile !== null && isMyTurn;
+  const lastPlayIndex = board.plays.length - 1;
 
-  /** Determine rotation for a played tile based on its position in the chain. */
-  function getTileRotation(play: PlayedTile, index: number, total: number): number {
-    // Tiles at the turning points rotate 90 degrees
-    // Simple layout: horizontal chain, turn down after ~6 tiles, then back
+  function getTileRotation(_play: PlayedTile, index: number, total: number): number {
     if (total <= 8) return 0;
     if (index >= 6 && index < 8) return 90;
     if (index >= 8 && index < 14) return 0;
@@ -28,32 +26,24 @@ export function Board({ onPlaceEnd }: BoardProps) {
     return 0;
   }
 
-  /**
-   * Build oriented tile chains for rendering.
-   * Walk through plays and determine correct tile orientation based on connectivity.
-   */
-  function buildOrientedChains(): { leftChain: Tile[]; rightChain: Tile[] } {
-    if (board.plays.length === 0) return { leftChain: [], rightChain: [] };
+  function buildOrientedChains(): { leftChain: Tile[]; rightChain: Tile[]; lastSide: "left" | "right" | null } {
+    if (board.plays.length === 0) return { leftChain: [], rightChain: [], lastSide: null };
 
     const leftChain: Tile[] = [];
     const rightChain: Tile[] = [];
 
-    // First tile is always rendered as-is in the right chain
     const firstPlay = board.plays[0];
     rightChain.push(firstPlay.tile);
 
-    // Track the running endpoints as we add tiles
     let runningLeft = firstPlay.tile[0];
     let runningRight = firstPlay.tile[1];
+    let lastSide: "left" | "right" = "right";
 
-    // Process remaining plays in order
     for (let i = 1; i < board.plays.length; i++) {
       const play = board.plays[i];
       const { tile, end } = play;
 
       if (end === "right") {
-        // Connecting to the right end: one pip must match runningRight
-        // Orient so the matching pip is on the left (index 0) of the rendered tile
         if (tile[0] === runningRight) {
           rightChain.push(tile);
           runningRight = tile[1];
@@ -61,9 +51,8 @@ export function Board({ onPlaceEnd }: BoardProps) {
           rightChain.push([tile[1], tile[0]]);
           runningRight = tile[0];
         }
+        lastSide = "right";
       } else {
-        // Connecting to the left end: one pip must match runningLeft
-        // Orient so the matching pip is on the right (index 1) of the rendered tile
         if (tile[1] === runningLeft) {
           leftChain.unshift(tile);
           runningLeft = tile[0];
@@ -71,44 +60,57 @@ export function Board({ onPlaceEnd }: BoardProps) {
           leftChain.unshift([tile[1], tile[0]]);
           runningLeft = tile[1];
         }
+        lastSide = "left";
       }
     }
 
-    return { leftChain, rightChain };
+    return { leftChain, rightChain, lastSide };
   }
 
-  const { leftChain, rightChain } = buildOrientedChains();
+  const { leftChain, rightChain, lastSide } = buildOrientedChains();
+
+  const lastLeftIndex = lastSide === "left" ? 0 : -1;
+  const lastRightIndex = lastSide === "right" ? rightChain.length - 1 : -1;
 
   return (
     <div className="relative flex flex-col items-center justify-center flex-1 min-h-0">
-      {/* Board surface */}
       <div className="relative w-full max-w-2xl mx-auto px-4">
-        {/* Felt texture background */}
         <div className="absolute inset-0 -m-8 rounded-3xl bg-emerald-950/30 border border-emerald-900/20" />
 
-        {/* End values display */}
         {board.left !== null && board.right !== null && (
           <div className="relative flex items-center justify-between mb-3 px-2">
-            <span className="text-xs text-slate-500 font-mono">
+            <motion.span
+              animate={isMyTurn ? { scale: [1, 1.15, 1] } : {}}
+              transition={{ repeat: Infinity, duration: 1.5 }}
+              className={`text-xs font-mono px-2 py-0.5 rounded ${isMyTurn ? "bg-emerald-900/50 text-emerald-400 border border-emerald-700/40" : "text-slate-500"}`}
+            >
               ← {board.left}
-            </span>
-            <span className="text-xs text-slate-500 font-mono">
+            </motion.span>
+            <motion.span
+              animate={isMyTurn ? { scale: [1, 1.15, 1] } : {}}
+              transition={{ repeat: Infinity, duration: 1.5, delay: 0.75 }}
+              className={`text-xs font-mono px-2 py-0.5 rounded ${isMyTurn ? "bg-emerald-900/50 text-emerald-400 border border-emerald-700/40" : "text-slate-500"}`}
+            >
               {board.right} →
-            </span>
+            </motion.span>
           </div>
         )}
 
-        {/* Tile chain */}
         <div className="relative flex items-center justify-center flex-wrap gap-0.5 min-h-[60px] py-4">
-          {/* Left-end tiles (rendered left-to-right) */}
           <AnimatePresence mode="popLayout">
             {leftChain.map((tile, i) => (
               <motion.div
                 key={`left-${i}`}
                 layout
                 initial={{ opacity: 0, scale: 0.5, y: -20 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
+                animate={{
+                  opacity: 1,
+                  scale: 1,
+                  y: 0,
+                  boxShadow: i === lastLeftIndex ? "0 0 12px rgba(16,185,129,0.5)" : "none",
+                }}
                 transition={{ type: "spring", stiffness: 300, damping: 25 }}
+                className={i === lastLeftIndex ? "rounded ring-1 ring-emerald-500/60" : ""}
               >
                 <DominoTile
                   tile={tile}
@@ -119,15 +121,20 @@ export function Board({ onPlaceEnd }: BoardProps) {
             ))}
           </AnimatePresence>
 
-          {/* Right-end tiles (rendered left-to-right) */}
           <AnimatePresence mode="popLayout">
             {rightChain.map((tile, i) => (
               <motion.div
                 key={`right-${i}`}
                 layout
                 initial={{ opacity: 0, scale: 0.5, y: -20 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
+                animate={{
+                  opacity: 1,
+                  scale: 1,
+                  y: 0,
+                  boxShadow: i === lastRightIndex ? "0 0 12px rgba(16,185,129,0.5)" : "none",
+                }}
                 transition={{ type: "spring", stiffness: 300, damping: 25 }}
+                className={i === lastRightIndex ? "rounded ring-1 ring-emerald-500/60" : ""}
               >
                 <DominoTile
                   tile={tile}
@@ -138,13 +145,11 @@ export function Board({ onPlaceEnd }: BoardProps) {
             ))}
           </AnimatePresence>
 
-          {/* Empty board message */}
           {board.plays.length === 0 && (
             <p className="text-slate-600 text-sm">Mesa vacía</p>
           )}
         </div>
 
-        {/* Placement options when a tile is selected */}
         <AnimatePresence>
           {showPlacementOptions && board.left !== null && (
             <motion.div

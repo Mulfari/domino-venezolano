@@ -8,6 +8,7 @@ import { Hand } from "@/components/game/hand";
 import { OpponentHand } from "@/components/game/opponent-hand";
 import { ScorePanel } from "@/components/game/score-panel";
 import { TurnIndicator } from "@/components/game/turn-indicator";
+import { TurnTimer } from "@/components/game/turn-timer";
 import { GameOverModal } from "@/components/game/game-over-modal";
 import { DisconnectOverlay } from "@/components/game/disconnect-overlay";
 import { ChatPanel } from "@/components/chat/chat-panel";
@@ -475,7 +476,10 @@ export default function GamePage() {
       {/* Top bar: score + turn indicator */}
       <div className="flex items-start justify-between p-3 sm:p-4 shrink-0">
         <ScorePanel />
-        <TurnIndicator />
+        <div className="flex flex-col items-center gap-1">
+          <TurnIndicator />
+          <TurnTimer />
+        </div>
         {/* Room code badge */}
         <div className="min-w-[160px] flex items-center justify-end gap-2">
           <SoundToggle />
