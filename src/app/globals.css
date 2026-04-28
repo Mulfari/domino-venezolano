@@ -1,8 +1,17 @@
 @import "tailwindcss";
 
 :root {
-  --background: #020617;
-  --foreground: #f8fafc;
+  --background: #1a3a2a;
+  --foreground: #f5f0e8;
+  --felt: #1e5c3a;
+  --felt-dark: #163d28;
+  --felt-light: #267a4d;
+  --wood: #5c3a1e;
+  --wood-light: #8b6914;
+  --ivory: #f5f0e8;
+  --ivory-dark: #e8dcc8;
+  --gold: #c9a84c;
+  --gold-light: #dfc06a;
 }
 
 @theme inline {
@@ -18,20 +27,20 @@ html {
 }
 
 body {
-  background: var(--background);
+  background: var(--felt-dark);
   color: var(--foreground);
   font-family: var(--font-sans), system-ui, sans-serif;
 }
 
 /* ── Selection ────────────────────────────────── */
 ::selection {
-  background: rgba(16, 185, 129, 0.35);
+  background: rgba(201, 168, 76, 0.4);
   color: #fff;
 }
 
 /* ── Focus ring ───────────────────────────────── */
 :focus-visible {
-  outline: 2px solid #10b981;
+  outline: 2px solid var(--gold);
   outline-offset: 2px;
 }
 
@@ -44,17 +53,17 @@ body {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #334155;
+  background: rgba(201, 168, 76, 0.3);
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #475569;
+  background: rgba(201, 168, 76, 0.5);
 }
 
 /* Firefox scrollbar */
 * {
   scrollbar-width: thin;
-  scrollbar-color: #334155 transparent;
+  scrollbar-color: rgba(201, 168, 76, 0.3) transparent;
 }
 
 /* ── Transition defaults ──────────────────────── */
@@ -68,28 +77,45 @@ select {
   transition-duration: 200ms;
 }
 
-/* ── Background pattern ───────────────────────── */
+/* ── Felt background pattern ─────────────────── */
+.bg-felt {
+  background-color: var(--felt-dark);
+  background-image:
+    radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.03) 1px, transparent 0);
+  background-size: 24px 24px;
+}
+
 .bg-grid-pattern {
   background-image:
-    radial-gradient(circle at 1px 1px, rgba(148, 163, 184, 0.05) 1px, transparent 0);
+    radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.03) 1px, transparent 0);
   background-size: 32px 32px;
 }
 
-/* ── Glass card ───────────────────────────────── */
+/* ── Glass card (now wood/felt style) ────────── */
 .glass {
-  background: rgba(15, 23, 42, 0.6);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(148, 163, 184, 0.1);
+  background: rgba(30, 92, 58, 0.5);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(201, 168, 76, 0.15);
+}
+
+/* ── Wood panel ──────────────────────────────── */
+.wood-panel {
+  background: linear-gradient(135deg, #4a2c0f 0%, #5c3a1e 50%, #4a2c0f 100%);
+  border: 1px solid rgba(201, 168, 76, 0.3);
 }
 
 /* ── Glow effects ─────────────────────────────── */
 .glow-emerald {
-  box-shadow: 0 0 20px rgba(16, 185, 129, 0.15), 0 0 60px rgba(16, 185, 129, 0.05);
+  box-shadow: 0 0 20px rgba(30, 92, 58, 0.3), 0 0 60px rgba(30, 92, 58, 0.1);
 }
 
 .glow-amber {
-  box-shadow: 0 0 20px rgba(251, 191, 36, 0.15), 0 0 60px rgba(251, 191, 36, 0.05);
+  box-shadow: 0 0 20px rgba(201, 168, 76, 0.2), 0 0 60px rgba(201, 168, 76, 0.08);
+}
+
+.glow-gold {
+  box-shadow: 0 0 15px rgba(201, 168, 76, 0.25);
 }
 
 /* ── Pulse ring animation ─────────────────────── */
@@ -129,7 +155,20 @@ select {
 }
 
 .animate-shimmer {
-  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.05) 50%, transparent 100%);
+  background: linear-gradient(90deg, transparent 0%, rgba(201, 168, 76, 0.06) 50%, transparent 100%);
   background-size: 200% 100%;
   animation: shimmer 2s ease-in-out infinite;
+}
+
+/* ── Felt texture overlay ────────────────────── */
+.felt-texture {
+  position: relative;
+}
+.felt-texture::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 0;
 }

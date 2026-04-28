@@ -99,22 +99,22 @@ export function PublicRoomsClient({ initialRooms, userId, displayName }: Props) 
       <motion.nav
         initial={{ opacity: 0, y: -16 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex items-center justify-between px-6 py-4 border-b border-slate-800/50"
+        className="flex items-center justify-between px-6 py-4 border-b border-[#c9a84c]/20 bg-[#3a2210]/80 backdrop-blur-sm"
       >
         <Link href="/" className="flex items-center gap-3 group">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-500 to-emerald-700 flex items-center justify-center">
+          <div className="w-8 h-8 rounded-lg bg-[#f5f0e8] flex items-center justify-center shadow-md">
             <div className="grid grid-cols-2 gap-0.5 p-1">
               {[...Array(4)].map((_, i) => (
-                <div key={i} className="w-1 h-1 rounded-full bg-white/90" />
+                <div key={i} className="w-1 h-1 rounded-full bg-[#2a1a0a]" />
               ))}
             </div>
           </div>
-          <span className="font-bold text-sm text-slate-400 group-hover:text-white transition-colors">
-            Domino Venezolano
+          <span className="font-bold text-sm text-[#a8c4a0] group-hover:text-[#f5f0e8] transition-colors">
+            Dominó Venezolano
           </span>
         </Link>
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-full bg-emerald-600/20 border border-emerald-500/30 flex items-center justify-center text-xs font-bold text-emerald-400">
+          <div className="w-8 h-8 rounded-full bg-[#c9a84c]/20 border border-[#c9a84c]/40 flex items-center justify-center text-xs font-bold text-[#c9a84c]">
             {displayName.charAt(0).toUpperCase()}
           </div>
         </div>
@@ -130,7 +130,7 @@ export function PublicRoomsClient({ initialRooms, userId, displayName }: Props) 
           >
             <div>
               <h1 className="text-2xl font-bold text-white">Partidas públicas</h1>
-              <p className="text-sm text-slate-400 mt-1">
+              <p className="text-sm text-[#a8c4a0] mt-1">
                 {rooms.length} sala{rooms.length !== 1 ? "s" : ""} disponible{rooms.length !== 1 ? "s" : ""}
               </p>
             </div>
@@ -138,7 +138,7 @@ export function PublicRoomsClient({ initialRooms, userId, displayName }: Props) 
               onClick={() => router.refresh()}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className="rounded-xl bg-slate-800/80 border border-slate-700/50 px-4 py-2 text-sm text-slate-400 hover:text-white hover:border-slate-600 transition-all"
+              className="rounded-xl bg-[#3a2210]/60 border border-[#c9a84c]/20 px-4 py-2 text-sm text-[#a8c4a0] hover:text-[#f5f0e8] hover:border-[#c9a84c]/40 transition-all"
             >
               Actualizar
             </motion.button>
@@ -166,10 +166,10 @@ export function PublicRoomsClient({ initialRooms, userId, displayName }: Props) 
               className="glass rounded-2xl p-12 text-center space-y-4"
             >
               <div className="text-4xl">🎲</div>
-              <p className="text-slate-400">No hay partidas públicas disponibles.</p>
+              <p className="text-[#a8c4a0]">No hay partidas públicas disponibles.</p>
               <Link
                 href="/"
-                className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 px-5 py-2.5 text-sm font-medium text-white transition-colors"
+                className="inline-flex items-center gap-2 rounded-xl bg-[#c9a84c] hover:bg-[#dfc06a] px-5 py-2.5 text-sm font-medium text-[#2a1a0a] transition-colors"
               >
                 Crear una sala
               </Link>
@@ -189,15 +189,15 @@ export function PublicRoomsClient({ initialRooms, userId, displayName }: Props) 
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -12 }}
                     transition={{ delay: i * 0.05 }}
-                    className="glass rounded-2xl border border-slate-700/50 p-5 flex items-center justify-between gap-4"
+                    className="glass rounded-2xl border border-[#c9a84c]/15 p-5 flex items-center justify-between gap-4"
                   >
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <span className="font-mono font-bold text-emerald-400 tracking-wider">
+                        <span className="font-mono font-bold text-[#c9a84c] tracking-wider">
                           {room.code}
                         </span>
-                        <span className="text-xs text-slate-500">•</span>
-                        <span className="text-sm text-slate-400 truncate">
+                        <span className="text-xs text-[#a8c4a0]/40">•</span>
+                        <span className="text-sm text-[#a8c4a0] truncate">
                           Host: {hostName}
                         </span>
                       </div>
@@ -206,13 +206,13 @@ export function PublicRoomsClient({ initialRooms, userId, displayName }: Props) 
                           {[0, 1, 2, 3].map((s) => (
                             <div
                               key={s}
-                              className={`w-2.5 h-2.5 rounded-full border-2 border-slate-900 ${
-                                room.seats[s] ? "bg-emerald-500" : "bg-slate-700"
+                              className={`w-2.5 h-2.5 rounded-full border-2 border-[#163d28] ${
+                                room.seats[s] ? "bg-[#c9a84c]" : "bg-[#1e5c3a]/50"
                               }`}
                             />
                           ))}
                         </div>
-                        <span className="text-xs text-slate-500">
+                        <span className="text-xs text-[#a8c4a0]/60">
                           {4 - openSeats}/4 jugadores
                         </span>
                       </div>
@@ -231,12 +231,12 @@ export function PublicRoomsClient({ initialRooms, userId, displayName }: Props) 
                         disabled={isJoining}
                         whileHover={{ scale: isJoining ? 1 : 1.05 }}
                         whileTap={{ scale: isJoining ? 1 : 0.95 }}
-                        className="rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-700 px-4 py-2 text-sm font-medium text-white transition-colors whitespace-nowrap"
+                        className="rounded-xl bg-[#c9a84c] hover:bg-[#dfc06a] disabled:bg-[#2a3a2a] px-4 py-2 text-sm font-medium text-[#2a1a0a] transition-colors whitespace-nowrap"
                       >
                         {isJoining ? "Uniendo..." : "Unirse"}
                       </motion.button>
                     ) : (
-                      <span className="text-xs text-slate-500 px-3 py-2">Llena</span>
+                      <span className="text-xs text-[#a8c4a0]/40 px-3 py-2">Llena</span>
                     )}
                   </motion.div>
                 );
@@ -253,7 +253,7 @@ export function PublicRoomsClient({ initialRooms, userId, displayName }: Props) 
           >
             <Link
               href="/"
-              className="text-sm text-slate-500 hover:text-slate-300 transition-colors"
+              className="text-sm text-[#a8c4a0]/60 hover:text-[#f5f0e8] transition-colors"
             >
               ← Volver al inicio
             </Link>

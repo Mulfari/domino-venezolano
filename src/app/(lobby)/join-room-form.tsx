@@ -109,10 +109,10 @@ export function JoinRoomForm() {
             className={`w-11 h-14 sm:w-12 sm:h-16 rounded-xl text-center text-xl font-mono font-bold uppercase transition-all
               ${
                 digit
-                  ? "bg-slate-800 border-emerald-500/50 text-emerald-400 shadow-sm shadow-emerald-500/10"
-                  : "bg-slate-900/80 border-slate-700/50 text-white"
+                  ? "bg-[#f5f0e8] border-[#c9a84c]/60 text-[#2a1a0a] shadow-sm shadow-[#c9a84c]/15"
+                  : "bg-[#1e5c3a]/40 border-[#c9a84c]/20 text-[#f5f0e8]"
               }
-              border focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50`}
+              border focus:outline-none focus:ring-2 focus:ring-[#c9a84c]/50 focus:border-[#c9a84c]/50`}
             aria-label={`Caracter ${i + 1} del codigo`}
           />
         ))}
@@ -127,8 +127,8 @@ export function JoinRoomForm() {
         className={`w-full rounded-2xl px-6 py-3.5 font-semibold text-sm transition-all flex items-center justify-center gap-2
           ${
             isFull
-              ? "bg-slate-800 hover:bg-slate-700 border border-slate-600 text-white shadow-lg"
-              : "bg-slate-900 border border-slate-800 text-slate-500 cursor-not-allowed"
+              ? "bg-[#3a2210] hover:bg-[#4a2c0f] border border-[#c9a84c]/30 text-[#f5f0e8] shadow-lg"
+              : "bg-[#1e5c3a]/20 border border-[#c9a84c]/10 text-[#a8c4a0]/40 cursor-not-allowed"
           }`}
       >
         {loading ? (
@@ -154,7 +154,7 @@ export function JoinRoomForm() {
         <motion.div
           initial={{ opacity: 0, y: -4 }}
           animate={{ opacity: 1, y: 0 }}
-          className="flex items-center gap-2 rounded-xl bg-red-500/10 border border-red-500/20 px-4 py-2.5 text-sm text-red-300"
+          className="flex items-center gap-2 rounded-xl bg-red-900/20 border border-red-500/20 px-4 py-2.5 text-sm text-red-300"
         >
           <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
