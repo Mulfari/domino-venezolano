@@ -130,6 +130,19 @@ export function ChatPanel({
           ))}
         </div>
 
+        {/* Quick reactions */}
+        <div className="shrink-0 px-3 pt-2 flex flex-wrap gap-1.5">
+          {["¡Dominó!", "¡Tranca!", "Buena jugada", "😂", "👏", "😤"].map((r) => (
+            <button
+              key={r}
+              onClick={() => sendMessage(r)}
+              className="rounded-full bg-slate-800 hover:bg-slate-700 border border-slate-700/50 px-2.5 py-1 text-xs text-slate-300 transition-colors"
+            >
+              {r}
+            </button>
+          ))}
+        </div>
+
         {/* Input */}
         <div className="shrink-0 px-3 py-3 border-t border-slate-800">
           <div className="flex gap-2">
