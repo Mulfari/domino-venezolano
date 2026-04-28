@@ -19,21 +19,20 @@ interface TileProps {
   onClick?: () => void;
 }
 
+// Vertical tiles: w < h (portrait orientation)
 const sizeConfig: Record<TileSize, { w: number; h: number; pip: number; gap: number }> = {
-  small: { w: 36, h: 20, pip: 3, gap: 1 },
-  medium: { w: 56, h: 30, pip: 4, gap: 2 },
-  large: { w: 76, h: 40, pip: 5, gap: 2 },
+  small: { w: 20, h: 36, pip: 2.5, gap: 1 },
+  medium: { w: 30, h: 56, pip: 3.5, gap: 2 },
+  large: { w: 40, h: 76, pip: 4.5, gap: 2 },
 };
 
 const mobileSizeConfig: Record<TileSize, { w: number; h: number; pip: number; gap: number }> = {
-  small: { w: 28, h: 16, pip: 2, gap: 1 },
-  medium: { w: 42, h: 22, pip: 3, gap: 1 },
-  large: { w: 58, h: 32, pip: 4, gap: 2 },
+  small: { w: 16, h: 28, pip: 2, gap: 1 },
+  medium: { w: 22, h: 42, pip: 2.5, gap: 1 },
+  large: { w: 32, h: 58, pip: 3.5, gap: 2 },
 };
 
-/** Pip positions for values 0-6 on a single half, in a 3x3 grid. */
 function getPipPositions(value: number): [number, number][] {
-  // Positions: [col, row] in a 3x3 grid (0-2)
   const positions: Record<number, [number, number][]> = {
     0: [],
     1: [[1, 1]],
@@ -53,8 +52,8 @@ function PipDots({ value, pipSize, halfWidth, halfHeight }: {
   halfHeight: number;
 }) {
   const positions = getPipPositions(value);
-  const padX = halfWidth * 0.2;
-  const padY = halfHeight * 0.15;
+  const padX = halfWidth * 0.22;
+  const padY = halfHeight * 0.18;
   const areaW = halfWidth - padX * 2;
   const areaH = halfHeight - padY * 2;
 
@@ -66,7 +65,7 @@ function PipDots({ value, pipSize, halfWidth, halfHeight }: {
           cx={padX + (areaW * col) / 2}
           cy={padY + (areaH * row) / 2}
           r={pipSize}
-          fill="white"
+          fill="#1a1a1a"
         />
       ))}
     </>
@@ -88,7 +87,7 @@ export function DominoTile({
   const isMobile = useIsMobile();
   const config = responsive && isMobile ? mobileSizeConfig : sizeConfig;
   const { w, h, pip, gap } = config[size];
-  const halfW = (w - gap) / 2;
+  const halfH = (h - gap) / 2;
   const borderRadius = size === "small" ? 3 : 4;
 
   const showFace = !faceDown && tile;
@@ -97,11 +96,7 @@ export function DominoTile({
     <motion.div
       className={`inline-block ${clickable && !disabled ? "cursor-pointer" : ""}`}
       style={{ rotate: rotation }}
-      whileHover={
-        clickable && !disabled
-          ? { scale: 1.12, y: -6 }
-          : undefined
-      }
+      whileHover={clickable && !disabled ? { scale: 1.12, y: -6 } : undefined}
       whileTap={clickable && !disabled ? { scale: 0.95 } : undefined}
       animate={selected ? { y: -12, scale: 1.08 } : { y: 0, scale: 1 }}
       transition={{ type: "spring", stiffness: 400, damping: 25 }}
@@ -113,55 +108,42 @@ export function DominoTile({
         viewBox={`0 0 ${w} ${h}`}
         xmlns="http://www.w3.org/2000/svg"
         className={`drop-shadow-md ${
-          highlight
-            ? "drop-shadow-[0_0_6px_rgba(16,185,129,0.6)]"
-            : ""
+          highlight ? "drop-shadow-[0_0_6px_rgba(201,168,76,0.6)]" : ""
         } ${disabled ? "opacity-40" : ""}`}
       >
-        {/* Background */}
         <rect
-          x={0}
-          y={0}
-          width={w}
-          height={h}
+          x={0} y={0} width={w} height={h}
           rx={borderRadius}
-          fill={faceDown ? "#1e293b" : "#fefce8"}
+          fill={faceDown ? "#3a2210" : "#f5f0e8"}
           stroke={
-            selected
-              ? "#10b981"
-              : highlight
-                ? "#10b981"
-                : faceDown
-                  ? "#334155"
+            selected ? "#c9a84c"
+              : highlight ? "#c9a84c"
+                : faceDown ? "#5c3a1e"
                   : "#a8a29e"
           }
           strokeWidth={selected || highlight ? 1.5 : 1}
         />
 
         {faceDown ? (
-          /* Face-down pattern */
           <>
-            <rect x={4} y={3} width={w - 8} height={h - 6} rx={2} fill="#0f172a" stroke="#334155" strokeWidth={0.5} />
-            <line x1={w / 2} y1={3} x2={w / 2} y2={h - 3} stroke="#334155" strokeWidth={0.5} />
+            <rect x={3} y={3} width={w - 6} height={h - 6} rx={2} fill="#2a1a0a" stroke="#5c3a1e" strokeWidth={0.5} />
+            <line x1={3} y1={h / 2} x2={w - 3} y2={h / 2} stroke="#5c3a1e" strokeWidth={0.5} />
           </>
         ) : showFace ? (
           <>
-            {/* Left half pips */}
+            {/* Top half pips */}
             <g>
-              <PipDots value={tile[0]} pipSize={pip} halfWidth={halfW} halfHeight={h} />
+              <PipDots value={tile[0]} pipSize={pip} halfWidth={w} halfHeight={halfH} />
             </g>
-            {/* Divider */}
+            {/* Horizontal divider */}
             <line
-              x1={halfW + gap / 2}
-              y1={3}
-              x2={halfW + gap / 2}
-              y2={h - 3}
-              stroke="#a8a29e"
-              strokeWidth={0.8}
+              x1={3} y1={halfH + gap / 2}
+              x2={w - 3} y2={halfH + gap / 2}
+              stroke="#a8a29e" strokeWidth={0.8}
             />
-            {/* Right half pips */}
-            <g transform={`translate(${halfW + gap}, 0)`}>
-              <PipDots value={tile[1]} pipSize={pip} halfWidth={halfW} halfHeight={h} />
+            {/* Bottom half pips */}
+            <g transform={`translate(0, ${halfH + gap})`}>
+              <PipDots value={tile[1]} pipSize={pip} halfWidth={w} halfHeight={halfH} />
             </g>
           </>
         ) : null}
