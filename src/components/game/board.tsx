@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { DominoTile } from "./tile";
 import { useGameStore } from "@/stores/game-store";
@@ -13,6 +14,7 @@ export function Board({ onPlaceEnd }: BoardProps) {
   const board = useGameStore((s) => s.board);
   const selectedTile = useGameStore((s) => s.selectedTile);
   const isMyTurnFn = useGameStore((s) => s.isMyTurn);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   const isMyTurn = isMyTurnFn();
   const showPlacementOptions = selectedTile !== null && isMyTurn;
@@ -61,6 +63,13 @@ export function Board({ onPlaceEnd }: BoardProps) {
   const allTiles = [...leftChain, ...rightChain];
   const lastIndex = allTiles.length - 1;
 
+  useEffect(() => {
+    if (scrollRef.current && allTiles.length > 0) {
+      const el = scrollRef.current;
+      el.scrollTo({ left: (el.scrollWidth - el.clientWidth) / 2, behavior: "smooth" });
+    }
+  }, [allTiles.length]);
+
   return (
     <div className="relative flex flex-col items-center justify-center flex-1 min-h-0">
       <div className="relative w-full max-w-2xl mx-auto px-2 sm:px-4">
@@ -86,7 +95,7 @@ export function Board({ onPlaceEnd }: BoardProps) {
         )}
 
         {/* Tile chain */}
-        <div className="relative min-h-[60px] sm:min-h-[70px] py-3 sm:py-4 overflow-x-auto overflow-y-hidden scrollbar-hide">
+        <div ref={scrollRef} className="relative min-h-[60px] sm:min-h-[70px] py-3 sm:py-4 overflow-x-auto overflow-y-hidden scrollbar-hide">
           <div className="flex items-center justify-center gap-[1px] sm:gap-[2px] min-w-min px-2">
             <AnimatePresence mode="popLayout">
               {allTiles.map((entry, i) => {
