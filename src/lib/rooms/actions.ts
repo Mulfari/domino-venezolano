@@ -143,11 +143,12 @@ export async function quickPlay() {
   const displayName =
     user.user_metadata?.display_name || user.email?.split("@")[0] || "Jugador";
 
-  // 1. Try to find a waiting room with open seats
+  // 1. Try to find a waiting public room with open seats
   const { data: rooms } = await getSupabaseAdmin()
     .from("rooms")
     .select("*")
     .eq("status", "waiting")
+    .eq("is_private", false)
     .order("created_at", { ascending: true })
     .limit(10);
 
