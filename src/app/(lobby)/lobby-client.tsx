@@ -76,42 +76,83 @@ function StatCard({ label, value }: { label: string; value: string }) {
   );
 }
 
-/* ── Create room button ──────────────────────── */
-function CreateRoomButton({ action }: { action: () => Promise<unknown> }) {
+/* ── Create room form ────────────────────────── */
+function CreateRoomForm({ action }: { action: (opts: { isPrivate: boolean; password?: string }) => Promise<unknown> }) {
   const [loading, setLoading] = useState(false);
+  const [isPrivate, setIsPrivate] = useState(false);
+  const [password, setPassword] = useState("");
+
+  async function handleSubmit() {
+    setLoading(true);
+    try {
+      await action({ isPrivate, password: isPrivate && password.trim() ? password.trim() : undefined });
+    } finally {
+      setLoading(false);
+    }
+  }
 
   return (
-    <form
-      action={async () => {
-        setLoading(true);
-        try { await action(); } finally { setLoading(false); }
-      }}
-    >
-      <motion.button
-        type="submit"
-        disabled={loading}
-        whileHover={{ scale: loading ? 1 : 1.02 }}
-        whileTap={{ scale: loading ? 1 : 0.97 }}
-        className="w-full rounded-2xl bg-gradient-to-r from-[#1e5c3a] to-[#267a4d] hover:from-[#267a4d] hover:to-[#2e9058] disabled:from-[#2a3a2a] disabled:to-[#2a3a2a] px-6 py-4 text-lg font-semibold text-[#f5f0e8] transition-all shadow-lg shadow-[#1e5c3a]/30 disabled:shadow-none flex items-center justify-center gap-3 border border-[#c9a84c]/20"
-      >
-        {loading ? (
-          <>
-            <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24" fill="none">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-            </svg>
-            Creando sala...
-          </>
-        ) : (
-          <>
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-            </svg>
-            Crear sala
-          </>
-        )}
-      </motion.button>
-    </form>
+    <div className="space-y-3">
+      <div className="flex items-center justify-between glass rounded-xl px-4 py-3">
+        <div className="flex items-center gap-2">
+          <svg className="w-4 h-4 text-[#a8c4a0]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+            {isPrivate ? (
+              <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+            ) : (
+              <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 10.5V6.75a4.5 4.5 0 119 0v3.75M3.75 21.75h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H3.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+            )}
+          </svg>
+          <span className="text-sm text-[#e8dcc8]">{isPrivate ? "Sala privada" : "Sala pública"}</span>
+        </div>
+        <button
+          type="button"
+          onClick={() => { setIsPrivate(!isPrivate); if (isPrivate) setPassword(""); }}
+          className={`relative w-10 h-5 rounded-full transition-colors ${isPrivate ? "bg-[#c9a84c]" : "bg-[#1e5c3a]/60"}`}
+        >
+          <span className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-[#f5f0e8] transition-transform ${isPrivate ? "translate-x-5" : ""}`} />
+        </button>
+      </div>
+
+      {isPrivate && (
+        <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }}>
+          <input
+            type="text"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="Contraseña (opcional)"
+            maxLength={32}
+            className="w-full rounded-xl bg-[#1e5c3a]/30 border border-[#c9a84c]/20 px-4 py-2.5 text-sm text-[#f5f0e8] placeholder-[#a8c4a0]/40 focus:outline-none focus:ring-2 focus:ring-[#c9a84c]/50"
+          />
+        </motion.div>
+      )}
+
+      <form action={handleSubmit}>
+        <motion.button
+          type="submit"
+          disabled={loading}
+          whileHover={{ scale: loading ? 1 : 1.02 }}
+          whileTap={{ scale: loading ? 1 : 0.97 }}
+          className="w-full rounded-2xl bg-gradient-to-r from-[#1e5c3a] to-[#267a4d] hover:from-[#267a4d] hover:to-[#2e9058] disabled:from-[#2a3a2a] disabled:to-[#2a3a2a] px-6 py-4 text-lg font-semibold text-[#f5f0e8] transition-all shadow-lg shadow-[#1e5c3a]/30 disabled:shadow-none flex items-center justify-center gap-3 border border-[#c9a84c]/20"
+        >
+          {loading ? (
+            <>
+              <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24" fill="none">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+              </svg>
+              Creando sala...
+            </>
+          ) : (
+            <>
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+              </svg>
+              {isPrivate ? "Crear sala privada" : "Crear sala pública"}
+            </>
+          )}
+        </motion.button>
+      </form>
+    </div>
   );
 }
 
@@ -170,7 +211,7 @@ function QuickPlayButton({ action }: { action: () => Promise<unknown> }) {
 /* ── Main lobby client ────────────────────────── */
 interface Props {
   user: { displayName: string } | null;
-  createRoomAction: () => Promise<unknown>;
+  createRoomAction: (opts: { isPrivate: boolean; password?: string }) => Promise<unknown>;
   quickPlayAction: () => Promise<unknown>;
   joinRoomForm: ReactNode;
 }
@@ -316,7 +357,7 @@ export function LobbyClient({ user, createRoomAction, quickPlayAction, joinRoomF
                 <div className="flex-1 h-px bg-[#c9a84c]/15" />
               </div>
 
-              <CreateRoomButton action={createRoomAction} />
+              <CreateRoomForm action={createRoomAction} />
 
               <div className="flex items-center gap-4">
                 <div className="flex-1 h-px bg-[#c9a84c]/15" />

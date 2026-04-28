@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { createRoom, quickPlay } from "@/lib/rooms/actions";
+import { createRoomWithOptions, quickPlay } from "@/lib/rooms/actions";
 import { JoinRoomForm } from "./join-room-form";
 import { LobbyClient } from "./lobby-client";
 
@@ -17,7 +17,7 @@ export default async function LobbyPage() {
   return (
     <LobbyClient
       user={user ? { displayName: displayName || "Jugador" } : null}
-      createRoomAction={createRoom}
+      createRoomAction={createRoomWithOptions}
       quickPlayAction={quickPlay}
       joinRoomForm={<JoinRoomForm />}
     />
