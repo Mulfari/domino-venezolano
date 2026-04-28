@@ -550,7 +550,7 @@ export default function GamePage() {
 
       {/* Player hand (bottom) */}
       <div className="shrink-0 pt-1 sm:pt-2 border-t border-[#c9a84c]/15">
-        <Hand onPlayTile={handlePlayTile} onPass={handlePass} />
+        <Hand onPlayTile={handlePlayTile} onPass={handlePass} disabled={actionLoading} />
       </div>
 
       {/* Disconnect overlay */}

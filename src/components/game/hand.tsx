@@ -8,9 +8,10 @@ import type { Tile } from "@/lib/game/types";
 interface HandProps {
   onPlayTile?: (tile: Tile, end: "left" | "right") => void;
   onPass?: () => void;
+  disabled?: boolean;
 }
 
-export function Hand({ onPlayTile, onPass }: HandProps) {
+export function Hand({ onPlayTile, onPass, disabled = false }: HandProps) {
   const mySeat = useGameStore((s) => s.mySeat);
   const hands = useGameStore((s) => s.hands);
   const isMyTurnFn = useGameStore((s) => s.isMyTurn);
@@ -58,7 +59,7 @@ export function Hand({ onPlayTile, onPass }: HandProps) {
   }
 
   function handleTileClick(tile: Tile) {
-    if (!isMyTurn || !isTilePlayable(tile)) return;
+    if (disabled || !isMyTurn || !isTilePlayable(tile)) return;
 
     if (isTileSelected(tile)) {
       selectTile(null);
