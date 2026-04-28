@@ -181,7 +181,19 @@ export default function LoginPage() {
                   Contraseña
                 </label>
                 {!isSignUp && (
-                  <button type="button" className="text-xs text-[#c9a84c]/70 hover:text-[#c9a84c] transition-colors">
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      if (!email.trim()) { setError("Ingresa tu correo para recuperar la contraseña."); return; }
+                      setError(null); setLoading(true);
+                      const supabase = createClient();
+                      const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: `${window.location.origin}/login` });
+                      setLoading(false);
+                      if (error) setError(error.message);
+                      else setError("Te enviamos un correo para restablecer tu contraseña.");
+                    }}
+                    className="text-xs text-[#c9a84c]/70 hover:text-[#c9a84c] transition-colors"
+                  >
                     ¿Olvidaste tu contraseña?
                   </button>
                 )}
