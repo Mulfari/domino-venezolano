@@ -10,7 +10,7 @@ export function DisconnectOverlay() {
   if (status !== "playing") return null;
 
   const disconnected = players.filter(
-    (p) => !p.connected && p.seat !== mySeat
+    (p) => !p.connected && p.seat !== mySeat && !p.isBot
   );
 
   if (disconnected.length === 0) return null;

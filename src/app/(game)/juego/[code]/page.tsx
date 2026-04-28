@@ -130,7 +130,8 @@ export default function GamePage() {
       const playerInfos = data.seats.map((s, i) => ({
         seat: i as Seat,
         displayName: s?.display_name ?? `Jugador ${i + 1}`,
-        connected: false, // presence will update this
+        connected: false,
+        isBot: s?.user_id?.startsWith("bot_") ?? false,
       }));
       setPlayers(playerInfos);
 

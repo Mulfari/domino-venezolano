@@ -27,6 +27,7 @@ interface PlayerInfo {
   seat: Seat;
   displayName: string;
   connected: boolean;
+  isBot?: boolean;
 }
 
 interface GameStore {
