@@ -51,6 +51,7 @@ export function useGameChannel({
   useEffect(() => {
     if (!roomCode || !userId) return;
 
+    let isMounted = true;
     const supabase = createClient();
     const channelName = `room:${roomCode}`;
 
@@ -115,8 +116,10 @@ export function useGameChannel({
       }
 
       if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
+        if (!isMounted) return;
+        if (reconnectTimeoutRef.current) clearTimeout(reconnectTimeoutRef.current);
         reconnectTimeoutRef.current = setTimeout(() => {
-          channel.subscribe();
+          if (isMounted) channel.subscribe();
         }, 3000);
       }
     });
@@ -138,9 +141,11 @@ export function useGameChannel({
     channelRef.current = channel;
 
     return () => {
+      isMounted = false;
       document.removeEventListener("visibilitychange", handleVisibilityChange);
       if (reconnectTimeoutRef.current) {
         clearTimeout(reconnectTimeoutRef.current);
+        reconnectTimeoutRef.current = null;
       }
       for (const timer of disconnectTimers.current.values()) {
         clearTimeout(timer);
