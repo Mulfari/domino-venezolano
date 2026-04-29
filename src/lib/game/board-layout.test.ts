@@ -11,7 +11,7 @@ import {
   DIMS_DESKTOP,
   DIMS_MOBILE,
 } from "./board-layout";
-import type { TileEntry, PlacedTile, Dir } from "./board-layout";
+import type { TileEntry } from "./board-layout";
 import type { PlayedTile } from "./types";
 
 function entry(a: number, b: number, i: number): TileEntry {
