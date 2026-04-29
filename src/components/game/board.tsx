@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { DominoTile } from "./tile";
 import { useGameStore } from "@/stores/game-store";
@@ -17,190 +17,264 @@ interface TileEntry {
   key: string;
 }
 
-const DESKTOP = { horizW: 56, horizH: 30, doubleW: 30, doubleH: 56, gap: 3, rowGap: 6 };
-const MOBILE = { horizW: 42, horizH: 22, doubleW: 22, doubleH: 42, gap: 2, rowGap: 4 };
+interface PlacedTile extends TileEntry {
+  x: number;
+  y: number;
+  orientation: "horizontal" | "vertical";
+}
+
+type Dir = "right" | "down" | "left" | "up";
+
+const DIMS_DESKTOP = { horizW: 52, horizH: 28, doubleW: 28, doubleH: 52, gap: 2 };
+const DIMS_MOBILE = { horizW: 38, horizH: 20, doubleW: 20, doubleH: 38, gap: 2 };
+
+function tileSize(isDouble: boolean, dir: Dir, dims: typeof DIMS_DESKTOP) {
+  const horiz = dir === "right" || dir === "left";
+  if (isDouble) return horiz ? { w: dims.doubleW, h: dims.doubleH } : { w: dims.doubleH, h: dims.doubleW };
+  return horiz ? { w: dims.horizW, h: dims.horizH } : { w: dims.horizH, h: dims.horizW };
+}
+
+function tileOrientation(isDouble: boolean, dir: Dir): "horizontal" | "vertical" {
+  const horiz = dir === "right" || dir === "left";
+  if (isDouble) return horiz ? "vertical" : "horizontal";
+  return horiz ? "horizontal" : "vertical";
+}
+
+function turnRight(dir: Dir): Dir {
+  const turns: Record<Dir, Dir> = { right: "down", down: "left", left: "up", up: "right" };
+  return turns[dir];
+}
+
+function turnLeft(dir: Dir): Dir {
+  const turns: Record<Dir, Dir> = { right: "up", up: "left", left: "down", down: "right" };
+  return turns[dir];
+}
+
+function advance(x: number, y: number, dir: Dir, amount: number): { x: number; y: number } {
+  switch (dir) {
+    case "right": return { x: x + amount, y };
+    case "left": return { x: x - amount, y };
+    case "down": return { x, y: y + amount };
+    case "up": return { x, y: y - amount };
+  }
+}
+
+function wouldOverflow(x: number, y: number, w: number, h: number, boardW: number, boardH: number, margin: number): boolean {
+  return x - w / 2 < margin || x + w / 2 > boardW - margin || y - h / 2 < margin || y + h / 2 > boardH - margin;
+}
+
+function layoutChain(
+  tiles: TileEntry[],
+  startX: number,
+  startY: number,
+  startDir: Dir,
+  boardW: number,
+  boardH: number,
+  dims: typeof DIMS_DESKTOP,
+  turnFn: (d: Dir) => Dir
+): PlacedTile[] {
+  if (tiles.length === 0) return [];
+  const placed: PlacedTile[] = [];
+  let dir = startDir;
+  let cx = startX;
+  let cy = startY;
+  const margin = 6;
+
+  for (let i = 0; i < tiles.length; i++) {
+    const entry = tiles[i];
+    let sz = tileSize(entry.isDouble, dir, dims);
+    const stepAxis = dir === "right" || dir === "left" ? sz.w : sz.h;
+    const step = stepAxis / 2 + dims.gap;
+    let next = advance(cx, cy, dir, step);
+
+    if (wouldOverflow(next.x, next.y, sz.w, sz.h, boardW, boardH, margin)) {
+      const newDir = turnFn(dir);
+      sz = tileSize(entry.isDouble, newDir, dims);
+      const prevSz = i > 0 ? tileSize(tiles[i - 1].isDouble, dir, dims) : sz;
+      const offsetFromPrev = (dir === "right" || dir === "left" ? prevSz.h : prevSz.w) / 2 + dims.gap + (newDir === "right" || newDir === "left" ? sz.h : sz.w) / 2;
+      const cornerBase = advance(cx, cy, newDir, offsetFromPrev);
+      const newStep = (newDir === "right" || newDir === "left" ? sz.w : sz.h) / 2;
+      next = advance(cornerBase.x, cornerBase.y, newDir, newStep - (newDir === "right" || newDir === "left" ? sz.w : sz.h) / 2);
+      dir = newDir;
+      cx = next.x;
+      cy = next.y;
+    } else {
+      cx = next.x;
+      cy = next.y;
+    }
+
+    placed.push({ ...entry, x: cx, y: cy, orientation: tileOrientation(entry.isDouble, dir) });
+
+    const halfStep = (dir === "right" || dir === "left" ? sz.w : sz.h) / 2;
+    const pos = advance(cx, cy, dir, halfStep);
+    cx = pos.x;
+    cy = pos.y;
+  }
+
+  return placed;
+}
 
 export function Board({ onPlaceEnd }: BoardProps) {
   const board = useGameStore((s) => s.board);
   const selectedTile = useGameStore((s) => s.selectedTile);
   const isMyTurnFn = useGameStore((s) => s.isMyTurn);
   const containerRef = useRef<HTMLDivElement>(null);
-  const [containerWidth, setContainerWidth] = useState(500);
+  const [size, setSize] = useState({ w: 400, h: 300 });
   const isMobile = useIsMobile();
+  const dims = isMobile ? DIMS_MOBILE : DIMS_DESKTOP;
 
   const isMyTurn = isMyTurnFn();
   const showPlacementOptions = selectedTile !== null && isMyTurn;
-  const dims = isMobile ? MOBILE : DESKTOP;
 
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
     const ro = new ResizeObserver((entries) => {
       for (const entry of entries) {
-        setContainerWidth(entry.contentRect.width);
+        setSize({ w: entry.contentRect.width, h: entry.contentRect.height });
       }
     });
     ro.observe(el);
-    setContainerWidth(el.clientWidth);
+    setSize({ w: el.clientWidth, h: el.clientHeight });
     return () => ro.disconnect();
   }, []);
 
-  function buildOrientedChains(): { leftChain: TileEntry[]; rightChain: TileEntry[] } {
-    if (board.plays.length === 0) return { leftChain: [], rightChain: [] };
+  const placedTiles = useMemo(() => {
+    if (board.plays.length === 0) return [];
 
-    const leftChain: TileEntry[] = [];
     const rightChain: TileEntry[] = [];
+    const leftChain: TileEntry[] = [];
 
-    const firstPlay = board.plays[0];
-    const isFirstDouble = firstPlay.tile[0] === firstPlay.tile[1];
-    rightChain.push({ tile: firstPlay.tile, isDouble: isFirstDouble, key: `p0-${firstPlay.tile[0]}-${firstPlay.tile[1]}` });
-
-    let runningLeft = firstPlay.tile[0];
-    let runningRight = firstPlay.tile[1];
-
-    for (let i = 1; i < board.plays.length; i++) {
-      const play = board.plays[i];
-      const { tile, end } = play;
-      const isDouble = tile[0] === tile[1];
-      const key = `p${i}-${tile[0]}-${tile[1]}`;
-
-      if (end === "right") {
-        if (tile[0] === runningRight) {
-          rightChain.push({ tile, isDouble, key });
-          runningRight = tile[1];
-        } else {
-          rightChain.push({ tile: [tile[1], tile[0]], isDouble, key });
-          runningRight = tile[0];
-        }
+    for (const play of board.plays) {
+      const t = play.tile;
+      const isDouble = t[0] === t[1];
+      const key = `${t[0]}-${t[1]}-${play.end}-${rightChain.length + leftChain.length}`;
+      if (play.end === "right" || board.plays.indexOf(play) === 0) {
+        rightChain.push({ tile: t, isDouble, key });
       } else {
-        if (tile[1] === runningLeft) {
-          leftChain.unshift({ tile, isDouble, key });
-          runningLeft = tile[0];
-        } else {
-          leftChain.unshift({ tile: [tile[1], tile[0]], isDouble, key });
-          runningLeft = tile[1];
-        }
+        leftChain.unshift({ tile: t, isDouble, key });
       }
     }
 
-    return { leftChain, rightChain };
-  }
+    const boardW = size.w;
+    const boardH = size.h;
+    const cx = boardW / 2;
+    const cy = boardH / 2;
 
-  const { leftChain, rightChain } = buildOrientedChains();
-  const allTiles = [...leftChain, ...rightChain];
+    const firstEntry = rightChain[0];
+    const firstSz = tileSize(firstEntry.isDouble, "right", dims);
 
-  // Build snake rows
-  const padding = 8;
-  const usableWidth = containerWidth - padding * 2;
+    const rightTiles = rightChain.length > 1
+      ? layoutChain(rightChain.slice(1), cx + firstSz.w / 2, cy, "right", boardW, boardH, dims, turnRight)
+      : [];
 
-  const rows: { tiles: TileEntry[]; direction: "ltr" | "rtl" }[] = [];
-  let currentRow: TileEntry[] = [];
-  let currentWidth = 0;
-  let direction: "ltr" | "rtl" = "ltr";
+    const leftTiles = leftChain.length > 0
+      ? layoutChain(leftChain.reverse(), cx - firstSz.w / 2, cy, "left", boardW, boardH, dims, turnLeft)
+      : [];
 
-  for (const entry of allTiles) {
-    const tileW = entry.isDouble ? dims.doubleW : dims.horizW;
-    if (currentWidth + tileW > usableWidth && currentRow.length > 0) {
-      rows.push({ tiles: currentRow, direction });
-      currentRow = [];
-      currentWidth = 0;
-      direction = direction === "ltr" ? "rtl" : "ltr";
-    }
-    currentRow.push(entry);
-    currentWidth += tileW + dims.gap;
-  }
-  if (currentRow.length > 0) {
-    rows.push({ tiles: currentRow, direction });
-  }
+    const firstPlaced: PlacedTile = {
+      ...firstEntry,
+      x: cx,
+      y: cy,
+      orientation: tileOrientation(firstEntry.isDouble, "right"),
+    };
 
-  const rowHeight = Math.max(dims.horizH, dims.doubleH);
-  const lastTileIndex = allTiles.length - 1;
-  let globalIndex = 0;
+    return [...leftTiles.reverse(), firstPlaced, ...rightTiles];
+  }, [board.plays, size.w, size.h, dims]);
+
+  const allBounds = placedTiles.length > 0 ? placedTiles.reduce(
+    (acc, t) => {
+      const isH = t.orientation === "horizontal";
+      const tw = isH ? (t.isDouble ? dims.doubleH : dims.horizW) : (t.isDouble ? dims.doubleW : dims.horizH);
+      const th = isH ? (t.isDouble ? dims.doubleW : dims.horizH) : (t.isDouble ? dims.doubleH : dims.horizW);
+      return {
+        minX: Math.min(acc.minX, t.x - tw / 2),
+        maxX: Math.max(acc.maxX, t.x + tw / 2),
+        minY: Math.min(acc.minY, t.y - th / 2),
+        maxY: Math.max(acc.maxY, t.y + th / 2),
+      };
+    },
+    { minX: Infinity, maxX: -Infinity, minY: Infinity, maxY: -Infinity }
+  ) : null;
+
+  const viewBox = allBounds
+    ? `${allBounds.minX - 10} ${allBounds.minY - 10} ${allBounds.maxX - allBounds.minX + 20} ${allBounds.maxY - allBounds.minY + 20}`
+    : `0 0 ${size.w} ${size.h}`;
 
   return (
-    <div className="relative flex flex-col items-center justify-center flex-1 min-h-0">
-      <div ref={containerRef} className="relative w-full max-w-3xl mx-auto px-2 sm:px-4">
-        <div className="absolute inset-0 -m-3 sm:-m-6 rounded-3xl bg-[#1e5c3a]/30 border border-[#c9a84c]/10" />
-
-        {board.left !== null && board.right !== null && (
-          <div className="relative flex items-center justify-between mb-1 px-1">
-            <span className={`text-[10px] sm:text-xs font-mono px-1.5 py-0.5 rounded ${isMyTurn ? "bg-[#3a2210]/60 text-[#c9a84c] border border-[#c9a84c]/30" : "text-[#a8c4a0]/50"}`}>
-              ← {board.left}
-            </span>
-            <span className={`text-[10px] sm:text-xs font-mono px-1.5 py-0.5 rounded ${isMyTurn ? "bg-[#3a2210]/60 text-[#c9a84c] border border-[#c9a84c]/30" : "text-[#a8c4a0]/50"}`}>
-              {board.right} →
-            </span>
+    <div className="relative w-full flex-1 flex flex-col items-center justify-center">
+      <div
+        ref={containerRef}
+        className="relative w-full rounded-xl border border-amber-900/30 overflow-hidden"
+        style={{
+          aspectRatio: "1 / 1",
+          maxHeight: "100%",
+          maxWidth: "100%",
+          background: "radial-gradient(ellipse at center, #1a5c35 0%, #14472a 60%, #0f3520 100%)",
+        }}
+      >
+        {board.plays.length === 0 ? (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <p className="text-emerald-200/40 text-sm font-medium">
+              {isMyTurn ? "Juega tu primera ficha" : "Esperando primera jugada..."}
+            </p>
           </div>
-        )}
-
-        {/* Snake tile layout */}
-        <div className="relative py-2 sm:py-3 overflow-y-auto overflow-x-hidden scrollbar-hide" style={{ maxHeight: `${rowHeight * 4 + dims.rowGap * 3 + 24}px` }}>
-          <div className="flex flex-col items-center" style={{ gap: `${dims.rowGap}px` }}>
-            {rows.map((row, ri) => {
-              const rowElements = row.tiles.map((entry) => {
-                const isLast = globalIndex === lastTileIndex;
-                globalIndex++;
+        ) : (
+          <svg
+            width="100%"
+            height="100%"
+            viewBox={viewBox}
+            preserveAspectRatio="xMidYMid meet"
+            className="absolute inset-0"
+          >
+            <AnimatePresence>
+              {placedTiles.map((pt) => {
+                const isH = pt.orientation === "horizontal";
+                const tw = isH ? (pt.isDouble ? dims.doubleH : dims.horizW) : (pt.isDouble ? dims.doubleW : dims.horizH);
+                const th = isH ? (pt.isDouble ? dims.doubleW : dims.horizH) : (pt.isDouble ? dims.doubleH : dims.horizW);
                 return (
-                  <motion.div
-                    key={entry.key}
-                    initial={{ opacity: 0, scale: 0.6 }}
+                  <motion.foreignObject
+                    key={pt.key}
+                    x={pt.x - tw / 2}
+                    y={pt.y - th / 2}
+                    width={tw}
+                    height={th}
+                    initial={{ opacity: 0, scale: 0.5 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                    className={`flex-shrink-0 flex items-center justify-center ${isLast ? "ring-2 ring-[#c9a84c]/50 rounded" : ""}`}
+                    transition={{ type: "spring", stiffness: 300, damping: 25 }}
                   >
                     <DominoTile
-                      tile={entry.tile}
-                      size="medium"
-                      responsive
-                      orientation={entry.isDouble ? "vertical" : "horizontal"}
+                      tile={pt.tile}
+                      size="small"
+                      orientation={pt.orientation}
                     />
-                  </motion.div>
+                  </motion.foreignObject>
                 );
-              });
+              })}
+            </AnimatePresence>
+          </svg>
+        )}
 
-              return (
-                <div
-                  key={ri}
-                  className={`flex items-center ${row.direction === "rtl" ? "flex-row-reverse" : "flex-row"}`}
-                  style={{ gap: `${dims.gap}px`, minHeight: `${rowHeight}px`, paddingLeft: padding, paddingRight: padding }}
-                >
-                  {rowElements}
-                </div>
-              );
-            })}
-
-            {board.plays.length === 0 && (
-              <p className="text-[#a8c4a0]/50 text-sm py-4">Mesa vacía</p>
-            )}
-          </div>
-        </div>
-
-        {/* Placement buttons */}
-        <AnimatePresence>
-          {showPlacementOptions && board.left !== null && (
-            <motion.div
-              initial={{ opacity: 0, y: 8 }}
+        {showPlacementOptions && board.plays.length > 0 && (
+          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-3 z-10">
+            <motion.button
+              initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 8 }}
-              className="relative flex items-center justify-center gap-3 sm:gap-6 mt-1 sm:mt-2 pb-1"
+              className="px-4 py-2 rounded-lg bg-amber-700/90 text-amber-100 text-sm font-medium hover:bg-amber-600 transition-colors shadow-lg"
+              onClick={() => onPlaceEnd?.("left")}
             >
-              <button
-                onClick={() => onPlaceEnd?.("left")}
-                className="flex items-center gap-2 rounded-2xl bg-gradient-to-r from-[#3a2210] to-[#4a2c0f] hover:from-[#4a2c0f] hover:to-[#5c3a1e] active:scale-95 border-2 border-[#c9a84c]/40 px-4 sm:px-6 py-2.5 sm:py-3 text-sm sm:text-base font-semibold text-[#c9a84c] transition-all shadow-lg shadow-[#c9a84c]/10"
-              >
-                <span className="text-lg">←</span>
-                Izquierda ({board.left})
-              </button>
-              <button
-                onClick={() => onPlaceEnd?.("right")}
-                className="flex items-center gap-2 rounded-2xl bg-gradient-to-r from-[#3a2210] to-[#4a2c0f] hover:from-[#4a2c0f] hover:to-[#5c3a1e] active:scale-95 border-2 border-[#c9a84c]/40 px-4 sm:px-6 py-2.5 sm:py-3 text-sm sm:text-base font-semibold text-[#c9a84c] transition-all shadow-lg shadow-[#c9a84c]/10"
-              >
-                Derecha ({board.right})
-                <span className="text-lg">→</span>
-              </button>
-            </motion.div>
-          )}
-        </AnimatePresence>
+              ← Izquierda ({board.left})
+            </motion.button>
+            <motion.button
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="px-4 py-2 rounded-lg bg-amber-700/90 text-amber-100 text-sm font-medium hover:bg-amber-600 transition-colors shadow-lg"
+              onClick={() => onPlaceEnd?.("right")}
+            >
+              Derecha ({board.right}) →
+            </motion.button>
+          </div>
+        )}
       </div>
     </div>
   );
