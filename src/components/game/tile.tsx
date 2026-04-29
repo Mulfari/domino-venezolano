@@ -107,7 +107,7 @@ export function DominoTile({
       height={h}
       viewBox={`0 0 ${w} ${h}`}
       xmlns="http://www.w3.org/2000/svg"
-      className={`${highlight ? "drop-shadow-[0_0_6px_rgba(201,168,76,0.8)]" : "drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]"} ${disabled ? "opacity-40" : ""}`}
+      className={`${highlight ? "drop-shadow-[0_0_6px_rgba(201,168,76,0.8)]" : "drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]"} ${disabled ? "opacity-55" : ""}`}
     >
       <defs>
         <linearGradient id={`face-${uid}`} x1="0" y1="0" x2="1" y2="1">

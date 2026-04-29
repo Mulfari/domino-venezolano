@@ -97,13 +97,20 @@ export function Hand({ onPlayTile, onPass, disabled = false }: HandProps) {
                 }}
                 exit={{ opacity: 0, y: -20, scale: 0.8 }}
                 transition={{ type: "spring", stiffness: 300, damping: 25, delay: i * 0.03 }}
-                className={cochina ? "relative" : ""}
+                className={cochina || playable ? "relative" : ""}
               >
                 {cochina && isMyTurn && (
                   <motion.div
                     className="absolute -inset-1 rounded-lg bg-[#c9a84c]/30 blur-sm"
                     animate={{ opacity: [0.4, 0.8, 0.4] }}
                     transition={{ duration: 1.5, repeat: Infinity }}
+                  />
+                )}
+                {playable && !cochina && (
+                  <motion.div
+                    className="absolute -inset-1 rounded-lg bg-[#c9a84c]/15 blur-sm pointer-events-none"
+                    animate={{ opacity: [0.15, 0.4, 0.15] }}
+                    transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }}
                   />
                 )}
                 <DominoTile
