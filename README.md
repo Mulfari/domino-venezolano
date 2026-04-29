@@ -2,6 +2,10 @@
 
 Plataforma online para jugar dominó venezolano en tiempo real — parejas, 28 fichas, doble-seis. Construida con Next.js y Supabase.
 
+## Estado del proyecto
+
+MVP en desarrollo activo. El motor de juego, la autenticación, el lobby y los componentes UI están completos. La partida completa end-to-end está en fase de pruebas.
+
 ## Requisitos
 
 - Node.js 20+
@@ -15,7 +19,15 @@ cd domino-venezolano
 npm install
 ```
 
-Crea un archivo `.env.local` en la raíz con las siguientes variables:
+### Variables de entorno
+
+Crea un archivo `.env.local` en la raíz del proyecto (no existe por defecto):
+
+```bash
+cp .env.example .env.local   # si existe el ejemplo, o créalo manualmente
+```
+
+Contenido requerido:
 
 ```env
 NEXT_PUBLIC_SUPABASE_URL=https://<tu-proyecto>.supabase.co
@@ -24,6 +36,10 @@ SUPABASE_SERVICE_ROLE_KEY=<service-role-key>
 ```
 
 Estas claves se encuentran en el dashboard de Supabase bajo **Project Settings → API**.
+
+### Base de datos
+
+El schema de Supabase (tablas, RLS, triggers) debe aplicarse manualmente desde el dashboard de Supabase o con la CLI. Consulta `docs/PLAN_MVP.md` para el detalle del modelo de datos.
 
 ## Uso
 
@@ -69,7 +85,7 @@ src/
 │   └── rooms/                 # Acciones de sala (server actions)
 ├── stores/                    # Estado global con Zustand
 ├── hooks/                     # Custom hooks (mobile, realtime, etc.)
-├── middleware.ts               # Protección de rutas con auth de Supabase
+└── middleware.ts               # Protección de rutas con auth de Supabase
 docs/
 └── PLAN_MVP.md                # Especificación y roadmap del MVP
 ```
