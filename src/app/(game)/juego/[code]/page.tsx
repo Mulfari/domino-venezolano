@@ -14,7 +14,7 @@ import { DisconnectOverlay } from "@/components/game/disconnect-overlay";
 import { ChatPanel } from "@/components/chat/chat-panel";
 import { SoundToggle } from "@/components/game/sound-toggle";
 import { LandscapePrompt } from "@/components/game/landscape-prompt";
-import { useGameChannel } from "@/lib/realtime/use-game-channel";
+import { useGameChannel } from "@/hooks/use-game-channel";
 import { useGameStore } from "@/stores/game-store";
 import { playTilePlace, playPass, playYourTurn, playVictory, playDefeat } from "@/lib/sounds/sound-engine";
 import { requestNotificationPermission, notifyTurn } from "@/lib/notifications/turn-notification";

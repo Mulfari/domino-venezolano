@@ -1,5 +1,5 @@
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
-import { isBotUserId } from "./bot-engine";
+import { isBotUserId } from "../game/bot-engine";
 
 interface SeatInfo {
   user_id: string;

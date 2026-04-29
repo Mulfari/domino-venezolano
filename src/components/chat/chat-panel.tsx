@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { useChat } from "@/lib/realtime/use-chat";
+import { useChat } from "@/hooks/use-chat";
 import { ChatMessage } from "./chat-message";
 
 interface ChatPanelProps {
