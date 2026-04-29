@@ -1,4 +1,4 @@
-import type { Tile, Seat, Team, GameState, RoundResult } from "./types";
+import type { Tile, Team, GameState, RoundResult } from "./types";
 import { TEAM_SEATS, SEATS } from "./constants";
 
 /**
