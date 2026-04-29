@@ -4,7 +4,7 @@ Plataforma online para jugar dominó venezolano en tiempo real — parejas, 28 f
 
 ## Requisitos
 
-- Node.js 18+
+- Node.js 20+
 - Una cuenta y proyecto en [Supabase](https://supabase.com)
 
 ## Instalación
