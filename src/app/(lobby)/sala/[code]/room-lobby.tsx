@@ -283,7 +283,7 @@ export function RoomLobby({ room, userId, displayName }: Props) {
               ))}
             </div>
           </div>
-          <span className="font-bold text-sm text-[#a8c4a0] group-hover:text-[#f5f0e8] transition-colors">
+          <span className="font-bold text-sm text-[#f5f0e8] group-hover:text-[#c9a84c] transition-colors">
             Dominó Venezolano
           </span>
         </Link>

@@ -100,7 +100,7 @@ export function GameOverModal({ onNextRound, onBackToLobby }: GameOverModalProps
             initial={{ scale: 0.6, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ type: "spring", stiffness: 200, damping: 20 }}
-            className="w-full max-w-sm rounded-2xl bg-[#163d28] border border-[#c9a84c]/30 p-8 text-center space-y-5"
+            className="w-full max-w-sm rounded-2xl bg-[#163d28] border border-[#c9a84c]/30 p-6 text-center space-y-4"
           >
             <motion.div
               initial={{ scale: 0 }}

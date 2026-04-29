@@ -48,7 +48,7 @@ export function ScorePanel() {
           </span>
           <motion.span
             key={scores[1]}
-            initial={{ scale: 1.3, color: "#c9a84c" }}
+            initial={{ scale: 1.3, color: "#f5f0e8" }}
             animate={{ scale: 1, color: teamBWinning ? "#c9a84c" : tied ? "#a8c4a0" : "#6b8a60" }}
             className="text-lg sm:text-2xl font-bold tabular-nums"
           >
