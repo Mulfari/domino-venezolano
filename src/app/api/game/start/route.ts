@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
     if (room.current_game_id) {
       const { data: prevGame } = await getSupabaseAdmin()
         .from("games")
-        .select("scores, round_number, starter_seat")
+        .select("scores, round_number, starter_seat, winner_seat")
         .eq("id", room.current_game_id)
         .single();
 
@@ -68,6 +68,9 @@ export async function POST(request: NextRequest) {
       }
       if (prevGame?.starter_seat !== null && prevGame?.starter_seat !== undefined) {
         previousStarterSeat = prevGame.starter_seat as number;
+      }
+      if (prevGame?.winner_seat !== null && prevGame?.winner_seat !== undefined) {
+        previousStarterSeat = prevGame.winner_seat as number;
       }
     }
 
@@ -91,7 +94,7 @@ export async function POST(request: NextRequest) {
     ];
 
     // Venezuelan rules: round 1 = whoever has double-6 starts
-    // Subsequent rounds = rotate clockwise from previous starter
+    // Subsequent rounds = winner of previous round starts (locked game falls back to rotate)
     let startingSeat: number;
     if (roundNumber === 1) {
       startingSeat = 0;
@@ -102,9 +105,7 @@ export async function POST(request: NextRequest) {
         }
       }
     } else {
-      startingSeat = previousStarterSeat >= 0
-        ? ((previousStarterSeat + 1) % 4)
-        : 0;
+      startingSeat = previousStarterSeat >= 0 ? previousStarterSeat : 0;
     }
 
     const boardState = { left: null, right: null, plays: [] };
