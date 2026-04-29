@@ -78,16 +78,18 @@ select {
 }
 
 /* ── Felt background pattern ─────────────────── */
+:root {
+  --dot-gradient: radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.03) 1px, transparent 0);
+}
+
 .bg-felt {
   background-color: var(--felt-dark);
-  background-image:
-    radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.03) 1px, transparent 0);
+  background-image: var(--dot-gradient);
   background-size: 24px 24px;
 }
 
 .bg-grid-pattern {
-  background-image:
-    radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.03) 1px, transparent 0);
+  background-image: var(--dot-gradient);
   background-size: 32px 32px;
 }
 

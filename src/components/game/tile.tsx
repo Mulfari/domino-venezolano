@@ -98,89 +98,100 @@ export function DominoTile({
 
   const showFace = !faceDown && tile;
 
+  const svgContent = (
+    <svg
+      width={w}
+      height={h}
+      viewBox={`0 0 ${w} ${h}`}
+      xmlns="http://www.w3.org/2000/svg"
+      className={`${highlight ? "drop-shadow-[0_0_6px_rgba(201,168,76,0.6)]" : "drop-shadow-md"} ${disabled ? "opacity-40" : ""}`}
+    >
+      <rect
+        x={0} y={0} width={w} height={h}
+        rx={borderRadius}
+        fill={faceDown ? "#3a2210" : "#f5f0e8"}
+        stroke={
+          selected || highlight ? "#c9a84c"
+            : faceDown ? "#5c3a1e"
+              : "#a8a29e"
+        }
+        strokeWidth={selected || highlight ? 1.5 : 1}
+      />
+
+      {faceDown ? (
+        <>
+          <rect x={3} y={3} width={w - 6} height={h - 6} rx={2} fill="#2a1a0a" stroke="#5c3a1e" strokeWidth={0.5} />
+          {isHorizontal ? (
+            <line x1={w / 2} y1={3} x2={w / 2} y2={h - 3} stroke="#5c3a1e" strokeWidth={0.5} />
+          ) : (
+            <line x1={3} y1={h / 2} x2={w - 3} y2={h / 2} stroke="#5c3a1e" strokeWidth={0.5} />
+          )}
+        </>
+      ) : showFace ? (
+        isHorizontal ? (
+          <>
+            <g>
+              <PipDots value={tile[0]} pipSize={pip} halfWidth={w / 2} halfHeight={h} horizontal />
+            </g>
+            <line
+              x1={w / 2} y1={3}
+              x2={w / 2} y2={h - 3}
+              stroke="#a8a29e" strokeWidth={0.8}
+            />
+            <g transform={`translate(${w / 2}, 0)`}>
+              <PipDots value={tile[1]} pipSize={pip} halfWidth={w / 2} halfHeight={h} horizontal />
+            </g>
+          </>
+        ) : (
+          <>
+            <g>
+              <PipDots value={tile[0]} pipSize={pip} halfWidth={w} halfHeight={(h - gap) / 2} />
+            </g>
+            <line
+              x1={3} y1={(h - gap) / 2 + gap / 2}
+              x2={w - 3} y2={(h - gap) / 2 + gap / 2}
+              stroke="#a8a29e" strokeWidth={0.8}
+            />
+            <g transform={`translate(0, ${(h - gap) / 2 + gap})`}>
+              <PipDots value={tile[1]} pipSize={pip} halfWidth={w} halfHeight={(h - gap) / 2} />
+            </g>
+          </>
+        )
+      ) : null}
+    </svg>
+  );
+
+  const sharedAttrs = {
+    className: `inline-block ${clickable && !disabled ? "cursor-pointer" : ""}`,
+    onClick: clickable && !disabled ? onClick : undefined,
+    onKeyDown: clickable && !disabled
+      ? (e: React.KeyboardEvent) => {
+          if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onClick?.(); }
+        }
+      : undefined,
+    tabIndex: clickable && !disabled ? 0 : undefined,
+    role: clickable ? ("button" as const) : undefined,
+    "aria-label": tile
+      ? `Ficha ${tile[0]}-${tile[1]}${selected ? ", seleccionada" : ""}${disabled ? ", no jugable" : ""}`
+      : faceDown ? "Ficha boca abajo" : undefined,
+    "aria-disabled": clickable && disabled ? true : undefined,
+  };
+
+  // Static tiles (board, opponent hand) skip Framer Motion entirely to avoid
+  // per-frame JS overhead when many tiles are rendered simultaneously.
+  if (!clickable && !selected) {
+    return <div {...sharedAttrs}>{svgContent}</div>;
+  }
+
   return (
     <motion.div
-      className={`inline-block ${clickable && !disabled ? "cursor-pointer" : ""}`}
+      {...sharedAttrs}
       whileHover={clickable && !disabled ? { scale: 1.12, y: -6 } : undefined}
       whileTap={clickable && !disabled ? { scale: 0.95 } : undefined}
       animate={selected ? { y: -12, scale: 1.08 } : { y: 0, scale: 1 }}
       transition={{ type: "spring", stiffness: 400, damping: 25 }}
-      onClick={clickable && !disabled ? onClick : undefined}
-      onKeyDown={clickable && !disabled ? (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onClick?.(); } } : undefined}
-      tabIndex={clickable && !disabled ? 0 : undefined}
-      role={clickable ? "button" : undefined}
-      aria-label={tile ? `Ficha ${tile[0]}-${tile[1]}${selected ? ", seleccionada" : ""}${disabled ? ", no jugable" : ""}` : faceDown ? "Ficha boca abajo" : undefined}
-      aria-disabled={clickable && disabled ? true : undefined}
     >
-      <svg
-        width={w}
-        height={h}
-        viewBox={`0 0 ${w} ${h}`}
-        xmlns="http://www.w3.org/2000/svg"
-        className={`drop-shadow-md ${
-          highlight ? "drop-shadow-[0_0_6px_rgba(201,168,76,0.6)]" : ""
-        } ${disabled ? "opacity-40" : ""}`}
-      >
-        <rect
-          x={0} y={0} width={w} height={h}
-          rx={borderRadius}
-          fill={faceDown ? "#3a2210" : "#f5f0e8"}
-          stroke={
-            selected ? "#c9a84c"
-              : highlight ? "#c9a84c"
-                : faceDown ? "#5c3a1e"
-                  : "#a8a29e"
-          }
-          strokeWidth={selected || highlight ? 1.5 : 1}
-        />
-
-        {faceDown ? (
-          <>
-            <rect x={3} y={3} width={w - 6} height={h - 6} rx={2} fill="#2a1a0a" stroke="#5c3a1e" strokeWidth={0.5} />
-            {isHorizontal ? (
-              <line x1={w / 2} y1={3} x2={w / 2} y2={h - 3} stroke="#5c3a1e" strokeWidth={0.5} />
-            ) : (
-              <line x1={3} y1={h / 2} x2={w - 3} y2={h / 2} stroke="#5c3a1e" strokeWidth={0.5} />
-            )}
-          </>
-        ) : showFace ? (
-          isHorizontal ? (
-            <>
-              {/* Left half pips */}
-              <g>
-                <PipDots value={tile[0]} pipSize={pip} halfWidth={w / 2} halfHeight={h} horizontal />
-              </g>
-              {/* Vertical divider */}
-              <line
-                x1={w / 2} y1={3}
-                x2={w / 2} y2={h - 3}
-                stroke="#a8a29e" strokeWidth={0.8}
-              />
-              {/* Right half pips */}
-              <g transform={`translate(${w / 2}, 0)`}>
-                <PipDots value={tile[1]} pipSize={pip} halfWidth={w / 2} halfHeight={h} horizontal />
-              </g>
-            </>
-          ) : (
-            <>
-              {/* Top half pips */}
-              <g>
-                <PipDots value={tile[0]} pipSize={pip} halfWidth={w} halfHeight={(h - gap) / 2} />
-              </g>
-              {/* Horizontal divider */}
-              <line
-                x1={3} y1={(h - gap) / 2 + gap / 2}
-                x2={w - 3} y2={(h - gap) / 2 + gap / 2}
-                stroke="#a8a29e" strokeWidth={0.8}
-              />
-              {/* Bottom half pips */}
-              <g transform={`translate(0, ${(h - gap) / 2 + gap})`}>
-                <PipDots value={tile[1]} pipSize={pip} halfWidth={w} halfHeight={(h - gap) / 2} />
-              </g>
-            </>
-          )
-        ) : null}
-      </svg>
+      {svgContent}
     </motion.div>
   );
 }
