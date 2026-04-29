@@ -1,5 +1,6 @@
 "use client";
 
+import { useId } from "react";
 import { motion } from "framer-motion";
 import { useIsMobile } from "@/hooks/use-mobile";
 import type { Tile as TileType } from "@/lib/game/types";
@@ -45,12 +46,13 @@ function getPipPositions(value: number): [number, number][] {
   return positions[value] ?? [];
 }
 
-function PipDots({ value, pipSize, halfWidth, halfHeight, horizontal = false }: {
+function PipDots({ value, pipSize, halfWidth, halfHeight, horizontal = false, pipGradientId }: {
   value: number;
   pipSize: number;
   halfWidth: number;
   halfHeight: number;
   horizontal?: boolean;
+  pipGradientId: string;
 }) {
   const positions = getPipPositions(value);
   const padX = halfWidth * 0.22;
@@ -68,7 +70,7 @@ function PipDots({ value, pipSize, halfWidth, halfHeight, horizontal = false }: 
           ? padY + (areaH * col) / 2
           : padY + (areaH * row) / 2;
         return (
-          <circle key={i} cx={cx} cy={cy} r={pipSize} fill="#1a1a1a" />
+          <circle key={i} cx={cx} cy={cy} r={pipSize} fill={`url(#${pipGradientId})`} />
         );
       })}
     </>
@@ -90,7 +92,8 @@ export function DominoTile({
   const isMobile = useIsMobile();
   const config = responsive && isMobile ? mobileSizeConfig : sizeConfig;
   const { w: baseW, h: baseH, pip, gap } = config[size];
-  const borderRadius = size === "small" ? 3 : 4;
+  const borderRadius = size === "small" ? 4 : 6;
+  const uid = useId().replace(/:/g, "");
 
   const isHorizontal = orientation === "horizontal";
   const w = isHorizontal ? baseH : baseW;
@@ -104,18 +107,33 @@ export function DominoTile({
       height={h}
       viewBox={`0 0 ${w} ${h}`}
       xmlns="http://www.w3.org/2000/svg"
-      className={`${highlight ? "drop-shadow-[0_0_6px_rgba(201,168,76,0.6)]" : "drop-shadow-md"} ${disabled ? "opacity-40" : ""}`}
+      className={`${highlight ? "drop-shadow-[0_0_6px_rgba(201,168,76,0.8)]" : "drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]"} ${disabled ? "opacity-40" : ""}`}
     >
+      <defs>
+        <linearGradient id={`face-${uid}`} x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor="#fdfaf3" />
+          <stop offset="60%" stopColor="#f5f0e8" />
+          <stop offset="100%" stopColor="#e8e0d0" />
+        </linearGradient>
+        <linearGradient id={`back-${uid}`} x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor="#4a2e14" />
+          <stop offset="100%" stopColor="#2a1608" />
+        </linearGradient>
+        <radialGradient id={`pip-${uid}`} cx="35%" cy="35%" r="65%">
+          <stop offset="0%" stopColor="#3a3a3a" />
+          <stop offset="100%" stopColor="#0a0a0a" />
+        </radialGradient>
+      </defs>
       <rect
         x={0} y={0} width={w} height={h}
         rx={borderRadius}
-        fill={faceDown ? "#3a2210" : "#f5f0e8"}
+        fill={faceDown ? `url(#back-${uid})` : `url(#face-${uid})`}
         stroke={
           selected || highlight ? "#c9a84c"
             : faceDown ? "#5c3a1e"
-              : "#a8a29e"
+              : "#c8bfb0"
         }
-        strokeWidth={selected || highlight ? 1.5 : 1}
+        strokeWidth={selected || highlight ? 1.5 : 0.75}
       />
 
       {faceDown ? (
@@ -131,29 +149,29 @@ export function DominoTile({
         isHorizontal ? (
           <>
             <g>
-              <PipDots value={tile[0]} pipSize={pip} halfWidth={w / 2} halfHeight={h} horizontal />
+              <PipDots value={tile[0]} pipSize={pip} halfWidth={w / 2} halfHeight={h} horizontal pipGradientId={`pip-${uid}`} />
             </g>
             <line
               x1={w / 2} y1={3}
               x2={w / 2} y2={h - 3}
-              stroke="#a8a29e" strokeWidth={0.8}
+              stroke="#c0b8a8" strokeWidth={0.6}
             />
             <g transform={`translate(${w / 2}, 0)`}>
-              <PipDots value={tile[1]} pipSize={pip} halfWidth={w / 2} halfHeight={h} horizontal />
+              <PipDots value={tile[1]} pipSize={pip} halfWidth={w / 2} halfHeight={h} horizontal pipGradientId={`pip-${uid}`} />
             </g>
           </>
         ) : (
           <>
             <g>
-              <PipDots value={tile[0]} pipSize={pip} halfWidth={w} halfHeight={(h - gap) / 2} />
+              <PipDots value={tile[0]} pipSize={pip} halfWidth={w} halfHeight={(h - gap) / 2} pipGradientId={`pip-${uid}`} />
             </g>
             <line
               x1={3} y1={(h - gap) / 2 + gap / 2}
               x2={w - 3} y2={(h - gap) / 2 + gap / 2}
-              stroke="#a8a29e" strokeWidth={0.8}
+              stroke="#c0b8a8" strokeWidth={0.6}
             />
             <g transform={`translate(0, ${(h - gap) / 2 + gap})`}>
-              <PipDots value={tile[1]} pipSize={pip} halfWidth={w} halfHeight={(h - gap) / 2} />
+              <PipDots value={tile[1]} pipSize={pip} halfWidth={w} halfHeight={(h - gap) / 2} pipGradientId={`pip-${uid}`} />
             </g>
           </>
         )
