@@ -102,6 +102,7 @@ export default function GamePage() {
   const setRound = useGameStore((s) => s.setRound);
   const setTargetScore = useGameStore((s) => s.setTargetScore);
   const setRoundResult = useGameStore((s) => s.setRoundResult);
+  const addRoundHistory = useGameStore((s) => s.addRoundHistory);
   const updatePlayerConnection = useGameStore((s) => s.updatePlayerConnection);
   const playTile = useGameStore((s) => s.playTile);
   const passTurn = useGameStore((s) => s.passTurn);
@@ -112,6 +113,8 @@ export default function GamePage() {
   gameIdRef.current = gameId;
   const mySeatRef = useRef(mySeat);
   mySeatRef.current = mySeat;
+  const roundRef = useRef(useGameStore.getState().round);
+  useEffect(() => { roundRef.current = useGameStore.getState().round; });
 
   const showPassIndicator = useCallback((seat: Seat) => {
     if (passTimerRef.current) clearTimeout(passTimerRef.current);
@@ -303,6 +306,12 @@ export default function GamePage() {
             points: event.points,
             reason: event.reason,
           });
+          addRoundHistory({
+            round: roundRef.current,
+            winner_team: event.winner_team as (0 | 1 | null),
+            points: event.points,
+            reason: event.reason,
+          });
           break;
         }
 
@@ -334,7 +343,7 @@ export default function GamePage() {
         }
       }
     },
-    [fetchGameState, setScores, setRoundResult, setGameState, updatePlayerConnection, reset, router, showPassIndicator]
+    [fetchGameState, setScores, setRoundResult, addRoundHistory, setGameState, updatePlayerConnection, reset, router, showPassIndicator]
   );
 
   /* ---------------------------------------------------------------- */
