@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { DominoTile } from "./tile";
+import { PassIndicator } from "./pass-indicator";
 import type { Seat } from "@/lib/game/types";
 
 interface OpponentHandProps {
@@ -11,6 +12,7 @@ interface OpponentHandProps {
   connected?: boolean;
   isCurrentTurn?: boolean;
   position: "top" | "left" | "right";
+  showPass?: boolean;
 }
 
 export function OpponentHand({
@@ -19,6 +21,7 @@ export function OpponentHand({
   connected = true,
   isCurrentTurn = false,
   position,
+  showPass = false,
 }: OpponentHandProps) {
   const isVertical = position === "left" || position === "right";
 
@@ -56,6 +59,7 @@ export function OpponentHand({
 
       {/* Face-down tiles + counter badge */}
       <div className="relative flex items-center justify-center">
+        <PassIndicator show={showPass} />
         <div
           className={`flex ${
             isVertical ? "flex-col gap-0.5" : "flex-row gap-0.5"

@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import { Board } from "@/components/game/board";
 import { Hand } from "@/components/game/hand";
 import { OpponentHand } from "@/components/game/opponent-hand";
+import { PassIndicator } from "@/components/game/pass-indicator";
 import { ScorePanel } from "@/components/game/score-panel";
 import { TurnIndicator } from "@/components/game/turn-indicator";
 import { TurnTimer } from "@/components/game/turn-timer";
@@ -82,6 +83,8 @@ export default function GamePage() {
   const [hostId, setHostId] = useState<string | null>(null);
   const [handCounts, setHandCounts] = useState<number[]>([7, 7, 7, 7]);
   const [actionLoading, setActionLoading] = useState(false);
+  const [lastPassSeat, setLastPassSeat] = useState<Seat | null>(null);
+  const passTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   /* ---- Zustand store ---- */
   const mySeat = useGameStore((s) => s.mySeat);
@@ -107,6 +110,12 @@ export default function GamePage() {
   gameIdRef.current = gameId;
   const mySeatRef = useRef(mySeat);
   mySeatRef.current = mySeat;
+
+  const showPassIndicator = useCallback((seat: Seat) => {
+    if (passTimerRef.current) clearTimeout(passTimerRef.current);
+    setLastPassSeat(seat);
+    passTimerRef.current = setTimeout(() => setLastPassSeat(null), 2000);
+  }, []);
 
   /* ---------------------------------------------------------------- */
   /*  Fetch session + game state on mount                             */
@@ -256,6 +265,7 @@ export default function GamePage() {
 
         case "turn_passed": {
           playPass();
+          showPassIndicator(event.seat as Seat);
           if (currentSeat !== null && event.seat === currentSeat) {
             break;
           }
@@ -319,7 +329,7 @@ export default function GamePage() {
         }
       }
     },
-    [fetchGameState, setScores, setRoundResult, setGameState, updatePlayerConnection, reset, router]
+    [fetchGameState, setScores, setRoundResult, setGameState, updatePlayerConnection, reset, router, showPassIndicator]
   );
 
   /* ---------------------------------------------------------------- */
@@ -384,6 +394,7 @@ export default function GamePage() {
 
     // Optimistic update
     passTurn();
+    if (mySeat !== null) showPassIndicator(mySeat);
 
     try {
       const res = await fetch("/api/game/pass", {
@@ -541,6 +552,7 @@ export default function GamePage() {
           connected={getPlayerConnected(seats.top)}
           isCurrentTurn={currentTurn === seats.top}
           position="top"
+          showPass={lastPassSeat === seats.top}
         />
       </div>
 
@@ -555,6 +567,7 @@ export default function GamePage() {
             connected={getPlayerConnected(seats.left)}
             isCurrentTurn={currentTurn === seats.left}
             position="left"
+            showPass={lastPassSeat === seats.left}
           />
         </div>
 
@@ -570,12 +583,14 @@ export default function GamePage() {
             connected={getPlayerConnected(seats.right)}
             isCurrentTurn={currentTurn === seats.right}
             position="right"
+            showPass={lastPassSeat === seats.right}
           />
         </div>
       </div>
 
       {/* Player hand (bottom) */}
-      <div className="shrink-0 pt-1 sm:pt-2 border-t border-[#c9a84c]/15">
+      <div className="relative shrink-0 pt-1 sm:pt-2 border-t border-[#c9a84c]/15">
+        <PassIndicator show={lastPassSeat === mySeat} />
         <Hand onPlayTile={handlePlayTile} onPass={handlePass} disabled={actionLoading} />
       </div>
 
