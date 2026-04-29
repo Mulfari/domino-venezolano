@@ -116,9 +116,16 @@ export function DominoTile({
           <stop offset="100%" stopColor="#e8e0d0" />
         </linearGradient>
         <linearGradient id={`back-${uid}`} x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor="#4a2e14" />
-          <stop offset="100%" stopColor="#2a1608" />
+          <stop offset="0%" stopColor="#5c3a1e" />
+          <stop offset="45%" stopColor="#3a2210" />
+          <stop offset="100%" stopColor="#1e0e04" />
         </linearGradient>
+        <pattern id={`grain-${uid}`} x="0" y="0" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(22)">
+          <line x1="0" y1="0" x2="0" y2="5" stroke="#7a4d28" strokeWidth="0.7" opacity="0.4"/>
+        </pattern>
+        <clipPath id={`clip-${uid}`}>
+          <rect x={0} y={0} width={w} height={h} rx={borderRadius}/>
+        </clipPath>
         <radialGradient id={`pip-${uid}`} cx="35%" cy="35%" r="65%">
           <stop offset="0%" stopColor="#3a3a3a" />
           <stop offset="100%" stopColor="#0a0a0a" />
@@ -138,12 +145,18 @@ export function DominoTile({
 
       {faceDown ? (
         <>
-          <rect x={3} y={3} width={w - 6} height={h - 6} rx={2} fill="#2a1a0a" stroke="#5c3a1e" strokeWidth={0.5} />
+          {/* Wood grain overlay */}
+          <rect x={0} y={0} width={w} height={h} rx={borderRadius} fill={`url(#grain-${uid})`} clipPath={`url(#clip-${uid})`} opacity={0.55} />
+          {/* Inner frame */}
+          <rect x={2.5} y={2.5} width={w - 5} height={h - 5} rx={borderRadius - 1} fill="none" stroke="#7a4d28" strokeWidth={0.75} opacity={0.7} />
+          {/* Divider line */}
           {isHorizontal ? (
-            <line x1={w / 2} y1={3} x2={w / 2} y2={h - 3} stroke="#5c3a1e" strokeWidth={0.5} />
+            <line x1={w / 2} y1={3} x2={w / 2} y2={h - 3} stroke="#7a4d28" strokeWidth={0.6} opacity={0.7} />
           ) : (
-            <line x1={3} y1={h / 2} x2={w - 3} y2={h / 2} stroke="#5c3a1e" strokeWidth={0.5} />
+            <line x1={3} y1={h / 2} x2={w - 3} y2={h / 2} stroke="#7a4d28" strokeWidth={0.6} opacity={0.7} />
           )}
+          {/* Highlight sheen */}
+          <rect x={1} y={1} width={w * 0.55} height={h * 0.35} rx={borderRadius - 1} fill="white" opacity={0.06} clipPath={`url(#clip-${uid})`} />
         </>
       ) : showFace ? (
         isHorizontal ? (
