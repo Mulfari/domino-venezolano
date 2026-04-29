@@ -2,60 +2,108 @@
 
 import { motion } from "framer-motion";
 import { useGameStore } from "@/stores/game-store";
+import type { Seat } from "@/lib/game/types";
 
 export function ScorePanel() {
   const scores = useGameStore((s) => s.scores);
   const round = useGameStore((s) => s.round);
   const targetScore = useGameStore((s) => s.targetScore);
   const mySeat = useGameStore((s) => s.mySeat);
+  const players = useGameStore((s) => s.players);
+  const board = useGameStore((s) => s.board);
 
-  const myTeam = mySeat !== null ? (mySeat % 2) as 0 | 1 : null;
-  const teamAWinning = scores[0] > scores[1];
-  const teamBWinning = scores[1] > scores[0];
-  const tied = scores[0] === scores[1];
+  const myTeam = mySeat !== null ? ((mySeat % 2) as 0 | 1) : null;
+
+  const firstSeat = board.plays[0]?.seat ?? null;
+  const firstPlayerName =
+    firstSeat !== null
+      ? (players.find((p) => p.seat === firstSeat)?.displayName ?? `J${firstSeat + 1}`).split(" ")[0]
+      : null;
+
+  function teamLabel(teamIdx: 0 | 1): string {
+    const seats: Seat[] = teamIdx === 0 ? [0, 2] : [1, 3];
+    return seats
+      .map((s) => {
+        const name = players.find((p) => p.seat === s)?.displayName ?? `J${s + 1}`;
+        return name.split(" ")[0];
+      })
+      .join(" & ");
+  }
+
+  const team0Label = teamLabel(0);
+  const team1Label = teamLabel(1);
 
   return (
-    <div className="rounded-2xl bg-[#3a2210]/80 border border-[#c9a84c]/20 backdrop-blur-sm p-2 sm:p-3 min-w-0 sm:min-w-[160px]">
-      <div className="text-center mb-1 sm:mb-2">
-        <span className="text-[9px] sm:text-[10px] uppercase tracking-wider text-[#a8c4a0]/60">
+    <div className="rounded-2xl bg-[#3a2210]/80 border border-[#c9a84c]/20 backdrop-blur-sm p-2 sm:p-3 min-w-0 sm:min-w-[200px]">
+      {/* Round + target */}
+      <div className="flex items-center justify-between mb-1 sm:mb-1.5">
+        <span className="text-[9px] sm:text-[10px] uppercase tracking-wider text-[#c9a84c]/80 font-semibold">
           Ronda {round}
         </span>
-        <span className="text-[9px] sm:text-[10px] text-[#a8c4a0]/40 ml-1">
+        <span className="text-[9px] sm:text-[10px] text-[#a8c4a0]/50">
           meta: {targetScore}
         </span>
       </div>
 
-      <div className="flex items-center justify-between gap-2 sm:gap-3">
-        <div className="flex flex-col items-center">
-          <span className={`text-[9px] sm:text-[10px] uppercase tracking-wider font-medium ${myTeam === 0 ? "text-[#c9a84c]" : "text-[#f5f0e8]"}`}>
-            {myTeam === 0 ? "Tú" : "Ellos"}
+      {/* Who started */}
+      {firstPlayerName && (
+        <div className="mb-1.5 sm:mb-2 text-center">
+          <span className="text-[8px] sm:text-[9px] text-[#a8c4a0]/50 uppercase tracking-wider">
+            salió:{" "}
           </span>
-          <motion.span
-            key={scores[0]}
-            initial={{ scale: 1.3, color: "#f5f0e8" }}
-            animate={{ scale: 1, color: teamAWinning ? "#f5f0e8" : tied ? "#a8c4a0" : "#6b8a60" }}
-            className="text-lg sm:text-2xl font-bold tabular-nums"
-          >
-            {scores[0]}
-          </motion.span>
-        </div>
-
-        <span className="text-[#c9a84c]/40 text-sm sm:text-lg font-light">—</span>
-
-        <div className="flex flex-col items-center">
-          <span className={`text-[9px] sm:text-[10px] uppercase tracking-wider font-medium ${myTeam === 1 ? "text-[#c9a84c]" : "text-[#f5f0e8]"}`}>
-            {myTeam === 1 ? "Tú" : "Ellos"}
+          <span className="text-[8px] sm:text-[9px] text-[#f5f0e8]/70">
+            {firstPlayerName}
           </span>
-          <motion.span
-            key={scores[1]}
-            initial={{ scale: 1.3, color: "#f5f0e8" }}
-            animate={{ scale: 1, color: teamBWinning ? "#c9a84c" : tied ? "#a8c4a0" : "#6b8a60" }}
-            className="text-lg sm:text-2xl font-bold tabular-nums"
-          >
-            {scores[1]}
-          </motion.span>
         </div>
-      </div>
+      )}
+
+      {/* Team rows */}
+      {([0, 1] as const).map((teamIdx) => {
+        const score = scores[teamIdx];
+        const pct = Math.min((score / targetScore) * 100, 100);
+        const isMyTeam = myTeam === teamIdx;
+        const opponent = teamIdx === 0 ? 1 : 0;
+        const isWinning = score > scores[opponent];
+        const label = teamIdx === 0 ? team0Label : team1Label;
+
+        return (
+          <div
+            key={teamIdx}
+            className={`mb-1 sm:mb-1.5 last:mb-0 ${isMyTeam ? "opacity-100" : "opacity-70"}`}
+          >
+            <div className="flex items-center justify-between mb-0.5">
+              <span
+                className={`text-[9px] sm:text-[10px] font-medium truncate max-w-[100px] sm:max-w-[140px] ${
+                  isMyTeam ? "text-[#c9a84c]" : "text-[#f5f0e8]/80"
+                }`}
+              >
+                {label}
+              </span>
+              <motion.span
+                key={score}
+                initial={{ scale: 1.3 }}
+                animate={{ scale: 1 }}
+                transition={{ duration: 0.2 }}
+                className={`text-sm sm:text-base font-bold tabular-nums ml-2 shrink-0 ${
+                  isWinning ? "text-[#f5f0e8]" : "text-[#a8c4a0]/60"
+                }`}
+              >
+                {score}
+              </motion.span>
+            </div>
+            <div className="h-1 sm:h-1.5 rounded-full bg-[#0f3520]/60 overflow-hidden">
+              <motion.div
+                className={`h-full rounded-full ${
+                  isMyTeam ? "bg-[#c9a84c]" : "bg-[#a8c4a0]/40"
+                }`}
+                initial={false}
+                animate={{ width: `${pct}%` }}
+                transition={{ duration: 0.5, ease: "easeOut" }}
+              />
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }
