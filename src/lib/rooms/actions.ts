@@ -61,11 +61,12 @@ export async function createRoom() {
   if (error) throw new Error("No se pudo crear la sala: " + error.message);
 
   // Also insert into room_players for RLS compatibility
-  await getSupabaseAdmin().from("room_players").upsert({
+  const { error: rpError } = await getSupabaseAdmin().from("room_players").upsert({
     room_id: room.id,
     player_id: user.id,
     seat: 0,
   }, { onConflict: "room_id,player_id" });
+  if (rpError) console.error("room_players upsert failed (createRoom):", rpError.message);
 
   redirect(`/sala/${room.code}`);
 }
@@ -123,11 +124,12 @@ export async function joinRoom(code: string) {
   }
 
   // Also insert into room_players for RLS compatibility
-  await getSupabaseAdmin().from("room_players").insert({
+  const { error: rpJoinError } = await getSupabaseAdmin().from("room_players").insert({
     room_id: room.id,
     player_id: user.id,
     seat: seatIndex,
   });
+  if (rpJoinError) console.error("room_players insert failed (joinRoom):", rpJoinError.message);
 
   redirect(`/sala/${upperCode}`);
 }
@@ -178,11 +180,12 @@ export async function quickPlay() {
 
       if (error) continue;
 
-      await getSupabaseAdmin().from("room_players").upsert({
+      const { error: rpQpError } = await getSupabaseAdmin().from("room_players").upsert({
         room_id: room.id,
         player_id: user.id,
         seat: seatIndex,
       }, { onConflict: "room_id,player_id" });
+      if (rpQpError) console.error("room_players upsert failed (quickPlay join):", rpQpError.message);
 
       redirect(`/sala/${room.code}`);
     }
@@ -224,11 +227,12 @@ export async function quickPlay() {
 
   if (error) throw new Error("No se pudo crear la sala: " + error.message);
 
-  await getSupabaseAdmin().from("room_players").upsert({
+  const { error: rpQpNewError } = await getSupabaseAdmin().from("room_players").upsert({
     room_id: room.id,
     player_id: user.id,
     seat: 0,
   }, { onConflict: "room_id,player_id" });
+  if (rpQpNewError) console.error("room_players upsert failed (quickPlay create):", rpQpNewError.message);
 
   redirect(`/sala/${room.code}`);
 }
@@ -345,9 +349,10 @@ export async function createRoomWithOptions(options: { isPrivate: boolean; passw
 
   if (error) throw new Error("No se pudo crear la sala: " + error.message);
 
-  await getSupabaseAdmin().from("room_players").upsert({
+  const { error: rpCrwoError } = await getSupabaseAdmin().from("room_players").upsert({
     room_id: room.id, player_id: user.id, seat: 0,
   }, { onConflict: "room_id,player_id" });
+  if (rpCrwoError) console.error("room_players upsert failed (createRoomWithOptions):", rpCrwoError.message);
 
   redirect(`/sala/${room.code}`);
 }
@@ -389,9 +394,10 @@ export async function joinRoomWithPassword(code: string, password?: string) {
 
   if (updateError) return { error: "No se pudo unir a la sala." };
 
-  await getSupabaseAdmin().from("room_players").insert({
+  const { error: rpJwpError } = await getSupabaseAdmin().from("room_players").insert({
     room_id: room.id, player_id: user.id, seat: seatIndex,
   });
+  if (rpJwpError) console.error("room_players insert failed (joinRoomWithPassword):", rpJwpError.message);
 
   redirect(`/sala/${upperCode}`);
 }
@@ -443,11 +449,12 @@ export async function leaveRoom(roomId: string) {
   }
 
   // Clean up room_players
-  await admin
+  const { error: rpLeaveError } = await admin
     .from("room_players")
     .delete()
     .eq("room_id", room.id)
     .eq("player_id", user.id);
+  if (rpLeaveError) console.error("room_players delete failed (leaveRoom):", rpLeaveError.message);
 
   return { success: true };
 }
@@ -576,17 +583,25 @@ export async function startGame(roomId: string) {
 
   if (roomUpdateError) return { error: "No se pudo actualizar el estado de la sala." };
 
-  const channel = getSupabaseAdmin().channel(`room:${room.code}`);
-  await channel.send({
-    type: "broadcast",
-    event: "game_event",
-    payload: { type: "round_started", game_id: game.id, current_turn: startingSeat },
-  });
-  await getSupabaseAdmin().removeChannel(channel);
+  try {
+    const channel = getSupabaseAdmin().channel(`room:${room.code}`);
+    await channel.send({
+      type: "broadcast",
+      event: "game_event",
+      payload: { type: "round_started", game_id: game.id, current_turn: startingSeat },
+    });
+    await getSupabaseAdmin().removeChannel(channel);
+  } catch (broadcastError) {
+    console.error("Failed to broadcast round_started:", broadcastError);
+  }
 
   const startingPlayer = seats[startingSeat];
   if (startingPlayer && isBotUserId(startingPlayer.user_id)) {
-    await processBotTurns(game.id);
+    try {
+      await processBotTurns(game.id);
+    } catch (botError) {
+      console.error("processBotTurns failed after startGame:", botError);
+    }
   }
 
   return { gameId: game.id };
