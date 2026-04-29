@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
 import type { RealtimeChannel } from "@supabase/supabase-js";
-import type { PresenceState } from "./events";
+import type { PresenceState } from "@/lib/realtime/events";
 
 interface UsePresenceOptions {
   roomCode: string;

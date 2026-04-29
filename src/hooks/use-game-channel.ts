@@ -3,7 +3,7 @@
 import { useEffect, useRef, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
 import type { RealtimeChannel } from "@supabase/supabase-js";
-import type { GameEvent, PresenceState } from "./events";
+import type { GameEvent, PresenceState } from "@/lib/realtime/events";
 
 const DISCONNECT_GRACE_MS = 30_000;
 
