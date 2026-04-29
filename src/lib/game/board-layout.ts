@@ -22,10 +22,8 @@ export interface TileDims {
   gap: number;
 }
 
-// Match tile.tsx sizeConfig.small exactly: w=20, h=36 (vertical base)
-// horizontal → w=36, h=20; vertical → w=20, h=36
-export const DIMS_DESKTOP: TileDims = { horizW: 36, horizH: 20, doubleW: 20, doubleH: 36, gap: 3 };
-export const DIMS_MOBILE: TileDims = { horizW: 28, horizH: 16, doubleW: 16, doubleH: 28, gap: 2 };
+export const DIMS_DESKTOP: TileDims = { horizW: 40, horizH: 22, doubleW: 22, doubleH: 40, gap: 4 };
+export const DIMS_MOBILE: TileDims = { horizW: 32, horizH: 18, doubleW: 18, doubleH: 32, gap: 3 };
 
 function isHoriz(dir: Dir): boolean {
   return dir === "right" || dir === "left";
