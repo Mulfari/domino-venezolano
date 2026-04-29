@@ -50,7 +50,11 @@ La app corre en [http://localhost:3000](http://localhost:3000) por defecto.
 src/
 ├── app/
 │   ├── (auth)/login/          # Página de login / registro
-│   ├── (lobby)/               # Lobby principal, crear/unirse a sala, perfil, historial
+│   ├── (lobby)/               # Lobby principal
+│   │   ├── page.tsx           # Lista de salas activas
+│   │   ├── sala/[code]/       # Sala de espera antes de iniciar partida
+│   │   ├── partidas/          # Historial y salas públicas
+│   │   └── perfil/            # Perfil y estadísticas del usuario
 │   ├── (game)/juego/[code]/   # Página de partida en tiempo real
 │   └── api/game/              # API routes: state, play, pass, start
 ├── components/
@@ -65,7 +69,9 @@ src/
 │   └── rooms/                 # Acciones de sala (server actions)
 ├── stores/                    # Estado global con Zustand
 ├── hooks/                     # Custom hooks (mobile, realtime, etc.)
-└── middleware.ts               # Protección de rutas con auth de Supabase
+├── middleware.ts               # Protección de rutas con auth de Supabase
+docs/
+└── PLAN_MVP.md                # Especificación y roadmap del MVP
 ```
 
 ## Flujo de una partida
