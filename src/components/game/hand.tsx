@@ -103,12 +103,26 @@ export function Hand({ onPlayTile, onPass, disabled = false }: HandProps) {
                 transition={{ type: "spring", stiffness: 300, damping: 25, delay: i * 0.03 }}
                 className={cochina || playable ? "relative" : ""}
               >
-                {cochina && isMyTurn && (
-                  <motion.div
-                    className="absolute -inset-1 rounded-lg bg-[#c9a84c]/30 blur-sm"
-                    animate={{ opacity: [0.4, 0.8, 0.4] }}
-                    transition={{ duration: 1.5, repeat: Infinity }}
-                  />
+                {cochina && (
+                  <>
+                    <motion.div
+                      className="absolute -inset-2 rounded-lg bg-[#c9a84c]/20 blur-md pointer-events-none"
+                      animate={{ opacity: [0.3, 0.7, 0.3] }}
+                      transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }}
+                    />
+                    <motion.div
+                      className="absolute -inset-1 rounded-lg border border-[#c9a84c]/70 pointer-events-none"
+                      animate={{ opacity: [0.5, 1, 0.5], scale: [1, 1.04, 1] }}
+                      transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }}
+                    />
+                    <motion.div
+                      className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 px-1.5 py-0.5 rounded text-[9px] font-bold text-[#c9a84c] bg-[#1a1a0a]/80 whitespace-nowrap pointer-events-none border border-[#c9a84c]/40"
+                      animate={{ opacity: [0.7, 1, 0.7] }}
+                      transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }}
+                    >
+                      ¡Cochina!
+                    </motion.div>
+                  </>
                 )}
                 {playable && !cochina && (
                   <motion.div
