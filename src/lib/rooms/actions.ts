@@ -394,6 +394,61 @@ export async function joinRoomWithPassword(code: string, password?: string) {
   redirect(`/sala/${upperCode}`);
 }
 
+export async function leaveRoom(roomId: string) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: "No autenticado." };
+
+  const admin = getSupabaseAdmin();
+  const { data: room } = await admin
+    .from("rooms")
+    .select("*")
+    .eq("id", roomId)
+    .single();
+
+  if (!room) return { error: "Sala no encontrada." };
+  if (room.status !== "waiting") return { error: "No puedes salir de una partida en curso." };
+
+  const seats = (room.seats ?? [null, null, null, null]) as (
+    | { user_id: string; display_name: string }
+    | null
+  )[];
+
+  const seatIndex = seats.findIndex((s) => s?.user_id === user.id);
+  if (seatIndex === -1) return { error: "No estás en esta sala." };
+
+  // If host leaves, either transfer host or delete room
+  if (room.host_id === user.id) {
+    const newSeats = [...seats];
+    newSeats[seatIndex] = null;
+
+    const nextPlayer = newSeats.find((s) => s !== null && !s.user_id.startsWith("bot_"));
+    if (nextPlayer) {
+      // Transfer host
+      await admin
+        .from("rooms")
+        .update({ seats: newSeats, host_id: nextPlayer.user_id })
+        .eq("id", room.id);
+    } else {
+      // No human players left — delete room
+      await admin.from("rooms").delete().eq("id", room.id);
+    }
+  } else {
+    const newSeats = [...seats];
+    newSeats[seatIndex] = null;
+    await admin.from("rooms").update({ seats: newSeats }).eq("id", room.id);
+  }
+
+  // Clean up room_players
+  await admin
+    .from("room_players")
+    .delete()
+    .eq("room_id", room.id)
+    .eq("player_id", user.id);
+
+  return { success: true };
+}
+
 export async function startGame(roomId: string) {
   const supabase = await createClient();
   const {
