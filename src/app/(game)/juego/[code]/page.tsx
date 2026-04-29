@@ -17,6 +17,7 @@ import { LandscapePrompt } from "@/components/game/landscape-prompt";
 import { useGameChannel } from "@/lib/realtime/use-game-channel";
 import { useGameStore } from "@/stores/game-store";
 import { playTilePlace, playPass, playYourTurn, playVictory, playDefeat } from "@/lib/sounds/sound-engine";
+import { requestNotificationPermission, notifyTurn } from "@/lib/notifications/turn-notification";
 import type { GameEvent } from "@/lib/realtime/events";
 import type { Tile, Seat } from "@/lib/game/types";
 
@@ -202,7 +203,20 @@ export default function GamePage() {
     return () => clearInterval(interval);
   }, [status, mySeat, fetchGameState]);
 
-  /* ---- "Your turn" sound ---- */
+  /* ---- Request notification permission ---- */
+  useEffect(() => {
+    requestNotificationPermission();
+  }, []);
+
+  /* ---- Warn before leaving mid-game ---- */
+  useEffect(() => {
+    if (status !== "playing") return;
+    const handler = (e: BeforeUnloadEvent) => { e.preventDefault(); };
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, [status]);
+
+  /* ---- "Your turn" sound + browser notification ---- */
   const prevTurnRef = useRef<number | null>(null);
   useEffect(() => {
     if (
@@ -213,6 +227,7 @@ export default function GamePage() {
       prevTurnRef.current !== mySeat
     ) {
       playYourTurn();
+      notifyTurn();
     }
     prevTurnRef.current = currentTurn;
   }, [currentTurn, mySeat, status]);
