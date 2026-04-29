@@ -1,5 +1,7 @@
 "use client";
 
+import { memo } from "react";
+
 interface ChatMessageProps {
   displayName: string;
   message: string;
@@ -7,7 +9,7 @@ interface ChatMessageProps {
   isOwn: boolean;
 }
 
-export function ChatMessage({
+export const ChatMessage = memo(function ChatMessage({
   displayName,
   message,
   createdAt,
@@ -53,4 +55,4 @@ export function ChatMessage({
       </div>
     </div>
   );
-}
+});
