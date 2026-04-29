@@ -262,11 +262,12 @@ export async function addBot(roomId: string) {
   const newSeats = [...seats];
   newSeats[seatIndex] = { user_id: botId, display_name: botName };
 
-  await getSupabaseAdmin()
+  const { error: updateError } = await getSupabaseAdmin()
     .from("rooms")
     .update({ seats: newSeats })
     .eq("id", room.id);
 
+  if (updateError) return { error: "No se pudo añadir el bot." };
   return { success: true };
 }
 
@@ -297,11 +298,12 @@ export async function removeBot(roomId: string, seatIndex: number) {
   const newSeats = [...seats];
   newSeats[seatIndex] = null;
 
-  await getSupabaseAdmin()
+  const { error: updateError } = await getSupabaseAdmin()
     .from("rooms")
     .update({ seats: newSeats })
     .eq("id", room.id);
 
+  if (updateError) return { error: "No se pudo quitar el bot." };
   return { success: true };
 }
 
@@ -424,19 +426,20 @@ export async function leaveRoom(roomId: string) {
 
     const nextPlayer = newSeats.find((s) => s !== null && !s.user_id.startsWith("bot_"));
     if (nextPlayer) {
-      // Transfer host
-      await admin
+      const { error: transferError } = await admin
         .from("rooms")
         .update({ seats: newSeats, host_id: nextPlayer.user_id })
         .eq("id", room.id);
+      if (transferError) return { error: "No se pudo actualizar la sala." };
     } else {
-      // No human players left — delete room
-      await admin.from("rooms").delete().eq("id", room.id);
+      const { error: deleteError } = await admin.from("rooms").delete().eq("id", room.id);
+      if (deleteError) return { error: "No se pudo eliminar la sala." };
     }
   } else {
     const newSeats = [...seats];
     newSeats[seatIndex] = null;
-    await admin.from("rooms").update({ seats: newSeats }).eq("id", room.id);
+    const { error: updateError } = await admin.from("rooms").update({ seats: newSeats }).eq("id", room.id);
+    if (updateError) return { error: "No se pudo actualizar la sala." };
   }
 
   // Clean up room_players
@@ -562,13 +565,16 @@ export async function startGame(roomId: string) {
     }));
 
   if (handInserts.length > 0) {
-    await getSupabaseAdmin().from("game_hands").insert(handInserts);
+    const { error: handsError } = await getSupabaseAdmin().from("game_hands").insert(handInserts);
+    if (handsError) return { error: "No se pudieron repartir las fichas: " + handsError.message };
   }
 
-  await getSupabaseAdmin()
+  const { error: roomUpdateError } = await getSupabaseAdmin()
     .from("rooms")
     .update({ status: "playing", current_game_id: game.id, started_at: new Date().toISOString() })
     .eq("id", room.id);
+
+  if (roomUpdateError) return { error: "No se pudo actualizar el estado de la sala." };
 
   const channel = getSupabaseAdmin().channel(`room:${room.code}`);
   await channel.send({

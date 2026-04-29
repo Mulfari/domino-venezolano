@@ -36,17 +36,22 @@ export function useChat({ roomCode, roomId, gameId, userId, displayName }: UseCh
     const supabase = createClient();
 
     async function loadHistory() {
-      const { data, error } = await supabase
-        .from("chat_messages")
-        .select("*")
-        .eq("game_id", gameId)
-        .order("created_at", { ascending: true })
-        .limit(100);
+      try {
+        const { data, error } = await supabase
+          .from("chat_messages")
+          .select("*")
+          .eq("game_id", gameId)
+          .order("created_at", { ascending: true })
+          .limit(100);
 
-      if (!error && data) {
-        setMessages(data as ChatMessage[]);
+        if (!error && data) {
+          setMessages(data as ChatMessage[]);
+        }
+      } catch {
+        // non-critical: chat history unavailable
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     }
 
     loadHistory();
@@ -110,13 +115,17 @@ export function useChat({ roomCode, roomId, gameId, userId, displayName }: UseCh
 
       // Persist to DB (fire and forget)
       if (roomId) {
-        await supabase.from("chat_messages").insert({
-          id,
-          room_id: roomId,
-          game_id: gameId,
-          player_id: userId,
-          message: message.trim(),
-        });
+        try {
+          await supabase.from("chat_messages").insert({
+            id,
+            room_id: roomId,
+            game_id: gameId,
+            player_id: userId,
+            message: message.trim(),
+          });
+        } catch {
+          // non-critical: message already shown locally and broadcast
+        }
       }
     },
     [gameId, roomId, userId, displayName]
