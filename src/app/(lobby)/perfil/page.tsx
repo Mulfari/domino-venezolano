@@ -113,8 +113,9 @@ export default function ProfilePage() {
           <div className="glass rounded-2xl p-6 text-center space-y-4">
             <div className="text-5xl">{selectedAvatar}</div>
             <div>
-              <label className="block text-xs text-[#a8c4a0]/60 mb-1.5">Nombre de jugador</label>
+              <label htmlFor="displayName" className="block text-xs text-[#a8c4a0]/60 mb-1.5">Nombre de jugador</label>
               <input
+                id="displayName"
                 type="text"
                 value={displayName}
                 onChange={(e) => setDisplayName(e.target.value)}
@@ -132,6 +133,8 @@ export default function ProfilePage() {
                   <button
                     key={a}
                     onClick={() => setSelectedAvatar(a)}
+                    aria-label={`Seleccionar avatar ${a}`}
+                    aria-pressed={selectedAvatar === a}
                     className={`w-10 h-10 rounded-xl text-xl flex items-center justify-center transition-all ${
                       selectedAvatar === a
                         ? "bg-[#c9a84c]/20 border-2 border-[#c9a84c] scale-110"

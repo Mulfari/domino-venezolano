@@ -156,6 +156,7 @@ export function ChatPanel({
               onKeyDown={handleKeyDown}
               placeholder="Escribe un mensaje..."
               maxLength={280}
+              aria-label="Mensaje de chat"
               className="flex-1 min-w-0 bg-[#1e5c3a]/30 text-sm text-[#f5f0e8] placeholder-[#a8c4a0]/40 rounded-lg px-3 py-2 outline-none focus:ring-1 focus:ring-[#c9a84c]/50"
             />
             <button

@@ -107,6 +107,8 @@ function CreateRoomForm({ action }: { action: (opts: { isPrivate: boolean; passw
         <button
           type="button"
           onClick={() => { setIsPrivate(!isPrivate); if (isPrivate) setPassword(""); }}
+          aria-label={isPrivate ? "Desactivar sala privada" : "Activar sala privada"}
+          aria-pressed={isPrivate}
           className={`relative w-10 h-5 rounded-full transition-colors ${isPrivate ? "bg-[#c9a84c]" : "bg-[#1e5c3a]/60"}`}
         >
           <span className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-[#f5f0e8] transition-transform ${isPrivate ? "translate-x-5" : ""}`} />
@@ -121,6 +123,7 @@ function CreateRoomForm({ action }: { action: (opts: { isPrivate: boolean; passw
             onChange={(e) => setPassword(e.target.value)}
             placeholder="Contraseña (opcional)"
             maxLength={32}
+            aria-label="Contraseña de la sala (opcional)"
             className="w-full rounded-xl bg-[#1e5c3a]/30 border border-[#c9a84c]/20 px-4 py-2.5 text-sm text-[#f5f0e8] placeholder-[#a8c4a0]/40 focus:outline-none focus:ring-2 focus:ring-[#c9a84c]/50"
           />
         </motion.div>
