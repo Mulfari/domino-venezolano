@@ -1,8 +1,57 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { useGameStore } from "@/stores/game-store";
 import type { Seat } from "@/lib/game/types";
+
+function useAnimatedCounter(target: number, duration = 800) {
+  const [display, setDisplay] = useState(target);
+  const prevRef = useRef(target);
+  const rafRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    const from = prevRef.current;
+    if (from === target) return;
+    prevRef.current = target;
+
+    const start = performance.now();
+    const diff = target - from;
+
+    function tick(now: number) {
+      const elapsed = now - start;
+      const progress = Math.min(elapsed / duration, 1);
+      // ease-out cubic
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setDisplay(Math.round(from + diff * eased));
+      if (progress < 1) {
+        rafRef.current = requestAnimationFrame(tick);
+      }
+    }
+
+    rafRef.current = requestAnimationFrame(tick);
+    return () => { if (rafRef.current !== null) cancelAnimationFrame(rafRef.current); };
+  }, [target, duration]);
+
+  return display;
+}
+
+function AnimatedScore({ score, isWinning }: { score: number; isWinning: boolean }) {
+  const display = useAnimatedCounter(score, 600);
+  return (
+    <motion.span
+      key={score}
+      initial={{ scale: 1.3 }}
+      animate={{ scale: 1 }}
+      transition={{ duration: 0.2 }}
+      className={`text-sm sm:text-base font-bold tabular-nums ml-2 shrink-0 ${
+        isWinning ? "text-[#f5f0e8]" : "text-[#a8c4a0]/60"
+      }`}
+    >
+      {display}
+    </motion.span>
+  );
+}
 
 export function ScorePanel() {
   const scores = useGameStore((s) => s.scores);
@@ -80,17 +129,10 @@ export function ScorePanel() {
               >
                 {label}
               </span>
-              <motion.span
-                key={score}
-                initial={{ scale: 1.3 }}
-                animate={{ scale: 1 }}
-                transition={{ duration: 0.2 }}
-                className={`text-sm sm:text-base font-bold tabular-nums ml-2 shrink-0 ${
-                  isWinning ? "text-[#f5f0e8]" : "text-[#a8c4a0]/60"
-                }`}
-              >
-                {score}
-              </motion.span>
+              <AnimatedScore
+                score={score}
+                isWinning={isWinning}
+              />
             </div>
             <div className="h-1 sm:h-1.5 rounded-full bg-[#0f3520]/60 overflow-hidden">
               <motion.div

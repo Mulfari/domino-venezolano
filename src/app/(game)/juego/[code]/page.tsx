@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback, useRef } from "react";
+import { motion } from "framer-motion";
 import { useParams, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Board } from "@/components/game/board";
@@ -84,6 +85,7 @@ export default function GamePage() {
   const [handCounts, setHandCounts] = useState<number[]>([7, 7, 7, 7]);
   const [actionLoading, setActionLoading] = useState(false);
   const [lastPassSeat, setLastPassSeat] = useState<Seat | null>(null);
+  const [boardTransitioning, setBoardTransitioning] = useState(false);
   const passTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   /* ---- Zustand store ---- */
@@ -274,14 +276,17 @@ export default function GamePage() {
         }
 
         case "round_started": {
-          // New round — fetch fresh state with the new game_id
-          if (event.game_id !== gameIdRef.current) {
-            router.replace(`/juego/${event.game_id}`);
-            gameIdRef.current = event.game_id;
-          }
-          setRoundResult(null);
-          reset();
-          fetchGameState(event.game_id);
+          setBoardTransitioning(true);
+          setTimeout(async () => {
+            if (event.game_id !== gameIdRef.current) {
+              router.replace(`/juego/${event.game_id}`);
+              gameIdRef.current = event.game_id;
+            }
+            setRoundResult(null);
+            reset();
+            await fetchGameState(event.game_id);
+            setBoardTransitioning(false);
+          }, 400);
           break;
         }
 
@@ -543,6 +548,12 @@ export default function GamePage() {
         </div>
       </div>
 
+      {/* Game area — fades out/in on round transitions */}
+      <motion.div
+        animate={{ opacity: boardTransitioning ? 0 : 1 }}
+        transition={{ duration: 0.35, ease: "easeInOut" }}
+        className="flex flex-col flex-1 min-h-0"
+      >
       {/* Partner (top) */}
       <div className="flex justify-center shrink-0 pb-1 sm:pb-2">
         <OpponentHand
@@ -593,6 +604,7 @@ export default function GamePage() {
         <PassIndicator show={lastPassSeat === mySeat} />
         <Hand onPlayTile={handlePlayTile} onPass={handlePass} disabled={actionLoading} />
       </div>
+      </motion.div>
 
       {/* Disconnect overlay */}
       <DisconnectOverlay />
