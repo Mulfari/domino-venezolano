@@ -49,7 +49,7 @@ export function Board({ onPlaceEnd }: BoardProps) {
     <div className="relative w-full flex-1 flex flex-col items-center justify-center overflow-hidden">
       <div
         ref={containerRef}
-        className="relative rounded-xl border border-amber-900/30 overflow-hidden"
+        className="relative rounded-xl border border-[#c9a84c]/20 overflow-hidden"
         style={{
           width: "100%",
           maxWidth: `${BOARD_SIZE}px`,

@@ -129,7 +129,7 @@ export function PublicRoomsClient({ initialRooms, userId, displayName }: Props) 
             className="flex items-center justify-between"
           >
             <div>
-              <h1 className="text-2xl font-bold text-white">Partidas públicas</h1>
+              <h1 className="text-2xl font-bold text-[#f5f0e8]">Partidas públicas</h1>
               <p className="text-sm text-[#a8c4a0] mt-1">
                 {rooms.length} sala{rooms.length !== 1 ? "s" : ""} disponible{rooms.length !== 1 ? "s" : ""}
               </p>
