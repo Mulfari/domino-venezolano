@@ -37,6 +37,7 @@ export function Board({ onPlaceEnd }: BoardProps) {
   }, []);
 
   const BOARD_SIZE = isMobile ? 300 : 420;
+  const FRAME_PAD = isMobile ? 8 : 12;
 
   const placedTiles = useMemo(
     () => buildPlacedTiles(board.plays, BOARD_SIZE, BOARD_SIZE, dims),
@@ -47,77 +48,122 @@ export function Board({ onPlaceEnd }: BoardProps) {
 
   return (
     <div className="relative w-full flex-1 flex flex-col items-center justify-center overflow-hidden">
+      {/* Marco de madera */}
       <div
-        ref={containerRef}
-        className="relative rounded-xl border border-[#c9a84c]/20 overflow-hidden"
         style={{
           width: "100%",
-          maxWidth: `${BOARD_SIZE}px`,
-          aspectRatio: "1 / 1",
-          background: "radial-gradient(ellipse at center, #1a5c35 0%, #14472a 60%, #0f3520 100%)",
+          maxWidth: `${BOARD_SIZE + FRAME_PAD * 2 + 4}px`,
+          borderRadius: "14px",
+          padding: `${FRAME_PAD}px`,
+          background:
+            "linear-gradient(160deg, #7a4f2a 0%, #4a2e14 20%, #6b4020 45%, #3a2210 70%, #5c3818 100%)",
+          boxShadow:
+            "0 12px 40px rgba(0,0,0,0.7), 0 4px 16px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.08)",
+          border: "1px solid #8b5e3c",
         }}
       >
-        {board.plays.length === 0 ? (
-          <div className="absolute inset-0 flex items-center justify-center">
-            <p className="text-emerald-200/40 text-sm font-medium">
-              {isMyTurn ? "Juega tu primera ficha" : "Esperando primera jugada..."}
-            </p>
-          </div>
-        ) : (
-          <svg
-            width="100%"
-            height="100%"
-            viewBox={viewBox}
-            preserveAspectRatio="xMidYMid meet"
-            className="absolute inset-0"
+        {/* Filete dorado */}
+        <div
+          style={{
+            borderRadius: "8px",
+            padding: "2px",
+            background:
+              "linear-gradient(135deg, #c9a84c 0%, #8b6914 30%, #e8c96a 50%, #8b6914 70%, #c9a84c 100%)",
+            boxShadow: "0 0 8px rgba(201,168,76,0.3)",
+          }}
+        >
+          {/* Superficie de fieltro */}
+          <div
+            ref={containerRef}
+            className="relative rounded-md overflow-hidden"
+            style={{
+              width: "100%",
+              aspectRatio: "1 / 1",
+              background: `
+                repeating-linear-gradient(
+                  45deg,
+                  transparent,
+                  transparent 2px,
+                  rgba(0,0,0,0.04) 2px,
+                  rgba(0,0,0,0.04) 4px
+                ),
+                repeating-linear-gradient(
+                  -45deg,
+                  transparent,
+                  transparent 2px,
+                  rgba(0,0,0,0.04) 2px,
+                  rgba(0,0,0,0.04) 4px
+                ),
+                radial-gradient(ellipse at 38% 32%, rgba(255,255,255,0.07) 0%, transparent 55%),
+                radial-gradient(ellipse at center, #1a5c35 0%, #14472a 60%, #0f3520 100%)
+              `,
+              boxShadow:
+                "inset 0 3px 14px rgba(0,0,0,0.65), inset 0 0 32px rgba(0,0,0,0.3)",
+            }}
           >
-            {placedTiles.map((pt) => {
-              const isH = pt.orientation === "horizontal";
-              const tw = isH
-                ? (pt.isDouble ? dims.doubleH : dims.horizW)
-                : (pt.isDouble ? dims.doubleW : dims.horizH);
-              const th = isH
-                ? (pt.isDouble ? dims.doubleW : dims.horizH)
-                : (pt.isDouble ? dims.doubleH : dims.horizW);
-              return (
-                <foreignObject
-                  key={pt.key}
-                  x={pt.x - tw / 2}
-                  y={pt.y - th / 2}
-                  width={tw}
-                  height={th}
-                >
-                  <DominoTile
-                    tile={pt.tile}
-                    size="small"
-                    orientation={pt.orientation}
-                  />
-                </foreignObject>
-              );
-            })}
-          </svg>
-        )}
+            {board.plays.length === 0 ? (
+              <div className="absolute inset-0 flex items-center justify-center">
+                <p className="text-emerald-200/40 text-sm font-medium">
+                  {isMyTurn ? "Juega tu primera ficha" : "Esperando primera jugada..."}
+                </p>
+              </div>
+            ) : (
+              <svg
+                width="100%"
+                height="100%"
+                viewBox={viewBox}
+                preserveAspectRatio="xMidYMid meet"
+                className="absolute inset-0"
+              >
+                {placedTiles.map((pt) => {
+                  const isH = pt.orientation === "horizontal";
+                  const tw = isH
+                    ? (pt.isDouble ? dims.doubleH : dims.horizW)
+                    : (pt.isDouble ? dims.doubleW : dims.horizH);
+                  const th = isH
+                    ? (pt.isDouble ? dims.doubleW : dims.horizH)
+                    : (pt.isDouble ? dims.doubleH : dims.horizW);
+                  return (
+                    <foreignObject
+                      key={pt.key}
+                      x={pt.x - tw / 2}
+                      y={pt.y - th / 2}
+                      width={tw}
+                      height={th}
+                    >
+                      <DominoTile
+                        tile={pt.tile}
+                        size="small"
+                        orientation={pt.orientation}
+                      />
+                    </foreignObject>
+                  );
+                })}
+              </svg>
+            )}
 
-        {showPlacementOptions && board.plays.length > 0 && (
-          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-3 z-10">
-            <motion.button
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="px-3 py-1.5 rounded-lg bg-amber-700/90 text-amber-100 text-xs font-medium hover:bg-amber-600 transition-colors shadow-lg"
-              onClick={() => onPlaceEnd?.("left")}
-            >
-              ← Izq ({board.left})
-            </motion.button>
-            <motion.button
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="px-3 py-1.5 rounded-lg bg-amber-700/90 text-amber-100 text-xs font-medium hover:bg-amber-600 transition-colors shadow-lg"
-              onClick={() => onPlaceEnd?.("right")}
-            >
-              Der ({board.right}) →
-            </motion.button>
+            {showPlacementOptions && board.plays.length > 0 && (
+              <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-3 z-10">
+                <motion.button
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="px-3 py-1.5 rounded-lg bg-amber-700/90 text-amber-100 text-xs font-medium hover:bg-amber-600 transition-colors shadow-lg"
+                  onClick={() => onPlaceEnd?.("left")}
+                >
+                  ← Izq ({board.left})
+                </motion.button>
+                <motion.button
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="px-3 py-1.5 rounded-lg bg-amber-700/90 text-amber-100 text-xs font-medium hover:bg-amber-600 transition-colors shadow-lg"
+                  onClick={() => onPlaceEnd?.("right")}
+                >
+                  Der ({board.right}) →
+                </motion.button>
+              </div>
+            )}
           </div>
-        )}
+        </div>
       </div>
     </div>
   );
