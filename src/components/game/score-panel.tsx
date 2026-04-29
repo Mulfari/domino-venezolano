@@ -11,6 +11,7 @@ export function ScorePanel() {
   const mySeat = useGameStore((s) => s.mySeat);
   const players = useGameStore((s) => s.players);
   const board = useGameStore((s) => s.board);
+  const roundHistory = useGameStore((s) => s.roundHistory);
 
   const myTeam = mySeat !== null ? ((mySeat % 2) as 0 | 1) : null;
 
@@ -104,6 +105,55 @@ export function ScorePanel() {
           </div>
         );
       })}
+
+      {/* Round history */}
+      {roundHistory.length > 0 && (
+        <div className="mt-2 pt-1.5 border-t border-[#c9a84c]/10">
+          <div className="flex flex-wrap gap-1">
+            {roundHistory.map((entry) => {
+              const isTeam0 = entry.winner_team === 0;
+              const isTeam1 = entry.winner_team === 1;
+              const isTied = entry.winner_team === null;
+              const isMyTeamWon = myTeam !== null && entry.winner_team === myTeam;
+
+              const bgColor = isTied
+                ? "bg-[#a8c4a0]/15 border-[#a8c4a0]/30"
+                : isMyTeamWon
+                ? "bg-[#c9a84c]/20 border-[#c9a84c]/40"
+                : "bg-[#f5f0e8]/5 border-[#f5f0e8]/15";
+
+              const dotColor = isTied
+                ? "bg-[#a8c4a0]/60"
+                : isTeam0
+                ? "bg-[#c9a84c]"
+                : "bg-[#a8c4a0]";
+
+              const reasonIcon = entry.reason === "domino" ? "⬛" : entry.reason === "locked" ? "🔒" : "=";
+
+              return (
+                <motion.div
+                  key={entry.round}
+                  initial={{ opacity: 0, scale: 0.7 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.25 }}
+                  title={`Ronda ${entry.round}: ${
+                    isTied ? "Empate" : `Equipo ${(entry.winner_team ?? 0) + 1} ganó`
+                  } · ${entry.points} pts · ${
+                    entry.reason === "domino" ? "dominó" : entry.reason === "locked" ? "trancado" : "empate"
+                  }`}
+                  className={`flex items-center gap-0.5 px-1 py-0.5 rounded border text-[8px] font-semibold tabular-nums ${bgColor}`}
+                >
+                  <span
+                    className={`w-1.5 h-1.5 rounded-full shrink-0 ${dotColor}`}
+                  />
+                  <span className="text-[#f5f0e8]/70">{entry.points}</span>
+                  <span className="text-[8px] leading-none">{reasonIcon}</span>
+                </motion.div>
+              );
+            })}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -10,6 +10,13 @@ import type {
 } from "@/lib/game/types";
 import { getValidMoves } from "@/lib/game/engine";
 
+export interface RoundHistoryEntry {
+  round: number;
+  winner_team: Team | null;
+  points: number;
+  reason: "domino" | "locked" | "tied";
+}
+
 /** Serializable version of GameState for the store (no Map). */
 interface SerializableHands {
   0: Tile[];
@@ -43,6 +50,7 @@ interface GameStore {
   targetScore: number;
   players: PlayerInfo[];
   roundResult: RoundResult | null;
+  roundHistory: RoundHistoryEntry[];
   selectedTile: Tile | null;
 
   // --- Derived (computed via getters) ---
@@ -67,6 +75,7 @@ interface GameStore {
   setTargetScore: (target: number) => void;
   setPlayers: (players: PlayerInfo[]) => void;
   setRoundResult: (result: RoundResult | null) => void;
+  addRoundHistory: (entry: RoundHistoryEntry) => void;
   selectTile: (tile: Tile | null) => void;
   playTile: (tile: Tile, end: "left" | "right") => void;
   passTurn: () => void;
@@ -90,6 +99,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   targetScore: 100,
   players: [],
   roundResult: null,
+  roundHistory: [],
   selectedTile: null,
 
   // --- Derived ---
@@ -141,6 +151,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
   setTargetScore: (target) => set({ targetScore: target }),
   setPlayers: (players) => set({ players }),
   setRoundResult: (result) => set({ roundResult: result }),
+  addRoundHistory: (entry) =>
+    set((s) => ({ roundHistory: [...s.roundHistory, entry] })),
   selectTile: (tile) => set({ selectedTile: tile }),
 
   playTile: (tile, end) => {
