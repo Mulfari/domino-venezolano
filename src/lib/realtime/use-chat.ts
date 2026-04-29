@@ -76,9 +76,15 @@ export function useChat({ roomCode, roomId, gameId, userId, displayName }: UseCh
     };
   }, [roomCode, userId]);
 
+  const lastSentRef = useRef(0);
+
   const sendMessage = useCallback(
     async (message: string) => {
       if (!message.trim() || !gameId) return;
+
+      const ts = Date.now();
+      if (ts - lastSentRef.current < 1000) return;
+      lastSentRef.current = ts;
 
       const supabase = createClient();
       const now = new Date().toISOString();
