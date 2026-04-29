@@ -1,36 +1,88 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Dominó Venezolano
 
-## Getting Started
+Plataforma online para jugar dominó venezolano en tiempo real — parejas, 28 fichas, doble-seis. Construida con Next.js y Supabase.
 
-First, run the development server:
+## Requisitos
+
+- Node.js 18+
+- Una cuenta y proyecto en [Supabase](https://supabase.com)
+
+## Instalación
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone https://github.com/Mulfari/domino-venezolano.git
+cd domino-venezolano
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Crea un archivo `.env.local` en la raíz con las siguientes variables:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```env
+NEXT_PUBLIC_SUPABASE_URL=https://<tu-proyecto>.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=<anon-key>
+SUPABASE_SERVICE_ROLE_KEY=<service-role-key>
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Estas claves se encuentran en el dashboard de Supabase bajo **Project Settings → API**.
 
-## Learn More
+## Uso
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+# Desarrollo
+npm run dev
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+# Build de producción
+npm run build
+npm run start
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+# Linting
+npm run lint
 
-## Deploy on Vercel
+# Tests
+npx vitest
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+La app corre en [http://localhost:3000](http://localhost:3000) por defecto.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Estructura del proyecto
+
+```
+src/
+├── app/
+│   ├── (auth)/login/          # Página de login / registro
+│   ├── (lobby)/               # Lobby principal, crear/unirse a sala, perfil, historial
+│   ├── (game)/juego/[code]/   # Página de partida en tiempo real
+│   └── api/game/              # API routes: state, play, pass
+├── components/
+│   ├── game/                  # Tablero, fichas, mano, timer, chat overlay, modales
+│   └── chat/                  # Panel de chat y mensajes
+├── lib/
+│   ├── game/                  # Motor del juego: engine, tipos, puntuación, bot, layout
+│   ├── supabase/              # Clientes de Supabase (browser, server, admin)
+│   ├── realtime/              # Eventos de broadcast y presencia
+│   ├── sounds/                # Motor de sonidos
+│   ├── notifications/         # Notificaciones de turno
+│   └── rooms/                 # Acciones de sala (server actions)
+├── stores/                    # Estado global con Zustand
+├── hooks/                     # Custom hooks (mobile, realtime, etc.)
+└── middleware.ts               # Protección de rutas con auth de Supabase
+```
+
+## Flujo de una partida
+
+1. El usuario se registra o inicia sesión en `/login`.
+2. Desde el lobby crea una sala o se une con un código.
+3. Al reunirse 4 jugadores, el anfitrión inicia la partida.
+4. La partida corre en `/juego/[code]` con estado sincronizado vía Supabase Realtime.
+5. La partida termina cuando un equipo acumula 100 puntos.
+
+## Stack
+
+| Capa | Tecnología |
+|---|---|
+| Framework | Next.js 16 (App Router) |
+| UI | React 19 + Tailwind CSS 4 + Framer Motion |
+| Backend / DB | Supabase (PostgreSQL + Auth + Realtime) |
+| Estado cliente | Zustand |
+| Tests | Vitest |
+| Lenguaje | TypeScript 5 |
