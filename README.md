@@ -52,7 +52,7 @@ src/
 │   ├── (auth)/login/          # Página de login / registro
 │   ├── (lobby)/               # Lobby principal, crear/unirse a sala, perfil, historial
 │   ├── (game)/juego/[code]/   # Página de partida en tiempo real
-│   └── api/game/              # API routes: state, play, pass
+│   └── api/game/              # API routes: state, play, pass, start
 ├── components/
 │   ├── game/                  # Tablero, fichas, mano, timer, chat overlay, modales
 │   └── chat/                  # Panel de chat y mensajes
