@@ -31,7 +31,7 @@ export function OpponentHand({
         isVertical ? "flex-col" : "flex-col-reverse"
       }`}
     >
-      {/* Player name + status */}
+      {/* Player name + status — on mobile, lateral players only show the dot */}
       <div className="flex items-center gap-1 sm:gap-2">
         <motion.div
           className={`h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full ${
@@ -50,8 +50,8 @@ export function OpponentHand({
         />
         <span
           className={`text-[10px] sm:text-xs font-medium truncate max-w-[60px] sm:max-w-[100px] ${
-            isCurrentTurn ? "text-[#c9a84c]" : "text-[#a8c4a0]"
-          }`}
+            isVertical ? "hidden sm:inline" : ""
+          } ${isCurrentTurn ? "text-[#c9a84c]" : "text-[#a8c4a0]"}`}
         >
           {playerName}
         </span>

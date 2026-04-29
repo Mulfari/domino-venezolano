@@ -78,7 +78,7 @@ export function Hand({ onPlayTile, onPass, disabled = false }: HandProps) {
 
   return (
     <div className="flex flex-col items-center gap-2 sm:gap-3 pb-2 sm:pb-4 px-1 sm:px-2">
-      <div className="flex items-end justify-center gap-0.5 sm:gap-2 flex-wrap">
+      <div className="flex items-end justify-center gap-1.5 sm:gap-2 flex-wrap">
         <AnimatePresence mode="popLayout">
           {myHand.map((tile, i) => {
             const playable = isMyTurn && isTilePlayable(tile);

@@ -46,9 +46,9 @@ export function ScorePanel() {
         </span>
       </div>
 
-      {/* Who started */}
+      {/* Who started — hidden on mobile to save vertical space */}
       {firstPlayerName && (
-        <div className="mb-1.5 sm:mb-2 text-center">
+        <div className="hidden sm:block mb-1.5 sm:mb-2 text-center">
           <span className="text-[8px] sm:text-[9px] text-[#a8c4a0]/50 uppercase tracking-wider">
             salió:{" "}
           </span>
@@ -106,9 +106,9 @@ export function ScorePanel() {
         );
       })}
 
-      {/* Round history */}
+      {/* Round history — hidden on mobile to save vertical space */}
       {roundHistory.length > 0 && (
-        <div className="mt-2 pt-1.5 border-t border-[#c9a84c]/10">
+        <div className="hidden sm:block mt-2 pt-1.5 border-t border-[#c9a84c]/10">
           <div className="flex flex-wrap gap-1">
             {roundHistory.map((entry) => {
               const isTeam0 = entry.winner_team === 0;
