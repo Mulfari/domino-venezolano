@@ -58,9 +58,9 @@ function getRelativeSeats(mySeat: Seat): {
 } {
   return {
     bottom: mySeat,
-    left: ((mySeat + 1) % 4) as Seat,
+    right: ((mySeat + 1) % 4) as Seat,
     top: ((mySeat + 2) % 4) as Seat,
-    right: ((mySeat + 3) % 4) as Seat,
+    left: ((mySeat + 3) % 4) as Seat,
   };
 }
 

@@ -19,15 +19,15 @@ export function Board({ onPlaceEnd }: BoardProps) {
   const isMyTurn = isMyTurnFn();
   const showPlacementOptions = selectedTile !== null && isMyTurn;
 
-  function buildOrientedChains(): { leftChain: { tile: Tile; isDouble: boolean }[]; rightChain: { tile: Tile; isDouble: boolean }[] } {
+  function buildOrientedChains(): { leftChain: { tile: Tile; isDouble: boolean; key: string }[]; rightChain: { tile: Tile; isDouble: boolean; key: string }[] } {
     if (board.plays.length === 0) return { leftChain: [], rightChain: [] };
 
-    const leftChain: { tile: Tile; isDouble: boolean }[] = [];
-    const rightChain: { tile: Tile; isDouble: boolean }[] = [];
+    const leftChain: { tile: Tile; isDouble: boolean; key: string }[] = [];
+    const rightChain: { tile: Tile; isDouble: boolean; key: string }[] = [];
 
     const firstPlay = board.plays[0];
     const isFirstDouble = firstPlay.tile[0] === firstPlay.tile[1];
-    rightChain.push({ tile: firstPlay.tile, isDouble: isFirstDouble });
+    rightChain.push({ tile: firstPlay.tile, isDouble: isFirstDouble, key: `p0-${firstPlay.tile[0]}-${firstPlay.tile[1]}` });
 
     let runningLeft = firstPlay.tile[0];
     let runningRight = firstPlay.tile[1];
@@ -36,21 +36,22 @@ export function Board({ onPlaceEnd }: BoardProps) {
       const play = board.plays[i];
       const { tile, end } = play;
       const isDouble = tile[0] === tile[1];
+      const key = `p${i}-${tile[0]}-${tile[1]}`;
 
       if (end === "right") {
         if (tile[0] === runningRight) {
-          rightChain.push({ tile, isDouble });
+          rightChain.push({ tile, isDouble, key });
           runningRight = tile[1];
         } else {
-          rightChain.push({ tile: [tile[1], tile[0]], isDouble });
+          rightChain.push({ tile: [tile[1], tile[0]], isDouble, key });
           runningRight = tile[0];
         }
       } else {
         if (tile[1] === runningLeft) {
-          leftChain.unshift({ tile, isDouble });
+          leftChain.unshift({ tile, isDouble, key });
           runningLeft = tile[0];
         } else {
-          leftChain.unshift({ tile: [tile[1], tile[0]], isDouble });
+          leftChain.unshift({ tile: [tile[1], tile[0]], isDouble, key });
           runningLeft = tile[1];
         }
       }
@@ -72,53 +73,42 @@ export function Board({ onPlaceEnd }: BoardProps) {
 
   return (
     <div className="relative flex flex-col items-center justify-center flex-1 min-h-0">
-      <div className="relative w-full max-w-2xl mx-auto px-2 sm:px-4">
+      <div className="relative w-full max-w-3xl mx-auto px-2 sm:px-4">
         <div className="absolute inset-0 -m-4 sm:-m-8 rounded-3xl bg-[#1e5c3a]/30 border border-[#c9a84c]/10" />
 
         {board.left !== null && board.right !== null && (
-          <div className="relative flex items-center justify-between mb-2 px-2">
-            <motion.span
-              animate={isMyTurn ? { scale: [1, 1.15, 1] } : {}}
-              transition={{ repeat: Infinity, duration: 1.5 }}
-              className={`text-xs font-mono px-2 py-0.5 rounded ${isMyTurn ? "bg-[#3a2210]/60 text-[#c9a84c] border border-[#c9a84c]/30" : "text-[#a8c4a0]/50"}`}
-            >
+          <div className="relative flex items-center justify-between mb-1 px-2">
+            <span className={`text-xs font-mono px-2 py-0.5 rounded ${isMyTurn ? "bg-[#3a2210]/60 text-[#c9a84c] border border-[#c9a84c]/30" : "text-[#a8c4a0]/50"}`}>
               ← {board.left}
-            </motion.span>
-            <motion.span
-              animate={isMyTurn ? { scale: [1, 1.15, 1] } : {}}
-              transition={{ repeat: Infinity, duration: 1.5, delay: 0.75 }}
-              className={`text-xs font-mono px-2 py-0.5 rounded ${isMyTurn ? "bg-[#3a2210]/60 text-[#c9a84c] border border-[#c9a84c]/30" : "text-[#a8c4a0]/50"}`}
-            >
+            </span>
+            <span className={`text-xs font-mono px-2 py-0.5 rounded ${isMyTurn ? "bg-[#3a2210]/60 text-[#c9a84c] border border-[#c9a84c]/30" : "text-[#a8c4a0]/50"}`}>
               {board.right} →
-            </motion.span>
+            </span>
           </div>
         )}
 
         {/* Tile chain */}
-        <div ref={scrollRef} className="relative min-h-[60px] sm:min-h-[70px] py-3 sm:py-4 overflow-x-auto overflow-y-hidden scrollbar-hide">
-          <div className="flex items-center justify-center gap-[1px] sm:gap-[2px] min-w-min px-2">
-            <AnimatePresence mode="popLayout">
-              {allTiles.map((entry, i) => {
-                const isLast = i === lastIndex;
-                return (
-                  <motion.div
-                    key={`tile-${i}`}
-                    layout
-                    initial={{ opacity: 0, scale: 0.5 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ type: "spring", stiffness: 300, damping: 25 }}
-                    className={`flex-shrink-0 flex items-center justify-center ${isLast ? "ring-1 ring-[#c9a84c]/60 rounded" : ""}`}
-                  >
-                    <DominoTile
-                      tile={entry.tile}
-                      size="small"
-                      responsive
-                      orientation={entry.isDouble ? "vertical" : "horizontal"}
-                    />
-                  </motion.div>
-                );
-              })}
-            </AnimatePresence>
+        <div ref={scrollRef} className="relative min-h-[70px] sm:min-h-[80px] py-2 sm:py-3 overflow-x-auto overflow-y-hidden scrollbar-hide">
+          <div className="flex items-center justify-center gap-[2px] sm:gap-[3px] min-w-min px-2">
+            {allTiles.map((entry, i) => {
+              const isLast = i === lastIndex;
+              return (
+                <motion.div
+                  key={entry.key}
+                  initial={{ opacity: 0, scale: 0.6 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                  className={`flex-shrink-0 flex items-center justify-center ${isLast ? "ring-2 ring-[#c9a84c]/50 rounded" : ""}`}
+                >
+                  <DominoTile
+                    tile={entry.tile}
+                    size="medium"
+                    responsive
+                    orientation={entry.isDouble ? "vertical" : "horizontal"}
+                  />
+                </motion.div>
+              );
+            })}
 
             {board.plays.length === 0 && (
               <p className="text-[#a8c4a0]/50 text-sm">Mesa vacía</p>
@@ -130,22 +120,24 @@ export function Board({ onPlaceEnd }: BoardProps) {
         <AnimatePresence>
           {showPlacementOptions && board.left !== null && (
             <motion.div
-              initial={{ opacity: 0, y: 10 }}
+              initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 10 }}
-              className="relative flex items-center justify-center gap-2 sm:gap-4 mt-2 sm:mt-3"
+              exit={{ opacity: 0, y: 8 }}
+              className="relative flex items-center justify-center gap-3 sm:gap-6 mt-1 sm:mt-2 pb-1"
             >
               <button
                 onClick={() => onPlaceEnd?.("left")}
-                className="flex items-center gap-1 sm:gap-2 rounded-xl bg-[#3a2210]/80 hover:bg-[#4a2c0f] active:bg-[#5c3a1e] border border-[#c9a84c]/30 px-3 sm:px-4 py-2.5 sm:py-2 text-xs sm:text-sm font-medium text-[#f5f0e8] transition-colors"
+                className="flex items-center gap-2 rounded-2xl bg-gradient-to-r from-[#3a2210] to-[#4a2c0f] hover:from-[#4a2c0f] hover:to-[#5c3a1e] active:scale-95 border-2 border-[#c9a84c]/40 px-5 sm:px-6 py-3 text-sm sm:text-base font-semibold text-[#c9a84c] transition-all shadow-lg shadow-[#c9a84c]/10"
               >
-                ← Izq ({board.left})
+                <span className="text-lg">←</span>
+                Izquierda ({board.left})
               </button>
               <button
                 onClick={() => onPlaceEnd?.("right")}
-                className="flex items-center gap-1 sm:gap-2 rounded-xl bg-[#3a2210]/80 hover:bg-[#4a2c0f] active:bg-[#5c3a1e] border border-[#c9a84c]/30 px-3 sm:px-4 py-2.5 sm:py-2 text-xs sm:text-sm font-medium text-[#f5f0e8] transition-colors"
+                className="flex items-center gap-2 rounded-2xl bg-gradient-to-r from-[#3a2210] to-[#4a2c0f] hover:from-[#4a2c0f] hover:to-[#5c3a1e] active:scale-95 border-2 border-[#c9a84c]/40 px-5 sm:px-6 py-3 text-sm sm:text-base font-semibold text-[#c9a84c] transition-all shadow-lg shadow-[#c9a84c]/10"
               >
-                Der ({board.right}) →
+                Derecha ({board.right})
+                <span className="text-lg">→</span>
               </button>
             </motion.div>
           )}

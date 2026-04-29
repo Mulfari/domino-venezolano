@@ -45,11 +45,12 @@ function getPipPositions(value: number): [number, number][] {
   return positions[value] ?? [];
 }
 
-function PipDots({ value, pipSize, halfWidth, halfHeight }: {
+function PipDots({ value, pipSize, halfWidth, halfHeight, horizontal = false }: {
   value: number;
   pipSize: number;
   halfWidth: number;
   halfHeight: number;
+  horizontal?: boolean;
 }) {
   const positions = getPipPositions(value);
   const padX = halfWidth * 0.22;
@@ -59,15 +60,17 @@ function PipDots({ value, pipSize, halfWidth, halfHeight }: {
 
   return (
     <>
-      {positions.map(([col, row], i) => (
-        <circle
-          key={i}
-          cx={padX + (areaW * col) / 2}
-          cy={padY + (areaH * row) / 2}
-          r={pipSize}
-          fill="#1a1a1a"
-        />
-      ))}
+      {positions.map(([col, row], i) => {
+        const cx = horizontal
+          ? padX + (areaW * row) / 2
+          : padX + (areaW * col) / 2;
+        const cy = horizontal
+          ? padY + (areaH * col) / 2
+          : padY + (areaH * row) / 2;
+        return (
+          <circle key={i} cx={cx} cy={cy} r={pipSize} fill="#1a1a1a" />
+        );
+      })}
     </>
   );
 }
@@ -145,7 +148,7 @@ export function DominoTile({
             <>
               {/* Left half pips */}
               <g>
-                <PipDots value={tile[0]} pipSize={pip} halfWidth={w / 2} halfHeight={h} />
+                <PipDots value={tile[0]} pipSize={pip} halfWidth={w / 2} halfHeight={h} horizontal />
               </g>
               {/* Vertical divider */}
               <line
@@ -155,7 +158,7 @@ export function DominoTile({
               />
               {/* Right half pips */}
               <g transform={`translate(${w / 2}, 0)`}>
-                <PipDots value={tile[1]} pipSize={pip} halfWidth={w / 2} halfHeight={h} />
+                <PipDots value={tile[1]} pipSize={pip} halfWidth={w / 2} halfHeight={h} horizontal />
               </g>
             </>
           ) : (
