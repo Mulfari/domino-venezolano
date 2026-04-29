@@ -14,6 +14,7 @@ interface Profile {
   avatar_url: string | null;
   games_played: number;
   games_won: number;
+  win_streak: number;
   created_at: string;
 }
 
@@ -155,12 +156,25 @@ export default function ProfilePage() {
           {/* Stats */}
           <div className="glass rounded-2xl p-6 space-y-4">
             <h2 className="text-sm font-semibold text-[#f5f0e8]">Estadísticas</h2>
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-2 gap-3">
               <StatBox label="Partidas" value={String(profile.games_played)} />
               <StatBox label="Victorias" value={String(profile.games_won)} />
               <StatBox label="% Victoria" value={`${winRate}%`} />
+              <StatBox label="Racha" value={profile.win_streak > 0 ? `${profile.win_streak} 🔥` : "—"} />
             </div>
           </div>
+
+          {/* Sign out */}
+          <button
+            onClick={async () => {
+              const supabase = createClient();
+              await supabase.auth.signOut();
+              router.push("/login");
+            }}
+            className="w-full rounded-xl border border-red-500/20 hover:border-red-500/40 bg-red-900/10 hover:bg-red-900/20 px-4 py-2.5 text-sm text-red-400 hover:text-red-300 transition-all"
+          >
+            Cerrar sesión
+          </button>
 
           {/* Member since */}
           <div className="text-center text-xs text-[#a8c4a0]/40">
