@@ -66,11 +66,11 @@ export async function POST(request: NextRequest) {
       if (prevGame?.round_number) {
         roundNumber = (prevGame.round_number as number) + 1;
       }
-      if (prevGame?.starter_seat !== null && prevGame?.starter_seat !== undefined) {
-        previousStarterSeat = prevGame.starter_seat as number;
-      }
       if (prevGame?.winner_seat !== null && prevGame?.winner_seat !== undefined) {
         previousStarterSeat = prevGame.winner_seat as number;
+      } else if (prevGame?.starter_seat !== null && prevGame?.starter_seat !== undefined) {
+        // Locked game: rotate clockwise from previous starter
+        previousStarterSeat = ((prevGame.starter_seat as number) + 1) % 4;
       }
     }
 
