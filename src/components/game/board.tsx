@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { DominoTile } from "./tile";
 import { useGameStore } from "@/stores/game-store";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -38,6 +38,23 @@ export function Board({ onPlaceEnd }: BoardProps) {
 
   const BOARD_SIZE = isMobile ? 300 : 420;
   const FRAME_PAD = isMobile ? 8 : 12;
+
+  const prevLastKeyRef = useRef<string | null>(null);
+  const [animatingKey, setAnimatingKey] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (board.plays.length === 0) {
+      prevLastKeyRef.current = null;
+      return;
+    }
+    const idx = board.plays.length - 1;
+    const lastPlay = board.plays[idx];
+    const lastKey = `${lastPlay.tile[0]}-${lastPlay.tile[1]}-${lastPlay.end}-${idx}`;
+    if (lastKey !== prevLastKeyRef.current) {
+      prevLastKeyRef.current = lastKey;
+      setAnimatingKey(lastKey);
+    }
+  }, [board.plays]);
 
   const placedTiles = useMemo(
     () => buildPlacedTiles(board.plays, BOARD_SIZE, BOARD_SIZE, dims),
@@ -115,30 +132,40 @@ export function Board({ onPlaceEnd }: BoardProps) {
                 preserveAspectRatio="xMidYMid meet"
                 className="absolute inset-0"
               >
-                {placedTiles.map((pt) => {
-                  const isH = pt.orientation === "horizontal";
-                  const tw = isH
-                    ? (pt.isDouble ? dims.doubleH : dims.horizW)
-                    : (pt.isDouble ? dims.doubleW : dims.horizH);
-                  const th = isH
-                    ? (pt.isDouble ? dims.doubleW : dims.horizH)
-                    : (pt.isDouble ? dims.doubleH : dims.horizW);
-                  return (
-                    <foreignObject
-                      key={pt.key}
-                      x={pt.x - tw / 2}
-                      y={pt.y - th / 2}
-                      width={tw}
-                      height={th}
-                    >
-                      <DominoTile
-                        tile={pt.tile}
-                        size="small"
-                        orientation={pt.orientation}
-                      />
-                    </foreignObject>
-                  );
-                })}
+                <AnimatePresence>
+                  {placedTiles.map((pt) => {
+                    const isH = pt.orientation === "horizontal";
+                    const tw = isH
+                      ? (pt.isDouble ? dims.doubleH : dims.horizW)
+                      : (pt.isDouble ? dims.doubleW : dims.horizH);
+                    const th = isH
+                      ? (pt.isDouble ? dims.doubleW : dims.horizH)
+                      : (pt.isDouble ? dims.doubleH : dims.horizW);
+                    const isNew = pt.key === animatingKey;
+                    return (
+                      <motion.g
+                        key={pt.key}
+                        initial={isNew ? { scale: 0 } : false}
+                        animate={isNew ? { scale: 1 } : undefined}
+                        transition={isNew ? { type: "spring", stiffness: 380, damping: 18 } : undefined}
+                        style={{ transformOrigin: `${pt.x}px ${pt.y}px` }}
+                      >
+                        <foreignObject
+                          x={pt.x - tw / 2}
+                          y={pt.y - th / 2}
+                          width={tw}
+                          height={th}
+                        >
+                          <DominoTile
+                            tile={pt.tile}
+                            size="small"
+                            orientation={pt.orientation}
+                          />
+                        </foreignObject>
+                      </motion.g>
+                    );
+                  })}
+                </AnimatePresence>
               </svg>
             )}
 
