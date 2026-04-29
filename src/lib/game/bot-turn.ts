@@ -2,7 +2,7 @@ import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { applyMove, applyPass } from "./engine";
 import { calculateRoundResult } from "./scoring";
 import { chooseBotMove, isBotUserId } from "./bot-engine";
-import { updateProfileStats } from "./update-profile-stats";
+import { updateProfileStats } from "@/lib/supabase/update-profile-stats";
 import type { Tile, Seat, BoardState, GameState } from "./types";
 
 export async function processBotTurns(gameId: string) {

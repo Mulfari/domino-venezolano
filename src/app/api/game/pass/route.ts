@@ -5,7 +5,7 @@ import { getValidMoves } from "@/lib/game/engine";
 import { calculateRoundResult } from "@/lib/game/scoring";
 import { processBotTurns } from "@/lib/game/bot-turn";
 import { isBotUserId } from "@/lib/game/bot-engine";
-import { updateProfileStats } from "@/lib/game/update-profile-stats";
+import { updateProfileStats } from "@/lib/supabase/update-profile-stats";
 import type { Tile, Seat, BoardState, GameState } from "@/lib/game/types";
 
 export async function POST(request: NextRequest) {
