@@ -22,19 +22,23 @@ export interface TileDims {
   gap: number;
 }
 
-export const DIMS_DESKTOP: TileDims = { horizW: 44, horizH: 22, doubleW: 22, doubleH: 44, gap: 2 };
-export const DIMS_MOBILE: TileDims = { horizW: 32, horizH: 16, doubleW: 16, doubleH: 32, gap: 2 };
+// Match tile.tsx sizeConfig.small exactly: w=20, h=36 (vertical base)
+// horizontal → w=36, h=20; vertical → w=20, h=36
+export const DIMS_DESKTOP: TileDims = { horizW: 36, horizH: 20, doubleW: 20, doubleH: 36, gap: 3 };
+export const DIMS_MOBILE: TileDims = { horizW: 28, horizH: 16, doubleW: 16, doubleH: 28, gap: 2 };
 
-export function tileSize(isDouble: boolean, dir: Dir, dims: TileDims) {
-  const horiz = dir === "right" || dir === "left";
-  if (isDouble) return horiz ? { w: dims.doubleW, h: dims.doubleH } : { w: dims.doubleH, h: dims.doubleW };
-  return horiz ? { w: dims.horizW, h: dims.horizH } : { w: dims.horizH, h: dims.horizW };
+function isHoriz(dir: Dir): boolean {
+  return dir === "right" || dir === "left";
+}
+
+export function tileSize(isDouble: boolean, dir: Dir, dims: TileDims): { w: number; h: number } {
+  if (isDouble) return isHoriz(dir) ? { w: dims.doubleW, h: dims.doubleH } : { w: dims.doubleH, h: dims.doubleW };
+  return isHoriz(dir) ? { w: dims.horizW, h: dims.horizH } : { w: dims.horizH, h: dims.horizW };
 }
 
 export function tileOrientation(isDouble: boolean, dir: Dir): "horizontal" | "vertical" {
-  const horiz = dir === "right" || dir === "left";
-  if (isDouble) return horiz ? "vertical" : "horizontal";
-  return horiz ? "horizontal" : "vertical";
+  if (isDouble) return isHoriz(dir) ? "vertical" : "horizontal";
+  return isHoriz(dir) ? "horizontal" : "vertical";
 }
 
 export function turnRight(dir: Dir): Dir {
@@ -60,6 +64,9 @@ export function wouldOverflow(x: number, y: number, w: number, h: number, boardW
   return x - w / 2 < margin || x + w / 2 > boardW - margin || y - h / 2 < margin || y + h / 2 > boardH - margin;
 }
 
+// Cursor = attachment point at the edge of the last placed tile.
+// Each tile: center = cursor + gap + halfMain, then cursor advances to center + halfMain.
+// On overflow: shift cursor perpendicular, then place in new direction.
 export function layoutChain(
   tiles: TileEntry[],
   startX: number,
@@ -75,39 +82,44 @@ export function layoutChain(
   let dir = startDir;
   let cx = startX;
   let cy = startY;
-  const margin = 8;
+  const margin = 10;
 
   for (let i = 0; i < tiles.length; i++) {
     const entry = tiles[i];
     let sz = tileSize(entry.isDouble, dir, dims);
-    const stepAxis = dir === "right" || dir === "left" ? sz.w : sz.h;
-    const step = stepAxis / 2 + dims.gap;
-    let next = advance(cx, cy, dir, step);
+    const mainDim = isHoriz(dir) ? sz.w : sz.h;
+    let center = advance(cx, cy, dir, mainDim / 2 + dims.gap);
 
-    if (wouldOverflow(next.x, next.y, sz.w, sz.h, boardW, boardH, margin)) {
+    if (wouldOverflow(center.x, center.y, sz.w, sz.h, boardW, boardH, margin)) {
       const newDir = turnFn(dir);
-      sz = tileSize(entry.isDouble, newDir, dims);
-      const prevSz = i > 0 ? tileSize(tiles[i - 1].isDouble, dir, dims) : sz;
-      const crossPrev = dir === "right" || dir === "left" ? prevSz.h : prevSz.w;
-      const crossNew = newDir === "right" || newDir === "left" ? sz.h : sz.w;
-      const offsetFromPrev = crossPrev / 2 + dims.gap + crossNew / 2;
-      const cornerBase = advance(cx, cy, newDir, offsetFromPrev);
-      const newStep = (newDir === "right" || newDir === "left" ? sz.w : sz.h) / 2;
-      next = advance(cornerBase.x, cornerBase.y, newDir, newStep - (newDir === "right" || newDir === "left" ? sz.w : sz.h) / 2);
+      const newSz = tileSize(entry.isDouble, newDir, dims);
+
+      // Cross offset: clear the current row and start a new one
+      const prevCrossDim = isHoriz(dir) ? sz.h : sz.w;
+      const newCrossDim = isHoriz(newDir) ? newSz.h : newSz.w;
+      const crossOffset = prevCrossDim / 2 + dims.gap * 2 + newCrossDim / 2;
+
+      const shifted = advance(cx, cy, newDir, crossOffset);
+      cx = shifted.x;
+      cy = shifted.y;
       dir = newDir;
-      cx = next.x;
-      cy = next.y;
-    } else {
-      cx = next.x;
-      cy = next.y;
+      sz = newSz;
+
+      const newMainDim = isHoriz(dir) ? sz.w : sz.h;
+      center = advance(cx, cy, dir, newMainDim / 2 + dims.gap);
     }
 
-    placed.push({ ...entry, x: cx, y: cy, orientation: tileOrientation(entry.isDouble, dir) });
+    placed.push({
+      ...entry,
+      x: center.x,
+      y: center.y,
+      orientation: tileOrientation(entry.isDouble, dir),
+    });
 
-    const halfStep = (dir === "right" || dir === "left" ? sz.w : sz.h) / 2;
-    const pos = advance(cx, cy, dir, halfStep);
-    cx = pos.x;
-    cy = pos.y;
+    const halfMain = (isHoriz(dir) ? sz.w : sz.h) / 2;
+    const next = advance(center.x, center.y, dir, halfMain);
+    cx = next.x;
+    cy = next.y;
   }
 
   return placed;
@@ -136,25 +148,37 @@ export function buildPlacedTiles(
     }
   }
 
-  const cx = boardW / 2;
-  const cy = boardH / 2;
+  const centerX = boardW / 2;
+  const centerY = boardH / 2;
   const firstEntry = rightChain[0];
   const firstSz = tileSize(firstEntry.isDouble, "right", dims);
 
+  const firstPlaced: PlacedTile = {
+    ...firstEntry,
+    x: centerX,
+    y: centerY,
+    orientation: tileOrientation(firstEntry.isDouble, "right"),
+  };
+
   const rightTiles = rightChain.length > 1
-    ? layoutChain(rightChain.slice(1), cx + firstSz.w / 2, cy, "right", boardW, boardH, dims, turnRight)
+    ? layoutChain(
+        rightChain.slice(1),
+        centerX + firstSz.w / 2,
+        centerY,
+        "right",
+        boardW, boardH, dims, turnRight
+      )
     : [];
 
   const leftTiles = leftChain.length > 0
-    ? layoutChain([...leftChain].reverse(), cx - firstSz.w / 2, cy, "left", boardW, boardH, dims, turnLeft)
+    ? layoutChain(
+        [...leftChain].reverse(),
+        centerX - firstSz.w / 2,
+        centerY,
+        "left",
+        boardW, boardH, dims, turnLeft
+      )
     : [];
-
-  const firstPlaced: PlacedTile = {
-    ...firstEntry,
-    x: cx,
-    y: cy,
-    orientation: tileOrientation(firstEntry.isDouble, "right"),
-  };
 
   return [...leftTiles.reverse(), firstPlaced, ...rightTiles];
 }

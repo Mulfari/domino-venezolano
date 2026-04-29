@@ -36,7 +36,7 @@ export function Board({ onPlaceEnd }: BoardProps) {
     return () => ro.disconnect();
   }, []);
 
-  const BOARD_SIZE = isMobile ? 320 : 500;
+  const BOARD_SIZE = isMobile ? 300 : 420;
 
   const placedTiles = useMemo(
     () => buildPlacedTiles(board.plays, BOARD_SIZE, BOARD_SIZE, dims),
@@ -71,35 +71,30 @@ export function Board({ onPlaceEnd }: BoardProps) {
             preserveAspectRatio="xMidYMid meet"
             className="absolute inset-0"
           >
-            <AnimatePresence>
-              {placedTiles.map((pt) => {
-                const isH = pt.orientation === "horizontal";
-                const tw = isH
-                  ? (pt.isDouble ? dims.doubleH : dims.horizW)
-                  : (pt.isDouble ? dims.doubleW : dims.horizH);
-                const th = isH
-                  ? (pt.isDouble ? dims.doubleW : dims.horizH)
-                  : (pt.isDouble ? dims.doubleH : dims.horizW);
-                return (
-                  <motion.foreignObject
-                    key={pt.key}
-                    x={pt.x - tw / 2}
-                    y={pt.y - th / 2}
-                    width={tw}
-                    height={th}
-                    initial={{ opacity: 0, scale: 0.5 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ type: "spring", stiffness: 300, damping: 25 }}
-                  >
-                    <DominoTile
-                      tile={pt.tile}
-                      size="small"
-                      orientation={pt.orientation}
-                    />
-                  </motion.foreignObject>
-                );
-              })}
-            </AnimatePresence>
+            {placedTiles.map((pt) => {
+              const isH = pt.orientation === "horizontal";
+              const tw = isH
+                ? (pt.isDouble ? dims.doubleH : dims.horizW)
+                : (pt.isDouble ? dims.doubleW : dims.horizH);
+              const th = isH
+                ? (pt.isDouble ? dims.doubleW : dims.horizH)
+                : (pt.isDouble ? dims.doubleH : dims.horizW);
+              return (
+                <foreignObject
+                  key={pt.key}
+                  x={pt.x - tw / 2}
+                  y={pt.y - th / 2}
+                  width={tw}
+                  height={th}
+                >
+                  <DominoTile
+                    tile={pt.tile}
+                    size="small"
+                    orientation={pt.orientation}
+                  />
+                </foreignObject>
+              );
+            })}
           </svg>
         )}
 

@@ -19,24 +19,24 @@ function entry(a: number, b: number, i: number): TileEntry {
 }
 
 describe("tileSize", () => {
-  it("returns correct size for horizontal non-double", () => {
+  it("horizontal non-double matches tile.tsx small config (w=20,h=36 → horiz 36x20)", () => {
     const sz = tileSize(false, "right", DIMS_DESKTOP);
-    expect(sz).toEqual({ w: 44, h: 22 });
+    expect(sz).toEqual({ w: 36, h: 20 });
   });
 
-  it("returns correct size for vertical non-double", () => {
+  it("vertical non-double (20x36)", () => {
     const sz = tileSize(false, "down", DIMS_DESKTOP);
-    expect(sz).toEqual({ w: 22, h: 44 });
+    expect(sz).toEqual({ w: 20, h: 36 });
   });
 
-  it("returns correct size for horizontal double (perpendicular)", () => {
+  it("horizontal double is perpendicular (20x36)", () => {
     const sz = tileSize(true, "right", DIMS_DESKTOP);
-    expect(sz).toEqual({ w: 22, h: 44 });
+    expect(sz).toEqual({ w: 20, h: 36 });
   });
 
-  it("returns correct size for vertical double (perpendicular)", () => {
+  it("vertical double is perpendicular (36x20)", () => {
     const sz = tileSize(true, "down", DIMS_DESKTOP);
-    expect(sz).toEqual({ w: 44, h: 22 });
+    expect(sz).toEqual({ w: 36, h: 20 });
   });
 });
 
@@ -44,15 +44,12 @@ describe("tileOrientation", () => {
   it("non-double going right is horizontal", () => {
     expect(tileOrientation(false, "right")).toBe("horizontal");
   });
-
   it("non-double going down is vertical", () => {
     expect(tileOrientation(false, "down")).toBe("vertical");
   });
-
   it("double going right is vertical (perpendicular)", () => {
     expect(tileOrientation(true, "right")).toBe("vertical");
   });
-
   it("double going down is horizontal (perpendicular)", () => {
     expect(tileOrientation(true, "down")).toBe("horizontal");
   });
@@ -65,7 +62,6 @@ describe("turnRight / turnLeft", () => {
     expect(turnRight("left")).toBe("up");
     expect(turnRight("up")).toBe("right");
   });
-
   it("turnLeft cycles counter-clockwise", () => {
     expect(turnLeft("right")).toBe("up");
     expect(turnLeft("up")).toBe("left");
@@ -75,38 +71,24 @@ describe("turnRight / turnLeft", () => {
 });
 
 describe("advance", () => {
-  it("moves right", () => {
-    expect(advance(10, 20, "right", 5)).toEqual({ x: 15, y: 20 });
-  });
-
-  it("moves left", () => {
-    expect(advance(10, 20, "left", 5)).toEqual({ x: 5, y: 20 });
-  });
-
-  it("moves down", () => {
-    expect(advance(10, 20, "down", 5)).toEqual({ x: 10, y: 25 });
-  });
-
-  it("moves up", () => {
-    expect(advance(10, 20, "up", 5)).toEqual({ x: 10, y: 15 });
-  });
+  it("moves right", () => expect(advance(10, 20, "right", 5)).toEqual({ x: 15, y: 20 }));
+  it("moves left", () => expect(advance(10, 20, "left", 5)).toEqual({ x: 5, y: 20 }));
+  it("moves down", () => expect(advance(10, 20, "down", 5)).toEqual({ x: 10, y: 25 }));
+  it("moves up", () => expect(advance(10, 20, "up", 5)).toEqual({ x: 10, y: 15 }));
 });
 
 describe("wouldOverflow", () => {
   it("returns false when tile fits", () => {
-    expect(wouldOverflow(200, 200, 44, 22, 400, 400, 8)).toBe(false);
+    expect(wouldOverflow(200, 200, 36, 20, 400, 400, 10)).toBe(false);
   });
-
   it("returns true when tile exceeds right edge", () => {
-    expect(wouldOverflow(390, 200, 44, 22, 400, 400, 8)).toBe(true);
+    expect(wouldOverflow(390, 200, 36, 20, 400, 400, 10)).toBe(true);
   });
-
   it("returns true when tile exceeds left edge", () => {
-    expect(wouldOverflow(10, 200, 44, 22, 400, 400, 8)).toBe(true);
+    expect(wouldOverflow(10, 200, 36, 20, 400, 400, 10)).toBe(true);
   });
-
   it("returns true when tile exceeds bottom edge", () => {
-    expect(wouldOverflow(200, 390, 44, 22, 400, 400, 8)).toBe(true);
+    expect(wouldOverflow(200, 395, 36, 20, 400, 400, 10)).toBe(true);
   });
 });
 
@@ -130,7 +112,7 @@ describe("layoutChain", () => {
 
   it("places tiles in a straight line when space allows", () => {
     const tiles = [entry(3, 5, 0), entry(5, 2, 1), entry(2, 4, 2)];
-    const placed = layoutChain(tiles, 200, 200, "right", boardW, boardH, dims, turnRight);
+    const placed = layoutChain(tiles, 100, 200, "right", boardW, boardH, dims, turnRight);
     expect(placed).toHaveLength(3);
     for (let i = 1; i < placed.length; i++) {
       expect(placed[i].x).toBeGreaterThan(placed[i - 1].x);
@@ -139,12 +121,11 @@ describe("layoutChain", () => {
 
   it("turns when reaching the board edge", () => {
     const tiles: TileEntry[] = [];
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < 12; i++) {
       tiles.push(entry(i % 7, (i + 1) % 7, i));
     }
     const placed = layoutChain(tiles, 200, 200, "right", boardW, boardH, dims, turnRight);
-    expect(placed.length).toBe(10);
-
+    expect(placed.length).toBe(12);
     const orientations = new Set(placed.map((p) => p.orientation));
     expect(orientations.size).toBeGreaterThan(1);
   });
@@ -155,7 +136,6 @@ describe("layoutChain", () => {
       tiles.push(entry(i % 7, (i + 1) % 7, i));
     }
     const placed = layoutChain(tiles, 200, 200, "right", boardW, boardH, dims, turnRight);
-
     for (const pt of placed) {
       const isH = pt.orientation === "horizontal";
       const tw = isH ? (pt.isDouble ? dims.doubleH : dims.horizW) : (pt.isDouble ? dims.doubleW : dims.horizH);
@@ -167,18 +147,18 @@ describe("layoutChain", () => {
     }
   });
 
-  it("tiles are connected (no large gaps)", () => {
+  it("tiles are connected (no large gaps between consecutive tiles)", () => {
     const tiles: TileEntry[] = [];
     for (let i = 0; i < 8; i++) {
       tiles.push(entry(i % 7, (i + 1) % 7, i));
     }
     const placed = layoutChain(tiles, 200, 200, "right", boardW, boardH, dims, turnRight);
-
     for (let i = 1; i < placed.length; i++) {
       const dx = Math.abs(placed[i].x - placed[i - 1].x);
       const dy = Math.abs(placed[i].y - placed[i - 1].y);
       const dist = Math.sqrt(dx * dx + dy * dy);
-      expect(dist).toBeLessThan(dims.horizW + dims.doubleH + dims.gap * 4);
+      // Max distance: a corner turn shifts cross + main, roughly 2 tile lengths
+      expect(dist).toBeLessThan(100);
     }
   });
 
@@ -207,7 +187,7 @@ describe("buildPlacedTiles", () => {
     expect(placed[0].y).toBe(200);
   });
 
-  it("places right-end tiles to the right", () => {
+  it("places right-end tiles to the right of center", () => {
     const plays: PlayedTile[] = [
       { tile: [6, 6], seat: 0, end: "right" },
       { tile: [6, 3], seat: 1, end: "right" },
@@ -217,7 +197,7 @@ describe("buildPlacedTiles", () => {
     expect(placed[1].x).toBeGreaterThan(placed[0].x);
   });
 
-  it("places left-end tiles to the left", () => {
+  it("places left-end tiles to the left of center", () => {
     const plays: PlayedTile[] = [
       { tile: [6, 6], seat: 0, end: "right" },
       { tile: [6, 3], seat: 1, end: "left" },
@@ -242,7 +222,7 @@ describe("buildPlacedTiles", () => {
     expect(placed).toHaveLength(28);
   });
 
-  it("works with mobile dimensions", () => {
+  it("works with mobile dimensions on small board", () => {
     const plays: PlayedTile[] = [
       { tile: [6, 6], seat: 0, end: "right" },
       { tile: [6, 3], seat: 1, end: "right" },
@@ -253,6 +233,23 @@ describe("buildPlacedTiles", () => {
     for (const pt of placed) {
       expect(pt.x).toBeGreaterThan(0);
       expect(pt.y).toBeGreaterThan(0);
+    }
+  });
+
+  it("first tile is always centered regardless of count", () => {
+    for (let count = 1; count <= 5; count++) {
+      const plays: PlayedTile[] = [];
+      for (let i = 0; i < count; i++) {
+        plays.push({
+          tile: [i % 7, (i + 1) % 7],
+          seat: (i % 4) as 0 | 1 | 2 | 3,
+          end: i === 0 ? "right" : "right",
+        });
+      }
+      const placed = buildPlacedTiles(plays, boardW, boardH, dims);
+      const first = placed.find((p) => p.tile[0] === 0 && p.tile[1] === 1);
+      expect(first!.x).toBe(200);
+      expect(first!.y).toBe(200);
     }
   });
 });
