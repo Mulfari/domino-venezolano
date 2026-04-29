@@ -77,7 +77,11 @@ export function Hand({ onPlayTile, onPass, disabled = false }: HandProps) {
   }
 
   return (
-    <div className="flex flex-col items-center gap-2 sm:gap-3 pb-2 sm:pb-4 px-1 sm:px-2">
+    <div
+      className="flex flex-col items-center gap-2 sm:gap-3 pb-2 sm:pb-4 px-1 sm:px-2"
+      role="region"
+      aria-label="Tu mano"
+    >
       <div className="flex items-end justify-center gap-1.5 sm:gap-2 flex-wrap">
         <AnimatePresence mode="popLayout">
           {myHand.map((tile, i) => {
@@ -136,6 +140,7 @@ export function Hand({ onPlayTile, onPass, disabled = false }: HandProps) {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.8 }}
             onClick={onPass}
+            aria-label="Pasar turno"
             className="rounded-xl bg-[#c9a84c] hover:bg-[#dfc06a] px-6 py-2.5 text-sm font-semibold text-[#2a1a0a] transition-colors"
           >
             Pasar

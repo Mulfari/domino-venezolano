@@ -195,7 +195,12 @@ function RoundEndView({
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm px-4">
+      <div
+        className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm px-4"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="round-end-title"
+      >
         {/* Confetti layer — outside the card so it fills the screen */}
         <Confetti active={iWon} />
 
@@ -226,6 +231,7 @@ function RoundEndView({
             </motion.p>
 
             <motion.p
+              id="round-end-title"
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.25 }}
@@ -360,7 +366,12 @@ function GameOverView({ scores, myTeam, team0Names, team1Names, onBackToLobby }:
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm px-4">
+      <div
+        className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm px-4"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="game-over-title"
+      >
         <Confetti active={iWon} />
 
         <motion.div
@@ -380,6 +391,7 @@ function GameOverView({ scores, myTeam, team0Names, team1Names, onBackToLobby }:
               {iWon ? "🏆" : "🎖️"}
             </motion.p>
             <motion.p
+              id="game-over-title"
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.35 }}

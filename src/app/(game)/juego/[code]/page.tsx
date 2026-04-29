@@ -467,7 +467,7 @@ export default function GamePage() {
   /* ---------------------------------------------------------------- */
   if (loading) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-felt gap-3">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-felt gap-3" role="status" aria-label="Cargando partida">
         <div className="h-8 w-8 animate-spin rounded-full border-2 border-[#c9a84c] border-t-transparent" />
         <p className="text-[#a8c4a0] animate-pulse text-sm">Cargando partida...</p>
       </div>
@@ -477,7 +477,7 @@ export default function GamePage() {
   if (error) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-felt gap-4 px-4">
-        <div className="rounded-2xl bg-red-950/30 border border-red-900/40 p-6 max-w-sm text-center space-y-3">
+        <div role="alert" className="rounded-2xl bg-red-950/30 border border-red-900/40 p-6 max-w-sm text-center space-y-3">
           <p className="text-red-400 font-semibold">Error</p>
           <p className="text-sm text-red-300/80">{error}</p>
           <button
