@@ -96,10 +96,10 @@ export function Hand({ onPlayTile, onPass, disabled = false }: HandProps) {
                   scale: cochina ? 1.1 : 1,
                 }}
                 exit={{ opacity: 0, y: -20, scale: 0.8 }}
-                transition={{ type: "spring", stiffness: 300, damping: 25, delay: i * 0.05 }}
+                transition={{ type: "spring", stiffness: 300, damping: 25, delay: i * 0.03 }}
                 className={cochina ? "relative" : ""}
               >
-                {cochina && (
+                {cochina && isMyTurn && (
                   <motion.div
                     className="absolute -inset-1 rounded-lg bg-[#c9a84c]/30 blur-sm"
                     animate={{ opacity: [0.4, 0.8, 0.4] }}
