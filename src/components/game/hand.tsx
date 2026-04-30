@@ -95,19 +95,22 @@ export function Hand({ onPlayTile, onPass, disabled = false }: HandProps) {
                 layout
                 initial={{ opacity: 0, y: 30, scale: 0.8 }}
                 animate={{
-                  opacity: isMyTurn && !playable && !cochina ? 0.38 : 1,
+                  opacity: isMyTurn && !playable && !cochina ? 0.45 : 1,
                   y: cochina ? -8 : selected ? -14 : 0,
                   scale: cochina ? 1.1 : selected ? 1.08 : 1,
                   filter:
                     isMyTurn && !playable && !cochina
-                      ? "grayscale(0.3) brightness(0.75)"
-                      : "none",
+                      ? "grayscale(0.55) brightness(0.6) saturate(0.3)"
+                      : selected
+                      ? "drop-shadow(0 6px 12px rgba(0,0,0,0.55)) drop-shadow(0 0 10px rgba(201,168,76,0.5))"
+                      : "drop-shadow(0 2px 5px rgba(0,0,0,0.4))",
                 }}
                 whileHover={
                   playable
                     ? {
                         y: cochina ? -18 : selected ? -20 : -14,
                         scale: cochina ? 1.16 : 1.1,
+                        filter: "drop-shadow(0 14px 20px rgba(0,0,0,0.65)) drop-shadow(0 0 14px rgba(201,168,76,0.45))",
                         transition: { type: "spring", stiffness: 500, damping: 20 },
                       }
                     : undefined
