@@ -467,7 +467,7 @@ export function Board({ onPlaceEnd, clearing = false }: BoardProps) {
                             y={ghost.y - th / 2}
                             width={tw}
                             height={th}
-                            style={{ opacity: isHovered ? 0.92 : 0.65, pointerEvents: "none" }}
+                            style={{ opacity: isHovered ? 0.96 : 0.82, pointerEvents: "none" }}
                           >
                             <DominoTile
                               tile={ghost.tile}
@@ -475,23 +475,40 @@ export function Board({ onPlaceEnd, clearing = false }: BoardProps) {
                               orientation={ghost.orientation}
                             />
                           </foreignObject>
-                          {/* "Tap to place" label on mobile */}
-                          {isMobile && (
-                            <motion.text
-                              x={ghost.x}
-                              y={ghost.y + th / 2 + 10}
-                              textAnchor="middle"
-                              fontSize={7}
+                          {/* "Place here" dot indicator */}
+                          <motion.g style={{ pointerEvents: "none" }}>
+                            <motion.circle
+                              cx={ghost.x}
+                              cy={ghost.y + th / 2 + (isMobile ? 9 : 11)}
+                              r={isMobile ? 4 : 5}
                               fill="#c9a84c"
-                              fontWeight="600"
-                              letterSpacing="0.05em"
-                              animate={{ opacity: [0.6, 1, 0.6] }}
-                              transition={{ duration: 1.2, repeat: Infinity, ease: "easeInOut" }}
-                              style={{ pointerEvents: "none", userSelect: "none" }}
-                            >
-                              {end === "left" ? "IZQ" : "DER"}
-                            </motion.text>
-                          )}
+                              animate={{ opacity: isHovered ? [0.8, 1, 0.8] : [0.4, 0.85, 0.4], scale: isHovered ? [1, 1.25, 1] : [0.9, 1.1, 0.9] }}
+                              transition={{ duration: 1.0, repeat: Infinity, ease: "easeInOut" }}
+                              style={{ filter: isHovered ? "drop-shadow(0 0 5px #c9a84c)" : undefined }}
+                            />
+                            <motion.line
+                              x1={ghost.x - (isMobile ? 2.5 : 3)}
+                              y1={ghost.y + th / 2 + (isMobile ? 9 : 11)}
+                              x2={ghost.x + (isMobile ? 2.5 : 3)}
+                              y2={ghost.y + th / 2 + (isMobile ? 9 : 11)}
+                              stroke="#2a1a0a"
+                              strokeWidth={1.5}
+                              strokeLinecap="round"
+                              animate={{ opacity: isHovered ? [0.8, 1, 0.8] : [0.4, 0.85, 0.4] }}
+                              transition={{ duration: 1.0, repeat: Infinity, ease: "easeInOut" }}
+                            />
+                            <motion.line
+                              x1={ghost.x}
+                              y1={ghost.y + th / 2 + (isMobile ? 6 : 8)}
+                              x2={ghost.x}
+                              y2={ghost.y + th / 2 + (isMobile ? 12 : 14)}
+                              stroke="#2a1a0a"
+                              strokeWidth={1.5}
+                              strokeLinecap="round"
+                              animate={{ opacity: isHovered ? [0.8, 1, 0.8] : [0.4, 0.85, 0.4] }}
+                              transition={{ duration: 1.0, repeat: Infinity, ease: "easeInOut" }}
+                            />
+                          </motion.g>
                         </motion.g>
                       );
                     })}
