@@ -372,7 +372,13 @@ function RoundEndView({
       role="dialog"
       aria-modal="true"
       aria-labelledby="round-end-title"
+      aria-describedby="round-end-desc"
     >
+      <p id="round-end-desc" className="sr-only">
+        {isDraw
+          ? `Ronda ${round} terminó en empate.`
+          : `${winnerLabel}. ${meta.label}: ${meta.desc}. Puntos ganados: ${roundResult.points}.`}
+      </p>
       <Confetti active={!isDraw} intensity={isDraw ? 0 : iWon ? 1.6 : 0.8} />
       <FlashOverlay color={flashColor} />
       <ReasonSplash reason={roundResult.reason} />
@@ -589,7 +595,11 @@ function GameOverView({ scores, myTeam, team0Names, team1Names, roundHistory, on
       role="dialog"
       aria-modal="true"
       aria-labelledby="game-over-title"
+      aria-describedby="game-over-desc"
     >
+      <p id="game-over-desc" className="sr-only">
+        {`${teamLabel(winnerTeam)} gana la partida con ${scores[winnerTeam]} puntos. ${teamLabel(loserTeam)} terminó con ${scores[loserTeam]} puntos.`}
+      </p>
       <Confetti active intensity={2} />
       <FlashOverlay color={iWon ? "rgba(201,168,76,0.4)" : "rgba(255,255,255,0.12)"} />
 

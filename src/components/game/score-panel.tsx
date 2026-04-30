@@ -98,6 +98,7 @@ function TeamCard({
               return (
                 <div key={s} className="flex items-center gap-1 min-w-0">
                   <span
+                    role="img"
                     className={`w-1.5 h-1.5 rounded-full shrink-0 ${online ? "bg-green-400/80" : "bg-red-400/40"}`}
                     aria-label={online ? "conectado" : "desconectado"}
                   />

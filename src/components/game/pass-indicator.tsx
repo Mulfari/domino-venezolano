@@ -9,7 +9,17 @@ interface PassIndicatorProps {
 
 export function PassIndicator({ show, playerName }: PassIndicatorProps) {
   return (
-    <AnimatePresence>
+    <>
+      {/* Persistent live region — must stay in DOM so screen readers catch content changes */}
+      <div
+        role="status"
+        aria-live="polite"
+        aria-atomic="true"
+        className="sr-only"
+      >
+        {show ? (playerName ? `${playerName} pasó su turno` : "Turno pasado") : ""}
+      </div>
+      <AnimatePresence>
       {show && (
         <motion.div
           initial={{ opacity: 0, scale: 0.5, y: 6 }}
@@ -54,5 +64,6 @@ export function PassIndicator({ show, playerName }: PassIndicatorProps) {
         </motion.div>
       )}
     </AnimatePresence>
+    </>
   );
 }
