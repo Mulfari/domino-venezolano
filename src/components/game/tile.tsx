@@ -146,20 +146,40 @@ export function DominoTile({
           <stop offset="100%" stopColor="rgba(0,0,0,0.16)" />
         </linearGradient>
         <linearGradient id={`back-${uid}`} x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor="#5c3a1e" />
+          <stop offset="0%" stopColor="#6b4422" />
           <stop offset="45%" stopColor="#3a2210" />
-          <stop offset="100%" stopColor="#1e0e04" />
+          <stop offset="100%" stopColor="#1a0c04" />
         </linearGradient>
-        <pattern id={`grain-${uid}`} x="0" y="0" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(22)">
-          <line x1="0" y1="0" x2="0" y2="5" stroke="#7a4d28" strokeWidth="0.7" opacity="0.4"/>
+        <pattern id={`grain-${uid}`} x="0" y="0" width="4" height="4" patternUnits="userSpaceOnUse" patternTransform="rotate(18)">
+          <line x1="0" y1="0" x2="0" y2="4" stroke="#8a5a30" strokeWidth="0.9" opacity="0.55"/>
         </pattern>
-        <pattern id={`grain2-${uid}`} x="0" y="0" width="9" height="9" patternUnits="userSpaceOnUse" patternTransform="rotate(68)">
-          <line x1="0" y1="0" x2="0" y2="9" stroke="#5a2e0e" strokeWidth="0.5" opacity="0.25"/>
+        <pattern id={`grain2-${uid}`} x="0" y="0" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(72)">
+          <line x1="0" y1="0" x2="0" y2="7" stroke="#4a2208" strokeWidth="0.6" opacity="0.35"/>
+        </pattern>
+        <pattern id={`grain3-${uid}`} x="0" y="0" width="12" height="12" patternUnits="userSpaceOnUse" patternTransform="rotate(5)">
+          <line x1="0" y1="0" x2="0" y2="12" stroke="#6a3a18" strokeWidth="1.2" opacity="0.18"/>
         </pattern>
         <radialGradient id={`vignette-${uid}`} cx="50%" cy="50%" r="70%">
           <stop offset="0%" stopColor="transparent" />
-          <stop offset="100%" stopColor="#0a0400" stopOpacity="0.55" />
+          <stop offset="100%" stopColor="#0a0400" stopOpacity="0.6" />
         </radialGradient>
+        {/* 3D edge lighting: top/left bright, bottom/right dark */}
+        <linearGradient id={`edge-top-${uid}`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="white" stopOpacity="0.28" />
+          <stop offset="100%" stopColor="white" stopOpacity="0" />
+        </linearGradient>
+        <linearGradient id={`edge-bottom-${uid}`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="black" stopOpacity="0" />
+          <stop offset="100%" stopColor="black" stopOpacity="0.45" />
+        </linearGradient>
+        <linearGradient id={`edge-left-${uid}`} x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stopColor="white" stopOpacity="0.18" />
+          <stop offset="100%" stopColor="white" stopOpacity="0" />
+        </linearGradient>
+        <linearGradient id={`edge-right-${uid}`} x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stopColor="black" stopOpacity="0" />
+          <stop offset="100%" stopColor="black" stopOpacity="0.3" />
+        </linearGradient>
         <clipPath id={`clip-${uid}`}>
           <rect x={0} y={0} width={w} height={h} rx={borderRadius}/>
         </clipPath>
@@ -181,7 +201,7 @@ export function DominoTile({
         fill={faceDown ? `url(#back-${uid})` : `url(#face-${uid})`}
         stroke={
           selected || highlight ? "#c9a84c"
-            : faceDown ? "#5c3a1e"
+            : faceDown ? "#7a4a22"
               : "#c8bfb0"
         }
         strokeWidth={selected || highlight ? 1.5 : 0.75}
@@ -198,14 +218,19 @@ export function DominoTile({
 
       {faceDown ? (
         <>
-          {/* Primary wood grain */}
-          <rect x={0} y={0} width={w} height={h} rx={borderRadius} fill={`url(#grain-${uid})`} clipPath={`url(#clip-${uid})`} opacity={0.7} />
-          {/* Secondary cross-grain for depth */}
-          <rect x={0} y={0} width={w} height={h} rx={borderRadius} fill={`url(#grain2-${uid})`} clipPath={`url(#clip-${uid})`} opacity={0.45} />
+          {/* Wood grain layers */}
+          <rect x={0} y={0} width={w} height={h} rx={borderRadius} fill={`url(#grain-${uid})`} clipPath={`url(#clip-${uid})`} opacity={0.75} />
+          <rect x={0} y={0} width={w} height={h} rx={borderRadius} fill={`url(#grain2-${uid})`} clipPath={`url(#clip-${uid})`} opacity={0.4} />
+          <rect x={0} y={0} width={w} height={h} rx={borderRadius} fill={`url(#grain3-${uid})`} clipPath={`url(#clip-${uid})`} opacity={0.3} />
+          {/* 3D edge lighting: top/left bright, bottom/right dark */}
+          <rect x={0} y={0} width={w} height={h * 0.45} rx={borderRadius} fill={`url(#edge-top-${uid})`} clipPath={`url(#clip-${uid})`} />
+          <rect x={0} y={0} width={w} height={h} rx={borderRadius} fill={`url(#edge-bottom-${uid})`} clipPath={`url(#clip-${uid})`} />
+          <rect x={0} y={0} width={w * 0.4} height={h} rx={borderRadius} fill={`url(#edge-left-${uid})`} clipPath={`url(#clip-${uid})`} />
+          <rect x={0} y={0} width={w} height={h} rx={borderRadius} fill={`url(#edge-right-${uid})`} clipPath={`url(#clip-${uid})`} />
           {/* Vignette to give rounded depth */}
           <rect x={0} y={0} width={w} height={h} rx={borderRadius} fill={`url(#vignette-${uid})`} clipPath={`url(#clip-${uid})`} />
           {/* Outer inset border */}
-          <rect x={1.5} y={1.5} width={w - 3} height={h - 3} rx={borderRadius - 0.5} fill="none" stroke="#9b6e3a" strokeWidth={1.2} opacity={0.6} />
+          <rect x={1.5} y={1.5} width={w - 3} height={h - 3} rx={borderRadius - 0.5} fill="none" stroke="#b07840" strokeWidth={1.4} opacity={0.65} />
           {/* Inner decorative frame */}
           <rect x={3.5} y={3.5} width={w - 7} height={h - 7} rx={borderRadius - 2} fill="none" stroke="#7a5228" strokeWidth={0.8} opacity={0.7} />
           {/* Divider line */}

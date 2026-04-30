@@ -79,7 +79,7 @@ export function OpponentHand({
         </motion.div>
       </div>
 
-      {/* Face-down tiles */}
+      {/* Face-down tiles + floating count badge */}
       <div className="relative flex items-center justify-center">
         <PassIndicator show={showPass} />
         <div
@@ -103,6 +103,27 @@ export function OpponentHand({
             </motion.div>
           ))}
         </div>
+        {/* Floating tile count badge overlaid on the stack */}
+        {tileCount > 0 && (
+          <motion.div
+            key={tileCount}
+            initial={{ scale: 1.6, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ type: "spring", stiffness: 500, damping: 20 }}
+            className={`absolute -bottom-2 -right-2 z-10
+              flex items-center justify-center
+              min-w-[18px] sm:min-w-[22px] h-[18px] sm:h-[22px] px-1
+              rounded-full text-[10px] sm:text-[11px] font-black leading-none
+              shadow-lg border
+              ${isCurrentTurn
+                ? "bg-[#c9a84c] text-[#1a0800] border-[#f0d878] shadow-[0_0_8px_rgba(201,168,76,0.7)]"
+                : "bg-[#1e0e04] text-[#d4a855] border-[#7a4a22]"
+              }`}
+            aria-hidden="true"
+          >
+            {tileCount}
+          </motion.div>
+        )}
       </div>
     </div>
   );
