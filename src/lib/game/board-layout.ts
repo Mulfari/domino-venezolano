@@ -22,8 +22,8 @@ export interface TileDims {
   gap: number;
 }
 
-export const DIMS_DESKTOP: TileDims = { horizW: 54, horizH: 28, doubleW: 28, doubleH: 54, gap: 5 };
-export const DIMS_MOBILE: TileDims = { horizW: 42, horizH: 22, doubleW: 22, doubleH: 42, gap: 4 };
+export const DIMS_DESKTOP: TileDims = { horizW: 40, horizH: 22, doubleW: 22, doubleH: 40, gap: 4 };
+export const DIMS_MOBILE: TileDims = { horizW: 32, horizH: 18, doubleW: 18, doubleH: 32, gap: 3 };
 
 function isHoriz(dir: Dir): boolean {
   return dir === "right" || dir === "left";
