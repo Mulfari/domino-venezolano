@@ -541,7 +541,7 @@ export default function GamePage() {
       <LandscapePrompt />
 
       {/* Top bar: score + turn indicator */}
-      <div className="flex items-center justify-between px-1.5 py-1 sm:p-4 shrink-0 gap-1">
+      <div className="flex items-center justify-between px-1.5 py-0.5 sm:p-4 shrink-0 gap-1">
         <ScorePanel />
         <div className="flex items-center gap-1 sm:flex-col sm:gap-1 min-w-0">
           <TurnIndicator />
@@ -637,7 +637,7 @@ export default function GamePage() {
         className="flex flex-col flex-1 min-h-0"
       >
       {/* Partner (top) */}
-      <div className="flex justify-center shrink-0 pb-1 sm:pb-2">
+      <div className="flex justify-center shrink-0 pb-0.5 sm:pb-2">
         <OpponentHand
           seat={seats.top}
           tileCount={handCounts[seats.top] ?? 0}
@@ -682,7 +682,7 @@ export default function GamePage() {
       </div>
 
       {/* Player hand (bottom) */}
-      <div className="relative shrink-0 pt-1 sm:pt-2 border-t border-[#c9a84c]/15">
+      <div className="relative shrink-0 pt-0.5 sm:pt-2 border-t border-[#c9a84c]/15">
         <PassIndicator show={lastPassSeat === mySeat} />
         <Hand onPlayTile={handlePlayTile} onPass={handlePass} disabled={actionLoading} />
       </div>

@@ -290,7 +290,7 @@ export function ScorePanel() {
   return (
     <>
       {/* Mobile compact — scores + history */}
-      <div className="flex sm:hidden flex-col gap-1 rounded-xl bg-[#3a2210]/85 border border-[#c9a84c]/25 backdrop-blur-sm px-2 py-1.5 shadow-lg shadow-black/30 shrink-0" role="region" aria-label="Marcador">
+      <div className="flex sm:hidden flex-col gap-1 rounded-xl bg-[#3a2210]/85 border border-[#c9a84c]/25 backdrop-blur-sm px-2 py-1 shadow-lg shadow-black/30 shrink-0" role="region" aria-label="Marcador">
         <div className="flex items-center gap-2">
           <AnimatePresence mode="wait">
             <motion.span
