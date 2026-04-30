@@ -95,34 +95,44 @@ export function Hand({ onPlayTile, onPass, disabled = false }: HandProps) {
                 layout
                 initial={{ opacity: 0, y: 30, scale: 0.8 }}
                 animate={{
-                  opacity: isMyTurn && !playable && !cochina ? 0.45 : 1,
-                  y: cochina ? -6 : 0,
-                  scale: cochina ? 1.1 : 1,
+                  opacity: isMyTurn && !playable && !cochina ? 0.38 : 1,
+                  y: cochina ? -8 : selected ? -14 : 0,
+                  scale: cochina ? 1.1 : selected ? 1.08 : 1,
+                  filter:
+                    isMyTurn && !playable && !cochina
+                      ? "grayscale(0.3) brightness(0.75)"
+                      : "none",
                 }}
                 whileHover={
                   playable
-                    ? { y: cochina ? -14 : -8, scale: cochina ? 1.15 : 1.06 }
+                    ? {
+                        y: cochina ? -18 : selected ? -20 : -14,
+                        scale: cochina ? 1.16 : 1.1,
+                        transition: { type: "spring", stiffness: 500, damping: 20 },
+                      }
                     : undefined
                 }
                 exit={{ opacity: 0, y: -20, scale: 0.8 }}
                 transition={{ type: "spring", stiffness: 350, damping: 22, delay: i * 0.03 }}
-                className={cochina || playable ? "relative" : ""}
+                className="relative"
                 style={{ cursor: playable ? "pointer" : "default" }}
               >
+                {/* Cochina: strong pulsing gold aura */}
                 {cochina && (
                   <>
                     <motion.div
-                      className="absolute -inset-2 rounded-lg bg-[#c9a84c]/20 blur-md pointer-events-none"
-                      animate={{ opacity: [0.3, 0.7, 0.3] }}
+                      className="absolute -inset-3 rounded-xl pointer-events-none"
+                      style={{ background: "radial-gradient(ellipse, rgba(201,168,76,0.35) 0%, transparent 70%)" }}
+                      animate={{ opacity: [0.4, 0.9, 0.4], scale: [0.95, 1.05, 0.95] }}
                       transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }}
                     />
                     <motion.div
-                      className="absolute -inset-1 rounded-lg border border-[#c9a84c]/70 pointer-events-none"
-                      animate={{ opacity: [0.5, 1, 0.5], scale: [1, 1.04, 1] }}
+                      className="absolute -inset-1 rounded-lg border-2 border-[#c9a84c] pointer-events-none"
+                      animate={{ opacity: [0.6, 1, 0.6] }}
                       transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }}
                     />
                     <motion.div
-                      className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 px-1.5 py-0.5 rounded text-[9px] font-bold text-[#c9a84c] bg-[#1a1a0a]/80 whitespace-nowrap pointer-events-none border border-[#c9a84c]/40"
+                      className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-0.5 rounded text-[9px] font-bold text-[#c9a84c] bg-[#1a1a0a]/85 whitespace-nowrap pointer-events-none border border-[#c9a84c]/50"
                       animate={{ opacity: [0.7, 1, 0.7] }}
                       transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }}
                     >
@@ -130,13 +140,24 @@ export function Hand({ onPlayTile, onPass, disabled = false }: HandProps) {
                     </motion.div>
                   </>
                 )}
+
+                {/* Playable: subtle gold shimmer */}
                 {playable && !cochina && (
-                  <motion.div
-                    className="absolute -inset-1 rounded-lg bg-[#c9a84c]/15 blur-sm pointer-events-none"
-                    animate={{ opacity: [0.15, 0.4, 0.15] }}
-                    transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }}
-                  />
+                  <>
+                    <motion.div
+                      className="absolute -inset-2 rounded-xl pointer-events-none"
+                      style={{ background: "radial-gradient(ellipse, rgba(201,168,76,0.22) 0%, transparent 65%)" }}
+                      animate={{ opacity: [0.2, 0.55, 0.2] }}
+                      transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
+                    />
+                    <motion.div
+                      className="absolute -inset-0.5 rounded-lg border border-[#c9a84c]/50 pointer-events-none"
+                      animate={{ opacity: [0.3, 0.7, 0.3] }}
+                      transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
+                    />
+                  </>
                 )}
+
                 <DominoTile
                   tile={tile}
                   size="large"
@@ -145,6 +166,7 @@ export function Hand({ onPlayTile, onPass, disabled = false }: HandProps) {
                   disabled={isMyTurn && !playable}
                   selected={selected}
                   highlight={playable || cochina}
+                  disableHover
                   onClick={() => handleTileClick(tile)}
                 />
               </motion.div>

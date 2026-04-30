@@ -17,6 +17,7 @@ interface TileProps {
   selected?: boolean;
   highlight?: boolean;
   responsive?: boolean;
+  disableHover?: boolean;
   onClick?: () => void;
 }
 
@@ -91,6 +92,7 @@ export function DominoTile({
   selected = false,
   highlight = false,
   responsive = false,
+  disableHover = false,
   onClick,
 }: TileProps) {
   const isMobile = useIsMobile();
@@ -264,7 +266,7 @@ export function DominoTile({
   return (
     <motion.div
       {...sharedAttrs}
-      whileHover={clickable && !disabled ? { scale: 1.12, y: -6 } : undefined}
+      whileHover={clickable && !disabled && !disableHover ? { scale: 1.12, y: -6 } : undefined}
       whileTap={clickable && !disabled ? { scale: 0.95 } : undefined}
       animate={selected ? { y: -12, scale: 1.08 } : { y: 0, scale: 1 }}
       transition={{ type: "spring", stiffness: 400, damping: 25 }}
