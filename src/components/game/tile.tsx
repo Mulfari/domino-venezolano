@@ -46,13 +46,14 @@ function getPipPositions(value: number): [number, number][] {
   return positions[value] ?? [];
 }
 
-function PipDots({ value, pipSize, halfWidth, halfHeight, horizontal = false, pipGradientId }: {
+function PipDots({ value, pipSize, halfWidth, halfHeight, horizontal = false, pipGradientId, pipShineId }: {
   value: number;
   pipSize: number;
   halfWidth: number;
   halfHeight: number;
   horizontal?: boolean;
   pipGradientId: string;
+  pipShineId: string;
 }) {
   const positions = getPipPositions(value);
   const padX = halfWidth * 0.22;
@@ -70,7 +71,10 @@ function PipDots({ value, pipSize, halfWidth, halfHeight, horizontal = false, pi
           ? padY + (areaH * col) / 2
           : padY + (areaH * row) / 2;
         return (
-          <circle key={i} cx={cx} cy={cy} r={pipSize} fill={`url(#${pipGradientId})`} />
+          <g key={i}>
+            <circle cx={cx} cy={cy} r={pipSize} fill={`url(#${pipGradientId})`} />
+            <circle cx={cx} cy={cy} r={pipSize} fill={`url(#${pipShineId})`} />
+          </g>
         );
       })}
     </>
@@ -92,7 +96,7 @@ export function DominoTile({
   const isMobile = useIsMobile();
   const config = responsive && isMobile ? mobileSizeConfig : sizeConfig;
   const { w: baseW, h: baseH, pip, gap } = config[size];
-  const borderRadius = size === "small" ? 4 : 6;
+  const borderRadius = size === "small" ? 6 : size === "medium" ? 10 : 13;
   const uid = useId().replace(/:/g, "");
 
   const isHorizontal = orientation === "horizontal";
@@ -107,13 +111,18 @@ export function DominoTile({
       height={h}
       viewBox={`0 0 ${w} ${h}`}
       xmlns="http://www.w3.org/2000/svg"
-      className={`${highlight ? "drop-shadow-[0_0_6px_rgba(201,168,76,0.8)]" : "drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]"} ${disabled ? "opacity-55" : ""}`}
+      className={`${highlight ? "drop-shadow-[0_0_8px_rgba(201,168,76,0.9)]" : "drop-shadow-[0_3px_7px_rgba(0,0,0,0.65)]"} ${disabled ? "opacity-55" : ""}`}
     >
       <defs>
-        <linearGradient id={`face-${uid}`} x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor="#fdfaf3" />
-          <stop offset="60%" stopColor="#f5f0e8" />
-          <stop offset="100%" stopColor="#e8e0d0" />
+        <linearGradient id={`face-${uid}`} x1="0" y1="0" x2="0.6" y2="1">
+          <stop offset="0%" stopColor="#fffdf7" />
+          <stop offset="40%" stopColor="#f5f0e8" />
+          <stop offset="100%" stopColor="#ddd5c4" />
+        </linearGradient>
+        <linearGradient id={`sheen-${uid}`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="white" stopOpacity="0.22" />
+          <stop offset="55%" stopColor="white" stopOpacity="0.04" />
+          <stop offset="100%" stopColor="white" stopOpacity="0" />
         </linearGradient>
         <linearGradient id={`back-${uid}`} x1="0" y1="0" x2="1" y2="1">
           <stop offset="0%" stopColor="#5c3a1e" />
@@ -126,9 +135,14 @@ export function DominoTile({
         <clipPath id={`clip-${uid}`}>
           <rect x={0} y={0} width={w} height={h} rx={borderRadius}/>
         </clipPath>
-        <radialGradient id={`pip-${uid}`} cx="35%" cy="35%" r="65%">
-          <stop offset="0%" stopColor="#3a3a3a" />
-          <stop offset="100%" stopColor="#0a0a0a" />
+        <radialGradient id={`pip-${uid}`} cx="32%" cy="28%" r="70%">
+          <stop offset="0%" stopColor="#555" />
+          <stop offset="45%" stopColor="#1a1a1a" />
+          <stop offset="100%" stopColor="#050505" />
+        </radialGradient>
+        <radialGradient id={`pip-shine-${uid}`} cx="38%" cy="30%" r="45%">
+          <stop offset="0%" stopColor="white" stopOpacity="0.28" />
+          <stop offset="100%" stopColor="white" stopOpacity="0" />
         </radialGradient>
       </defs>
       <rect
@@ -142,6 +156,11 @@ export function DominoTile({
         }
         strokeWidth={selected || highlight ? 1.5 : 0.75}
       />
+
+      {/* Subtle surface sheen on face-up tiles */}
+      {!faceDown && (
+        <rect x={0} y={0} width={w} height={h * 0.5} rx={borderRadius} fill={`url(#sheen-${uid})`} clipPath={`url(#clip-${uid})`} />
+      )}
 
       {faceDown ? (
         <>
@@ -162,7 +181,7 @@ export function DominoTile({
         isHorizontal ? (
           <>
             <g>
-              <PipDots value={tile[0]} pipSize={pip} halfWidth={w / 2} halfHeight={h} horizontal pipGradientId={`pip-${uid}`} />
+              <PipDots value={tile[0]} pipSize={pip} halfWidth={w / 2} halfHeight={h} horizontal pipGradientId={`pip-${uid}`} pipShineId={`pip-shine-${uid}`} />
             </g>
             <line
               x1={w / 2} y1={3}
@@ -170,13 +189,13 @@ export function DominoTile({
               stroke="#c0b8a8" strokeWidth={0.6}
             />
             <g transform={`translate(${w / 2}, 0)`}>
-              <PipDots value={tile[1]} pipSize={pip} halfWidth={w / 2} halfHeight={h} horizontal pipGradientId={`pip-${uid}`} />
+              <PipDots value={tile[1]} pipSize={pip} halfWidth={w / 2} halfHeight={h} horizontal pipGradientId={`pip-${uid}`} pipShineId={`pip-shine-${uid}`} />
             </g>
           </>
         ) : (
           <>
             <g>
-              <PipDots value={tile[0]} pipSize={pip} halfWidth={w} halfHeight={(h - gap) / 2} pipGradientId={`pip-${uid}`} />
+              <PipDots value={tile[0]} pipSize={pip} halfWidth={w} halfHeight={(h - gap) / 2} pipGradientId={`pip-${uid}`} pipShineId={`pip-shine-${uid}`} />
             </g>
             <line
               x1={3} y1={(h - gap) / 2 + gap / 2}
@@ -184,7 +203,7 @@ export function DominoTile({
               stroke="#c0b8a8" strokeWidth={0.6}
             />
             <g transform={`translate(0, ${(h - gap) / 2 + gap})`}>
-              <PipDots value={tile[1]} pipSize={pip} halfWidth={w} halfHeight={(h - gap) / 2} pipGradientId={`pip-${uid}`} />
+              <PipDots value={tile[1]} pipSize={pip} halfWidth={w} halfHeight={(h - gap) / 2} pipGradientId={`pip-${uid}`} pipShineId={`pip-shine-${uid}`} />
             </g>
           </>
         )
