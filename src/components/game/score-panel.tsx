@@ -203,49 +203,90 @@ export function ScorePanel() {
 
   return (
     <>
-      {/* Mobile compact — single row with scores + mini bars */}
-      <div className="flex sm:hidden items-center gap-2 rounded-xl bg-[#3a2210]/85 border border-[#c9a84c]/25 backdrop-blur-sm px-2 py-1.5 shadow-lg shadow-black/30 shrink-0" role="region" aria-label="Marcador">
-        <span className="text-[10px] font-bold uppercase tracking-widest text-[#c9a84c] shrink-0">
-          R{round}
-        </span>
-        <div className="flex flex-col gap-0.5">
-          {([0, 1] as const).map((teamIdx) => {
-            const score = scores[teamIdx];
-            const pct = Math.min((score / targetScore) * 100, 100);
-            const isMyTeam = myTeam === teamIdx;
-            const color = teamIdx === 0 ? "#c9a84c" : "#a8c4a0";
-            return (
-              <div key={teamIdx} className="flex items-center gap-1">
-                {isMyTeam && <span className="text-[#c9a84c] text-[8px] leading-none shrink-0">◆</span>}
-                <span className="text-[9px] font-bold tabular-nums w-5 text-right shrink-0" style={{ color }}>
-                  {score}
-                </span>
-                <div
-                  className="w-10 h-1.5 rounded-full bg-[#0f3520]/60 overflow-hidden"
-                  role="progressbar"
-                  aria-valuenow={score}
-                  aria-valuemin={0}
-                  aria-valuemax={targetScore}
-                  aria-label={`Equipo ${teamIdx + 1}: ${score} de ${targetScore} puntos`}
-                >
-                  <motion.div
-                    className="h-full rounded-full"
-                    initial={false}
-                    animate={{ width: `${pct}%` }}
-                    transition={{ duration: 0.6, ease: "easeOut" }}
-                    style={{ backgroundColor: color }}
-                  />
+      {/* Mobile compact — scores + history */}
+      <div className="flex sm:hidden flex-col gap-1 rounded-xl bg-[#3a2210]/85 border border-[#c9a84c]/25 backdrop-blur-sm px-2 py-1.5 shadow-lg shadow-black/30 shrink-0" role="region" aria-label="Marcador">
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] font-bold uppercase tracking-widest text-[#c9a84c] shrink-0">
+            R{round}
+          </span>
+          <div className="flex flex-col gap-0.5">
+            {([0, 1] as const).map((teamIdx) => {
+              const score = scores[teamIdx];
+              const pct = Math.min((score / targetScore) * 100, 100);
+              const isMyTeam = myTeam === teamIdx;
+              const color = teamIdx === 0 ? "#c9a84c" : "#a8c4a0";
+              return (
+                <div key={teamIdx} className="flex items-center gap-1">
+                  {isMyTeam && <span className="text-[#c9a84c] text-[8px] leading-none shrink-0">◆</span>}
+                  <span className="text-[9px] font-bold tabular-nums w-5 text-right shrink-0" style={{ color }}>
+                    {score}
+                  </span>
+                  <div
+                    className="w-10 h-1.5 rounded-full bg-[#0f3520]/60 overflow-hidden"
+                    role="progressbar"
+                    aria-valuenow={score}
+                    aria-valuemin={0}
+                    aria-valuemax={targetScore}
+                    aria-label={`Equipo ${teamIdx + 1}: ${score} de ${targetScore} puntos`}
+                  >
+                    <motion.div
+                      className="h-full rounded-full"
+                      initial={false}
+                      animate={{ width: `${pct}%` }}
+                      transition={{ duration: 0.6, ease: "easeOut" }}
+                      style={{ backgroundColor: color }}
+                    />
+                  </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
+          {firstPlayerName && (
+            <div className="flex items-center gap-0.5 shrink-0">
+              <span className="text-[#c9a84c] text-[8px] leading-none">★</span>
+              <span className="text-[8px] text-[#f5f0e8]/70 leading-none max-w-[40px] truncate">
+                {firstPlayerName}
+              </span>
+            </div>
+          )}
         </div>
-        {firstPlayerName && (
-          <div className="flex items-center gap-0.5 shrink-0">
-            <span className="text-[#c9a84c] text-[8px] leading-none">★</span>
-            <span className="text-[8px] text-[#f5f0e8]/70 leading-none max-w-[40px] truncate">
-              {firstPlayerName}
-            </span>
+        {roundHistory.length > 0 && (
+          <div className="flex flex-wrap gap-1 pt-1 border-t border-[#c9a84c]/10">
+            {roundHistory.map((entry) => {
+              const isTied = entry.winner_team === null;
+              const isMyTeamWon = myTeam !== null && entry.winner_team === myTeam;
+              const bgColor = isTied
+                ? "bg-[#a8c4a0]/10 border-[#a8c4a0]/25"
+                : isMyTeamWon
+                ? "bg-[#c9a84c]/15 border-[#c9a84c]/35"
+                : "bg-[#f5f0e8]/5 border-[#f5f0e8]/12";
+              const dotColor = isTied
+                ? "bg-[#a8c4a0]/50"
+                : entry.winner_team === 0
+                ? "bg-[#c9a84c]"
+                : "bg-[#a8c4a0]";
+              const reasonLabel =
+                entry.reason === "domino" ? "D" : entry.reason === "locked" ? "T" : "=";
+              const reasonTitle =
+                entry.reason === "domino" ? "dominó" : entry.reason === "locked" ? "trancado" : "empate";
+              return (
+                <motion.div
+                  key={entry.round}
+                  initial={{ opacity: 0, scale: 0.7 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.25 }}
+                  title={`Ronda ${entry.round}: ${
+                    isTied ? "Empate" : `Equipo ${(entry.winner_team ?? 0) + 1} ganó`
+                  } · ${entry.points} pts · ${reasonTitle}`}
+                  className={`flex items-center gap-0.5 px-1 py-0.5 rounded border text-[8px] font-semibold tabular-nums ${bgColor}`}
+                >
+                  <span className="text-[#f5f0e8]/30 tabular-nums leading-none">{entry.round}</span>
+                  <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${dotColor}`} />
+                  <span className="text-[#f5f0e8]/70">{entry.points}</span>
+                  <span className="text-[#f5f0e8]/40 text-[7px] leading-none font-bold">{reasonLabel}</span>
+                </motion.div>
+              );
+            })}
           </div>
         )}
       </div>
