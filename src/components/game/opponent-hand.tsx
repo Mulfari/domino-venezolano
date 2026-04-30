@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { DominoTile } from "./tile";
 import { PassIndicator } from "./pass-indicator";
+import { useIsMobile } from "@/hooks/use-mobile";
 import type { Seat } from "@/lib/game/types";
 
 interface OpponentHandProps {
@@ -24,6 +25,9 @@ export function OpponentHand({
   showPass = false,
 }: OpponentHandProps) {
   const isVertical = position === "left" || position === "right";
+  const isMobile = useIsMobile();
+  // On mobile, lateral opponents show at most 4 tiles to avoid squeezing the board
+  const displayCount = isMobile && isVertical ? Math.min(tileCount, 4) : tileCount;
 
   return (
     <div
@@ -65,7 +69,7 @@ export function OpponentHand({
             isVertical ? "flex-col gap-0.5" : "flex-row gap-0.5"
           } items-center`}
         >
-          {Array.from({ length: tileCount }).map((_, i) => (
+          {Array.from({ length: displayCount }).map((_, i) => (
             <motion.div
               key={i}
               initial={{ opacity: 0, scale: 0.5 }}

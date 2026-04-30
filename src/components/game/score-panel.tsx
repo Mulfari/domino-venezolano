@@ -181,105 +181,138 @@ export function ScorePanel() {
     : null;
 
   return (
-    <div className="rounded-2xl bg-[#3a2210]/85 border border-[#c9a84c]/25 backdrop-blur-sm p-2 sm:p-3 min-w-0 sm:min-w-[220px] shadow-lg shadow-black/30">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-2">
-        <div className="flex items-center gap-1.5">
-          <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-widest text-[#c9a84c]">
-            Ronda {round}
-          </span>
+    <>
+      {/* Mobile compact — single row with scores + mini bars */}
+      <div className="flex sm:hidden items-center gap-2 rounded-xl bg-[#3a2210]/85 border border-[#c9a84c]/25 backdrop-blur-sm px-2 py-1.5 shadow-lg shadow-black/30 shrink-0">
+        <span className="text-[10px] font-bold uppercase tracking-widest text-[#c9a84c] shrink-0">
+          R{round}
+        </span>
+        <div className="flex flex-col gap-0.5">
+          {([0, 1] as const).map((teamIdx) => {
+            const score = scores[teamIdx];
+            const pct = Math.min((score / targetScore) * 100, 100);
+            const isMyTeam = myTeam === teamIdx;
+            const color = teamIdx === 0 ? "#c9a84c" : "#a8c4a0";
+            return (
+              <div key={teamIdx} className="flex items-center gap-1">
+                {isMyTeam && <span className="text-[#c9a84c] text-[8px] leading-none shrink-0">◆</span>}
+                <span className="text-[9px] font-bold tabular-nums w-5 text-right shrink-0" style={{ color }}>
+                  {score}
+                </span>
+                <div className="w-10 h-1.5 rounded-full bg-[#0f3520]/60 overflow-hidden">
+                  <motion.div
+                    className="h-full rounded-full"
+                    initial={false}
+                    animate={{ width: `${pct}%` }}
+                    transition={{ duration: 0.6, ease: "easeOut" }}
+                    style={{ backgroundColor: color }}
+                  />
+                </div>
+              </div>
+            );
+          })}
         </div>
-        <AnimatePresence mode="wait">
-          {firstPlayerName && (
-            <motion.div
-              key={firstPlayerName}
-              initial={{ opacity: 0, x: 6 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.25 }}
-              className="flex items-center gap-1 bg-[#c9a84c]/10 border border-[#c9a84c]/20 rounded-full px-1.5 py-0.5"
-            >
-              <span className="text-[#c9a84c] text-[8px] leading-none">★</span>
-              <span className="text-[8px] sm:text-[9px] text-[#f5f0e8]/80 leading-none">
-                {firstPlayerName}
-              </span>
-            </motion.div>
-          )}
-        </AnimatePresence>
+        {firstPlayerName && (
+          <div className="flex items-center gap-0.5 shrink-0">
+            <span className="text-[#c9a84c] text-[8px] leading-none">★</span>
+            <span className="text-[8px] text-[#f5f0e8]/70 leading-none max-w-[40px] truncate">
+              {firstPlayerName}
+            </span>
+          </div>
+        )}
       </div>
 
-      {/* Team blocks */}
-      <div className="flex flex-col gap-1.5">
-        {([0, 1] as const).map((teamIdx) => (
-          <TeamBlock
-            key={teamIdx}
-            teamIdx={teamIdx}
-            score={scores[teamIdx]}
-            targetScore={targetScore}
-            isMyTeam={myTeam === teamIdx}
-            seats={teamIdx === 0 ? [0, 2] : [1, 3]}
-            players={players}
-            firstSeat={firstSeat}
-          />
-        ))}
-      </div>
-
-      {/* Round history */}
-      {roundHistory.length > 0 && (
-        <div className="mt-2 pt-1.5 border-t border-[#c9a84c]/10">
-          <div className="text-[7px] sm:text-[8px] uppercase tracking-wider text-[#a8c4a0]/40 mb-1">
-            Historial
+      {/* Desktop full panel */}
+      <div className="hidden sm:block rounded-2xl bg-[#3a2210]/85 border border-[#c9a84c]/25 backdrop-blur-sm p-3 min-w-[220px] shadow-lg shadow-black/30">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-1.5">
+            <span className="text-[11px] font-bold uppercase tracking-widest text-[#c9a84c]">
+              Ronda {round}
+            </span>
           </div>
-          <div className="flex flex-wrap gap-1">
-            {roundHistory.map((entry) => {
-              const isTied = entry.winner_team === null;
-              const isMyTeamWon = myTeam !== null && entry.winner_team === myTeam;
-              const bgColor = isTied
-                ? "bg-[#a8c4a0]/10 border-[#a8c4a0]/25"
-                : isMyTeamWon
-                ? "bg-[#c9a84c]/15 border-[#c9a84c]/35"
-                : "bg-[#f5f0e8]/5 border-[#f5f0e8]/12";
-              const dotColor = isTied
-                ? "bg-[#a8c4a0]/50"
-                : entry.winner_team === 0
-                ? "bg-[#c9a84c]"
-                : "bg-[#a8c4a0]";
-              const reasonLabel =
-                entry.reason === "domino"
-                  ? "D"
-                  : entry.reason === "locked"
-                  ? "T"
-                  : "=";
-              const reasonTitle =
-                entry.reason === "domino"
-                  ? "dominó"
-                  : entry.reason === "locked"
-                  ? "trancado"
-                  : "empate";
-
-              return (
-                <motion.div
-                  key={entry.round}
-                  initial={{ opacity: 0, scale: 0.7 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.25 }}
-                  title={`Ronda ${entry.round}: ${
-                    isTied
-                      ? "Empate"
-                      : `Equipo ${(entry.winner_team ?? 0) + 1} ganó`
-                  } · ${entry.points} pts · ${reasonTitle}`}
-                  className={`flex items-center gap-0.5 px-1 py-0.5 rounded border text-[8px] font-semibold tabular-nums ${bgColor}`}
-                >
-                  <span className="text-[#f5f0e8]/30 tabular-nums leading-none">{entry.round}</span>
-                  <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${dotColor}`} />
-                  <span className="text-[#f5f0e8]/70">{entry.points}</span>
-                  <span className="text-[#f5f0e8]/40 text-[7px] leading-none font-bold">{reasonLabel}</span>
-                </motion.div>
-              );
-            })}
-          </div>
+          <AnimatePresence mode="wait">
+            {firstPlayerName && (
+              <motion.div
+                key={firstPlayerName}
+                initial={{ opacity: 0, x: 6 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.25 }}
+                className="flex items-center gap-1 bg-[#c9a84c]/10 border border-[#c9a84c]/20 rounded-full px-1.5 py-0.5"
+              >
+                <span className="text-[#c9a84c] text-[8px] leading-none">★</span>
+                <span className="text-[9px] text-[#f5f0e8]/80 leading-none">
+                  {firstPlayerName}
+                </span>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
-      )}
-    </div>
+
+        {/* Team blocks */}
+        <div className="flex flex-col gap-1.5">
+          {([0, 1] as const).map((teamIdx) => (
+            <TeamBlock
+              key={teamIdx}
+              teamIdx={teamIdx}
+              score={scores[teamIdx]}
+              targetScore={targetScore}
+              isMyTeam={myTeam === teamIdx}
+              seats={teamIdx === 0 ? [0, 2] : [1, 3]}
+              players={players}
+              firstSeat={firstSeat}
+            />
+          ))}
+        </div>
+
+        {/* Round history */}
+        {roundHistory.length > 0 && (
+          <div className="mt-2 pt-1.5 border-t border-[#c9a84c]/10">
+            <div className="text-[8px] uppercase tracking-wider text-[#a8c4a0]/40 mb-1">
+              Historial
+            </div>
+            <div className="flex flex-wrap gap-1">
+              {roundHistory.map((entry) => {
+                const isTied = entry.winner_team === null;
+                const isMyTeamWon = myTeam !== null && entry.winner_team === myTeam;
+                const bgColor = isTied
+                  ? "bg-[#a8c4a0]/10 border-[#a8c4a0]/25"
+                  : isMyTeamWon
+                  ? "bg-[#c9a84c]/15 border-[#c9a84c]/35"
+                  : "bg-[#f5f0e8]/5 border-[#f5f0e8]/12";
+                const dotColor = isTied
+                  ? "bg-[#a8c4a0]/50"
+                  : entry.winner_team === 0
+                  ? "bg-[#c9a84c]"
+                  : "bg-[#a8c4a0]";
+                const reasonLabel =
+                  entry.reason === "domino" ? "D" : entry.reason === "locked" ? "T" : "=";
+                const reasonTitle =
+                  entry.reason === "domino" ? "dominó" : entry.reason === "locked" ? "trancado" : "empate";
+
+                return (
+                  <motion.div
+                    key={entry.round}
+                    initial={{ opacity: 0, scale: 0.7 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.25 }}
+                    title={`Ronda ${entry.round}: ${
+                      isTied ? "Empate" : `Equipo ${(entry.winner_team ?? 0) + 1} ganó`
+                    } · ${entry.points} pts · ${reasonTitle}`}
+                    className={`flex items-center gap-0.5 px-1 py-0.5 rounded border text-[8px] font-semibold tabular-nums ${bgColor}`}
+                  >
+                    <span className="text-[#f5f0e8]/30 tabular-nums leading-none">{entry.round}</span>
+                    <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${dotColor}`} />
+                    <span className="text-[#f5f0e8]/70">{entry.points}</span>
+                    <span className="text-[#f5f0e8]/40 text-[7px] leading-none font-bold">{reasonLabel}</span>
+                  </motion.div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+      </div>
+    </>
   );
 }

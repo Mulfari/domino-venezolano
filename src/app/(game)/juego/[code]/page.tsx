@@ -535,7 +535,7 @@ export default function GamePage() {
       <LandscapePrompt />
 
       {/* Top bar: score + turn indicator */}
-      <div className="flex items-start justify-between p-1.5 sm:p-4 shrink-0 gap-1">
+      <div className="flex items-center justify-between p-1.5 sm:p-4 shrink-0 gap-1">
         <ScorePanel />
         <div className="flex flex-col items-center gap-0.5 sm:gap-1 min-w-0">
           <TurnIndicator />
