@@ -345,11 +345,6 @@ export function ScorePanel() {
             </div>
           )}
         </div>
-        {roundHistory.length > 0 && (
-          <div className="border-t border-[#c9a84c]/10 pt-1">
-            <RoundHistoryRow roundHistory={roundHistory} myTeam={myTeam} compact />
-          </div>
-        )}
       </div>
 
       {/* Desktop full panel */}

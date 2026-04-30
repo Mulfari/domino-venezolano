@@ -186,7 +186,7 @@ export function Hand({ onPlayTile, onPass, disabled = false }: HandProps) {
             exit={{ opacity: 0, scale: 0.8 }}
             onClick={onPass}
             aria-label="Pasar turno"
-            className="rounded-xl bg-[#c9a84c] hover:bg-[#dfc06a] px-6 py-2.5 text-sm font-semibold text-[#2a1a0a] transition-colors"
+            className="rounded-xl bg-[#c9a84c] hover:bg-[#dfc06a] px-6 py-3 min-h-[44px] text-sm font-semibold text-[#2a1a0a] transition-colors"
           >
             Pasar
           </motion.button>
