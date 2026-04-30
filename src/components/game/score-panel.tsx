@@ -244,12 +244,18 @@ export function ScorePanel() {
                 : entry.winner_team === 0
                 ? "bg-[#c9a84c]"
                 : "bg-[#a8c4a0]";
-              const reasonIcon =
+              const reasonLabel =
                 entry.reason === "domino"
-                  ? "⬛"
+                  ? "D"
                   : entry.reason === "locked"
-                  ? "🔒"
+                  ? "T"
                   : "=";
+              const reasonTitle =
+                entry.reason === "domino"
+                  ? "dominó"
+                  : entry.reason === "locked"
+                  ? "trancado"
+                  : "empate";
 
               return (
                 <motion.div
@@ -261,18 +267,13 @@ export function ScorePanel() {
                     isTied
                       ? "Empate"
                       : `Equipo ${(entry.winner_team ?? 0) + 1} ganó`
-                  } · ${entry.points} pts · ${
-                    entry.reason === "domino"
-                      ? "dominó"
-                      : entry.reason === "locked"
-                      ? "trancado"
-                      : "empate"
-                  }`}
+                  } · ${entry.points} pts · ${reasonTitle}`}
                   className={`flex items-center gap-0.5 px-1 py-0.5 rounded border text-[8px] font-semibold tabular-nums ${bgColor}`}
                 >
+                  <span className="text-[#f5f0e8]/30 tabular-nums leading-none">{entry.round}</span>
                   <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${dotColor}`} />
                   <span className="text-[#f5f0e8]/70">{entry.points}</span>
-                  <span className="text-[8px] leading-none">{reasonIcon}</span>
+                  <span className="text-[#f5f0e8]/40 text-[7px] leading-none font-bold">{reasonLabel}</span>
                 </motion.div>
               );
             })}
