@@ -29,7 +29,7 @@ function useAnimatedCounter(target: number, duration = 700) {
   return display;
 }
 
-function TeamSection({
+function TeamCard({
   teamIdx, score, targetScore, isMyTeam, seats, players, firstSeat,
 }: {
   teamIdx: 0 | 1;
@@ -64,33 +64,31 @@ function TeamSection({
   }, [score]);
 
   const teamLabel = isMyTeam ? "Nosotros" : "Rivales";
-  const accentColor = isMyTeam ? "#c9a84c" : "#a8c4a0";
-  const barClass = isMyTeam ? "bg-[#c9a84c]" : "bg-[#a8c4a0]/70";
 
   return (
     <motion.div
-      animate={flash ? { boxShadow: ["0 0 0px rgba(201,168,76,0)", "0 0 20px rgba(201,168,76,0.5)", "0 0 0px rgba(201,168,76,0)"] } : {}}
+      animate={flash ? { boxShadow: ["0 0 0px rgba(201,168,76,0)", "0 0 18px rgba(201,168,76,0.45)", "0 0 0px rgba(201,168,76,0)"] } : {}}
       transition={{ duration: 0.9 }}
-      className={`rounded-xl border px-3 py-2.5 transition-opacity ${
+      className={`rounded-xl border px-3 py-2.5 ${
         isMyTeam
-          ? "border-[#c9a84c]/40 bg-[#c9a84c]/6"
-          : "border-[#f5f0e8]/10 bg-[#0f3520]/25 opacity-75"
+          ? "border-[#c9a84c]/45 bg-[#c9a84c]/8"
+          : "border-[#f5f0e8]/10 bg-[#0f3520]/30 opacity-80"
       }`}
     >
-      {/* Team header row */}
-      <div className="flex items-start justify-between mb-2">
-        <div className="flex flex-col gap-0.5 min-w-0">
+      {/* Top row: team label + score */}
+      <div className="flex items-start justify-between gap-2 mb-2">
+        {/* Left: team label + players */}
+        <div className="flex flex-col gap-1 min-w-0">
           <div className="flex items-center gap-1.5">
-            {isMyTeam && <span className="text-[#c9a84c] text-[9px]">◆</span>}
+            {isMyTeam && <span className="text-[#c9a84c] text-[9px] shrink-0">◆</span>}
             <span
               className="text-[11px] font-bold uppercase tracking-widest leading-none"
-              style={{ color: accentColor }}
+              style={{ color: isMyTeam ? "#c9a84c" : "#a8c4a0" }}
             >
               {teamLabel}
             </span>
           </div>
-          {/* Player names */}
-          <div className="flex flex-col gap-0.5 mt-1">
+          <div className="flex flex-col gap-0.5">
             {seats.map((s) => {
               const p = players.find((pl) => pl.seat === s);
               const name = p?.displayName ?? `Jugador ${s + 1}`;
@@ -110,8 +108,8 @@ function TeamSection({
                   {isFirst && (
                     <span
                       className="text-[#c9a84c] text-[9px] shrink-0 leading-none"
-                      aria-label="Salió primero esta ronda"
                       title="Salió primero esta ronda"
+                      aria-label="Salió primero esta ronda"
                     >
                       ★
                     </span>
@@ -122,29 +120,29 @@ function TeamSection({
           </div>
         </div>
 
-        {/* Score */}
+        {/* Right: score */}
         <div className="flex flex-col items-end shrink-0 relative">
           <motion.span
             key={score}
-            initial={{ scale: 1.5, color: "#ffffff" }}
+            initial={{ scale: 1.4, color: "#ffffff" }}
             animate={{ scale: 1, color: isMyTeam ? "#f5f0e8" : "#a8c4a0" }}
             transition={{ duration: 0.35 }}
-            className="text-2xl font-bold tabular-nums leading-none"
+            className="text-[28px] font-bold tabular-nums leading-none"
           >
             {display}
           </motion.span>
           <span className="text-[9px] text-[#a8c4a0]/40 tabular-nums leading-none mt-0.5">
-            /{targetScore}
+            meta {targetScore}
           </span>
           <AnimatePresence>
             {delta !== null && (
               <motion.span
                 key={`d-${score}`}
                 initial={{ opacity: 0, y: 0 }}
-                animate={{ opacity: 1, y: -18 }}
-                exit={{ opacity: 0, y: -28 }}
+                animate={{ opacity: 1, y: -20 }}
+                exit={{ opacity: 0, y: -30 }}
                 transition={{ duration: 0.55, ease: "easeOut" }}
-                className="absolute -top-1 -right-1 text-[11px] font-bold text-green-400 tabular-nums pointer-events-none"
+                className="absolute -top-1 -right-1 text-[12px] font-bold text-green-400 tabular-nums pointer-events-none"
                 style={{ textShadow: "0 0 8px rgba(74,222,128,0.7)" }}
                 aria-hidden="true"
               >
@@ -162,7 +160,7 @@ function TeamSection({
 
       {/* Progress bar */}
       <div
-        className="h-2 rounded-full bg-[#0f3520]/70 overflow-hidden"
+        className="h-2.5 rounded-full bg-[#0f3520]/70 overflow-hidden"
         role="progressbar"
         aria-valuenow={score}
         aria-valuemin={0}
@@ -170,32 +168,32 @@ function TeamSection({
         aria-label={`${teamLabel}: ${score} de ${targetScore} puntos`}
       >
         <motion.div
-          className={`h-full rounded-full ${barClass}`}
+          className="h-full rounded-full"
           initial={false}
           animate={{ width: `${pct}%` }}
           transition={{ duration: 0.65, ease: "easeOut" }}
+          style={{
+            background: isMyTeam
+              ? "linear-gradient(90deg, #a07830 0%, #c9a84c 60%, #e8c96a 100%)"
+              : "linear-gradient(90deg, #6a8f6a 0%, #a8c4a0 100%)",
+          }}
         />
       </div>
-      <div className="flex justify-between mt-0.5">
-        <span className="text-[8px] text-[#a8c4a0]/35 tabular-nums">{pct.toFixed(0)}%</span>
-        <span className="text-[8px] text-[#a8c4a0]/40 tabular-nums">
-          {remaining > 0 ? `faltan ${remaining}` : "¡meta!"}
+      <div className="flex justify-between mt-1">
+        <span className="text-[8px] text-[#a8c4a0]/40 tabular-nums">{pct.toFixed(0)}%</span>
+        <span className="text-[8px] text-[#a8c4a0]/45 tabular-nums">
+          {remaining > 0 ? `faltan ${remaining} pts` : "¡meta!"}
         </span>
       </div>
     </motion.div>
   );
 }
 
-function RoundHistory({
-  history, myTeam,
-}: {
-  history: RoundHistoryEntry[];
-  myTeam: 0 | 1 | null;
-}) {
+function RoundHistory({ history, myTeam }: { history: RoundHistoryEntry[]; myTeam: 0 | 1 | null }) {
   if (history.length === 0) return null;
   return (
     <div className="mt-2 pt-2 border-t border-[#c9a84c]/12">
-      <div className="text-[8px] uppercase tracking-wider text-[#a8c4a0]/40 mb-1">Historial</div>
+      <div className="text-[8px] uppercase tracking-wider text-[#a8c4a0]/40 mb-1.5">Historial</div>
       <div className="flex flex-wrap gap-1" role="list" aria-label="Historial de rondas">
         {history.map((entry) => {
           const tied = entry.winner_team === null;
@@ -269,8 +267,8 @@ export function ScorePanel() {
           {([0, 1] as const).map((teamIdx) => {
             const s = scores[teamIdx];
             const pct = Math.min((s / targetScore) * 100, 100);
-            const color = teamIdx === 0 ? "#c9a84c" : "#a8c4a0";
             const isMyTeam = myTeam === teamIdx;
+            const color = isMyTeam ? "#c9a84c" : "#a8c4a0";
             return (
               <div key={teamIdx} className="flex items-center gap-1.5">
                 {isMyTeam && <span className="text-[#c9a84c] text-[8px] shrink-0">◆</span>}
@@ -310,12 +308,12 @@ export function ScorePanel() {
 
       {/* ── Desktop full panel ── */}
       <div
-        className="hidden sm:flex flex-col gap-0 rounded-2xl bg-[#3a2210]/88 border border-[#c9a84c]/28 backdrop-blur-sm shadow-xl shadow-black/35 overflow-hidden min-w-[230px]"
+        className="hidden sm:flex flex-col rounded-2xl bg-[#3a2210]/90 border border-[#c9a84c]/30 backdrop-blur-sm shadow-xl shadow-black/40 overflow-hidden min-w-[240px]"
         role="region"
         aria-label="Marcador"
       >
-        {/* Header bar */}
-        <div className="flex items-center justify-between px-3 py-2 border-b border-[#c9a84c]/15 bg-[#2a1a08]/40">
+        {/* Header */}
+        <div className="flex items-center justify-between px-3 py-2 border-b border-[#c9a84c]/15 bg-[#2a1a08]/50">
           <AnimatePresence mode="wait">
             <motion.div
               key={round}
@@ -323,37 +321,49 @@ export function ScorePanel() {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 6, scale: 0.85 }}
               transition={{ duration: 0.25 }}
-              className="flex items-center gap-1.5"
+              className="flex items-center gap-2"
             >
-              <span className="text-[10px] text-[#a8c4a0]/50 uppercase tracking-widest">Ronda</span>
-              <span className="text-[13px] font-bold text-[#c9a84c] tabular-nums">{round}</span>
+              <span className="text-[9px] text-[#a8c4a0]/50 uppercase tracking-widest font-semibold">Ronda</span>
+              <span className="text-[15px] font-bold text-[#c9a84c] tabular-nums leading-none">{round}</span>
+              <span className="text-[9px] text-[#a8c4a0]/30 uppercase tracking-widest">/ meta {targetScore}</span>
             </motion.div>
           </AnimatePresence>
 
           <AnimatePresence mode="wait">
-            {firstPlayerName && (
+            {firstPlayerName ? (
               <motion.div
                 key={firstPlayerName}
                 initial={{ opacity: 0, x: 8 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.25 }}
-                className="flex items-center gap-1 bg-[#c9a84c]/12 border border-[#c9a84c]/25 rounded-full px-2 py-0.5"
+                className="flex items-center gap-1 bg-[#c9a84c]/12 border border-[#c9a84c]/28 rounded-full px-2 py-0.5"
                 aria-label={`Salió primero: ${firstPlayerName}`}
               >
                 <span className="text-[#c9a84c] text-[9px]" aria-hidden="true">★</span>
-                <span className="text-[10px] text-[#f5f0e8]/80 font-medium leading-none max-w-[60px] truncate">
+                <span className="text-[10px] text-[#f5f0e8]/80 font-medium leading-none max-w-[64px] truncate">
                   {firstPlayerName}
                 </span>
+              </motion.div>
+            ) : (
+              <motion.div
+                key="no-first"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="flex items-center gap-1 bg-[#f5f0e8]/5 border border-[#f5f0e8]/10 rounded-full px-2 py-0.5"
+              >
+                <span className="text-[#a8c4a0]/40 text-[9px]">★</span>
+                <span className="text-[10px] text-[#a8c4a0]/35 leading-none">esperando</span>
               </motion.div>
             )}
           </AnimatePresence>
         </div>
 
-        {/* Team sections */}
+        {/* Team cards */}
         <div className="flex flex-col gap-2 p-3">
           {([0, 1] as const).map((teamIdx) => (
-            <TeamSection
+            <TeamCard
               key={teamIdx}
               teamIdx={teamIdx}
               score={scores[teamIdx]}
