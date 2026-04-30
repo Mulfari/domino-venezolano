@@ -156,7 +156,14 @@ function TeamBlock({
       </div>
 
       {/* Progress bar */}
-      <div className="h-1.5 sm:h-2 rounded-full bg-[#0f3520]/60 overflow-hidden">
+      <div
+        className="h-1.5 sm:h-2 rounded-full bg-[#0f3520]/60 overflow-hidden"
+        role="progressbar"
+        aria-valuenow={score}
+        aria-valuemin={0}
+        aria-valuemax={targetScore}
+        aria-label={`Equipo ${teamIdx + 1}: ${score} de ${targetScore} puntos`}
+      >
         <motion.div
           className={`h-full rounded-full ${barBg}`}
           initial={false}
@@ -197,7 +204,7 @@ export function ScorePanel() {
   return (
     <>
       {/* Mobile compact — single row with scores + mini bars */}
-      <div className="flex sm:hidden items-center gap-2 rounded-xl bg-[#3a2210]/85 border border-[#c9a84c]/25 backdrop-blur-sm px-2 py-1.5 shadow-lg shadow-black/30 shrink-0">
+      <div className="flex sm:hidden items-center gap-2 rounded-xl bg-[#3a2210]/85 border border-[#c9a84c]/25 backdrop-blur-sm px-2 py-1.5 shadow-lg shadow-black/30 shrink-0" role="region" aria-label="Marcador">
         <span className="text-[10px] font-bold uppercase tracking-widest text-[#c9a84c] shrink-0">
           R{round}
         </span>
@@ -213,7 +220,14 @@ export function ScorePanel() {
                 <span className="text-[9px] font-bold tabular-nums w-5 text-right shrink-0" style={{ color }}>
                   {score}
                 </span>
-                <div className="w-10 h-1.5 rounded-full bg-[#0f3520]/60 overflow-hidden">
+                <div
+                  className="w-10 h-1.5 rounded-full bg-[#0f3520]/60 overflow-hidden"
+                  role="progressbar"
+                  aria-valuenow={score}
+                  aria-valuemin={0}
+                  aria-valuemax={targetScore}
+                  aria-label={`Equipo ${teamIdx + 1}: ${score} de ${targetScore} puntos`}
+                >
                   <motion.div
                     className="h-full rounded-full"
                     initial={false}

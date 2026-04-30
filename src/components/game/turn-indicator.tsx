@@ -58,6 +58,9 @@ export function TurnIndicator() {
         exit={{ opacity: 0, y: 8 }}
         transition={{ duration: 0.25 }}
         className="flex items-center gap-2 rounded-full px-3 py-1.5"
+        role="status"
+        aria-live="polite"
+        aria-label={isMyTurn ? "Es tu turno" : `Turno de ${displayName}, Equipo ${team + 1}`}
         style={{
           backgroundColor: isMyTurn ? colors.subtle : "rgba(0,0,0,0.18)",
           border: `1px solid ${isMyTurn ? colors.border : "rgba(255,255,255,0.07)"}`,

@@ -47,7 +47,7 @@ function Confetti({ active }: { active: boolean }) {
   if (!active) return null;
 
   return (
-    <div className="pointer-events-none fixed inset-0 overflow-hidden z-[60]">
+    <div className="pointer-events-none fixed inset-0 overflow-hidden z-[60]" aria-hidden="true">
       {particles.map((p) => (
         <motion.div
           key={p.id}
@@ -393,7 +393,7 @@ function RoundEndView({
                   className="absolute inset-y-0 left-0 bg-[#c9a84c]/60 rounded-full"
                 />
               </div>
-              <p className="text-center text-xs text-[#a8c4a0]/55">
+              <p className="text-center text-xs text-[#a8c4a0]/55" aria-live="polite" aria-atomic="true">
                 Siguiente ronda en {countdown}s
               </p>
             </div>
