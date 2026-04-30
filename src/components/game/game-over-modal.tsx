@@ -324,7 +324,7 @@ function RoundEndView({
       aria-modal="true"
       aria-labelledby="round-end-title"
     >
-      <Confetti active={iWon} />
+      <Confetti active={!isDraw} />
       <FlashOverlay color={flashColor} />
 
       <motion.div
@@ -363,16 +363,27 @@ function RoundEndView({
             transition={{ delay: 0.22, type: "spring", stiffness: 420, damping: 20 }}
             className={`text-3xl font-bold tracking-tight ${accentColor}`}
           >
-            {meta.label}
+            {winnerLabel}
           </motion.p>
+
+          {!isDraw && winnerNames.length > 0 && (
+            <motion.p
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.32 }}
+              className="text-sm text-[#f5f0e8]/70 mt-1 font-medium"
+            >
+              {winnerNames.join(" & ")}
+            </motion.p>
+          )}
 
           <motion.p
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 0.36 }}
-            className="text-xs text-[#a8c4a0]/60 mt-1 uppercase tracking-widest"
+            transition={{ delay: 0.4 }}
+            className="text-xs text-[#a8c4a0]/55 mt-1.5 uppercase tracking-widest"
           >
-            Ronda {round}
+            {meta.icon} {meta.label} · Ronda {round}
           </motion.p>
         </div>
 
@@ -584,66 +595,81 @@ function GameOverView({ scores, myTeam, team0Names, team1Names, onBackToLobby }:
 
         {/* Podium */}
         <div className="mx-5 mt-2 mb-3">
-          <p className="text-[10px] uppercase tracking-widest text-[#a8c4a0]/45 text-center mb-3">
+          <p className="text-[10px] uppercase tracking-widest text-[#a8c4a0]/45 text-center mb-4">
             Resultado final
           </p>
 
-          {/* Winner block — centered, prominent */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.6, type: "spring", stiffness: 260, damping: 22 }}
-            className="rounded-xl bg-gradient-to-b from-[#c9a84c]/30 via-[#c9a84c]/12 to-[#1e5c3a]/60 border border-[#c9a84c]/55 px-4 py-4 mb-3 flex items-center gap-4"
-          >
-            <motion.span
-              initial={{ scale: 0, rotate: -30 }}
-              animate={{ scale: [0, 1.5, 0.9, 1], rotate: [0, 18, -6, 0] }}
-              transition={{ delay: 0.9, duration: 0.55, ease: "easeOut" }}
-              className="text-4xl shrink-0"
-              aria-hidden="true"
+          {/* Side-by-side podium pedestals */}
+          <div className="flex items-end justify-center gap-3 mb-4" aria-label="Podio final">
+            {/* Loser pedestal — shorter, left */}
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.85, type: "spring", stiffness: 220, damping: 22 }}
+              className="flex flex-col items-center flex-1"
             >
-              🥇
-            </motion.span>
-            <div className="flex-1 min-w-0">
-              <p className="text-[10px] text-[#c9a84c]/60 uppercase tracking-wider">{teamTag(winnerTeam)}</p>
-              <p className="text-sm font-bold text-[#c9a84c] truncate leading-tight mt-0.5">
-                {teamLabel(winnerTeam)}
+              <span className="text-2xl mb-1" aria-hidden="true">🥈</span>
+              <p className="text-[10px] text-[#a8c4a0]/55 uppercase tracking-wider mb-1 text-center">
+                {teamTag(loserTeam)}
               </p>
-            </div>
-            <div className="text-right shrink-0">
-              <motion.p
-                initial={{ scale: 0.4, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ delay: 1.05, type: "spring", stiffness: 380 }}
-                className="text-3xl font-bold text-[#c9a84c] tabular-nums leading-none"
-              >
-                <AnimatedNumber value={scores[winnerTeam]} delay={1.1} />
-              </motion.p>
-              <p className="text-[10px] text-[#c9a84c]/55 uppercase tracking-wider">pts</p>
-            </div>
-          </motion.div>
-
-          {/* Loser block — subdued */}
-          <motion.div
-            initial={{ opacity: 0, y: 14 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.78, type: "spring", stiffness: 240, damping: 22 }}
-            className="rounded-xl bg-[#1e5c3a]/40 border border-[#f5f0e8]/10 px-4 py-3 flex items-center gap-4"
-          >
-            <span className="text-3xl shrink-0" aria-hidden="true">🥈</span>
-            <div className="flex-1 min-w-0">
-              <p className="text-[10px] text-[#a8c4a0]/45 uppercase tracking-wider">{teamTag(loserTeam)}</p>
-              <p className="text-sm font-medium text-[#f5f0e8]/55 truncate leading-tight mt-0.5">
+              <p className="text-xs font-medium text-[#f5f0e8]/60 truncate max-w-full text-center px-1 mb-2">
                 {teamLabel(loserTeam)}
               </p>
-            </div>
-            <div className="text-right shrink-0">
-              <p className="text-2xl font-bold text-[#f5f0e8]/60 tabular-nums leading-none">
-                {scores[loserTeam]}
+              <motion.div
+                initial={{ scaleY: 0 }}
+                animate={{ scaleY: 1 }}
+                transition={{ delay: 1.0, duration: 0.5, ease: "easeOut" }}
+                  style={{ originY: 1, height: 64 }}
+                className="w-full rounded-t-lg bg-[#1e5c3a]/70 border border-[#f5f0e8]/10 flex flex-col items-center justify-center py-3"
+              >
+                <p className="text-xl font-bold text-[#f5f0e8]/65 tabular-nums leading-none">
+                  {scores[loserTeam]}
+                </p>
+                <p className="text-[9px] text-[#a8c4a0]/40 uppercase tracking-wider">pts</p>
+              </motion.div>
+            </motion.div>
+
+            {/* Winner pedestal — taller, center */}
+            <motion.div
+              initial={{ opacity: 0, y: 40 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.6, type: "spring", stiffness: 260, damping: 20 }}
+              className="flex flex-col items-center flex-1"
+            >
+              <motion.span
+                initial={{ scale: 0, rotate: -20 }}
+                animate={{ scale: [0, 1.5, 0.9, 1], rotate: [0, 15, -5, 0] }}
+                transition={{ delay: 0.9, duration: 0.6, ease: "easeOut" }}
+                className="text-3xl mb-1"
+                aria-hidden="true"
+              >
+                🥇
+              </motion.span>
+              <p className="text-[10px] text-[#c9a84c]/70 uppercase tracking-wider mb-1 text-center">
+                {teamTag(winnerTeam)}
               </p>
-              <p className="text-[10px] text-[#a8c4a0]/40 uppercase tracking-wider">pts</p>
-            </div>
-          </motion.div>
+              <p className="text-xs font-bold text-[#c9a84c] truncate max-w-full text-center px-1 mb-2">
+                {teamLabel(winnerTeam)}
+              </p>
+              <motion.div
+                initial={{ scaleY: 0 }}
+                animate={{ scaleY: 1 }}
+                transition={{ delay: 0.75, duration: 0.55, ease: "easeOut" }}
+                style={{ originY: 1, height: 96 }}
+                className="w-full rounded-t-lg bg-gradient-to-b from-[#c9a84c]/35 to-[#c9a84c]/15 border border-[#c9a84c]/50 flex flex-col items-center justify-center py-3"
+              >
+                <motion.p
+                  initial={{ scale: 0.4, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ delay: 1.1, type: "spring", stiffness: 380 }}
+                  className="text-2xl font-bold text-[#c9a84c] tabular-nums leading-none"
+                >
+                  <AnimatedNumber value={scores[winnerTeam]} delay={1.15} />
+                </motion.p>
+                <p className="text-[9px] text-[#c9a84c]/55 uppercase tracking-wider">pts</p>
+              </motion.div>
+            </motion.div>
+          </div>
         </div>
 
         {/* Difference callout */}
