@@ -303,6 +303,12 @@ function RoundEndView({
   const progress0 = Math.min((scores[0] / targetScore) * 100, 100);
   const progress1 = Math.min((scores[1] / targetScore) * 100, 100);
 
+  // Pre-round scores for animating bars from their previous position
+  const prevScore0 = roundResult.winner_team === 0 ? Math.max(0, scores[0] - roundResult.points) : scores[0];
+  const prevScore1 = roundResult.winner_team === 1 ? Math.max(0, scores[1] - roundResult.points) : scores[1];
+  const prevProgress0 = Math.min((prevScore0 / targetScore) * 100, 100);
+  const prevProgress1 = Math.min((prevScore1 / targetScore) * 100, 100);
+
   const flashColor = iWon ? "rgba(201,168,76,0.35)" : isDraw ? "rgba(168,196,160,0.2)" : "rgba(180,30,30,0.25)";
   const accentColor = iWon ? "text-[#c9a84c]" : isDraw ? "text-[#a8c4a0]" : "text-red-400";
   const headerGradient = iWon
@@ -449,7 +455,7 @@ function RoundEndView({
                 </div>
                 <div className="h-2 rounded-full bg-[#0f3520]/80 overflow-hidden">
                   <motion.div
-                    initial={{ width: 0 }}
+                    initial={{ width: `${team === 0 ? prevProgress0 : prevProgress1}%` }}
                     animate={{ width: `${progress}%` }}
                     transition={{ delay: 0.72, duration: 0.75, ease: "easeOut" }}
                     className={`h-full rounded-full ${

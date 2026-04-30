@@ -628,7 +628,11 @@ export default function GamePage() {
 
       {/* Game area — fades out/in on round transitions */}
       <motion.div
-        animate={{ opacity: boardTransitioning ? 0 : 1, scale: boardTransitioning ? 0.97 : 1 }}
+        animate={{
+          opacity: boardTransitioning ? 0 : 1,
+          scale: boardTransitioning ? 0.97 : 1,
+          filter: boardTransitioning ? "blur(6px)" : "blur(0px)",
+        }}
         transition={{ duration: 0.35, ease: "easeInOut" }}
         className="flex flex-col flex-1 min-h-0"
       >
