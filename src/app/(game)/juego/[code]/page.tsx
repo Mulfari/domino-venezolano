@@ -67,6 +67,34 @@ function getRelativeSeats(mySeat: Seat): {
 }
 
 /* ------------------------------------------------------------------ */
+/*  Animated score counter for the round transition overlay           */
+/* ------------------------------------------------------------------ */
+function AnimatedScore({ target, duration = 800 }: { target: number; duration?: number }) {
+  const [display, setDisplay] = useState(target);
+  const prevRef = useRef(target);
+  const rafRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    const from = prevRef.current;
+    if (from === target) return;
+    prevRef.current = target;
+    const start = performance.now();
+    const diff = target - from;
+    function tick(now: number) {
+      const elapsed = now - start;
+      const progress = Math.min(elapsed / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setDisplay(Math.round(from + diff * eased));
+      if (progress < 1) rafRef.current = requestAnimationFrame(tick);
+    }
+    rafRef.current = requestAnimationFrame(tick);
+    return () => { if (rafRef.current !== null) cancelAnimationFrame(rafRef.current); };
+  }, [target, duration]);
+
+  return <>{display}</>;
+}
+
+/* ------------------------------------------------------------------ */
 /*  Main page component                                               */
 /* ------------------------------------------------------------------ */
 export default function GamePage() {
@@ -99,6 +127,8 @@ export default function GamePage() {
   const setMySeat = useGameStore((s) => s.setMySeat);
   const setPlayers = useGameStore((s) => s.setPlayers);
   const setGameState = useGameStore((s) => s.setGameState);
+  const scores = useGameStore((s) => s.scores);
+  const targetScore = useGameStore((s) => s.targetScore);
   const setScores = useGameStore((s) => s.setScores);
   const setRound = useGameStore((s) => s.setRound);
   const setTargetScore = useGameStore((s) => s.setTargetScore);
@@ -615,10 +645,53 @@ export default function GamePage() {
                 className="h-px w-32 bg-gradient-to-r from-transparent via-[#c9a84c]/60 to-transparent"
               />
 
+              {/* Score display with count-up animation */}
+              <motion.div
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.35, duration: 0.3 }}
+                className="flex items-center gap-4"
+              >
+                {([0, 1] as const).map((team) => {
+                  const myTeam = mySeat !== null ? (mySeat % 2) as 0 | 1 : null;
+                  const isMyTeam = myTeam === team;
+                  const color = team === 0 ? "#c9a84c" : "#a8c4a0";
+                  const pct = Math.min((scores[team] / (targetScore || 100)) * 100, 100);
+                  return (
+                    <div key={team} className="flex flex-col items-center gap-1 min-w-[64px]">
+                      <span
+                        className="text-[9px] uppercase tracking-widest font-bold"
+                        style={{ color: isMyTeam ? "#c9a84c" : "rgba(168,196,160,0.7)" }}
+                      >
+                        {isMyTeam ? "◆ " : ""}Equipo {team + 1}
+                      </span>
+                      <span
+                        className="text-2xl font-bold tabular-nums leading-none"
+                        style={{ color, textShadow: isMyTeam ? "0 0 16px rgba(201,168,76,0.5)" : undefined }}
+                      >
+                        <AnimatedScore target={scores[team]} duration={700} />
+                      </span>
+                      <div className="w-16 h-1 rounded-full bg-black/30 overflow-hidden">
+                        <motion.div
+                          initial={{ width: 0 }}
+                          animate={{ width: `${pct}%` }}
+                          transition={{ delay: 0.5, duration: 0.6, ease: "easeOut" }}
+                          className="h-full rounded-full"
+                          style={{ backgroundColor: color }}
+                        />
+                      </div>
+                      <span className="text-[8px] tabular-nums" style={{ color: "rgba(168,196,160,0.45)" }}>
+                        /{targetScore}
+                      </span>
+                    </div>
+                  );
+                })}
+              </motion.div>
+
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                transition={{ delay: 0.4 }}
+                transition={{ delay: 0.5 }}
                 className="h-5 w-5 animate-spin rounded-full border-2 border-[#c9a84c]/60 border-t-transparent"
               />
             </motion.div>
