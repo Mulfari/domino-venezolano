@@ -95,23 +95,23 @@ export function Hand({ onPlayTile, onPass, disabled = false }: HandProps) {
                 layout
                 initial={{ opacity: 0, y: 30, scale: 0.8 }}
                 animate={{
-                  opacity: isMyTurn && !playable && !cochina ? 0.45 : 1,
-                  y: cochina ? -8 : selected ? -14 : 0,
+                  opacity: isMyTurn && !playable && !cochina ? 0.38 : 1,
+                  y: cochina ? -8 : selected ? -16 : 0,
                   scale: cochina ? 1.1 : selected ? 1.08 : 1,
                   filter:
                     isMyTurn && !playable && !cochina
-                      ? "grayscale(0.55) brightness(0.6) saturate(0.3)"
+                      ? "grayscale(0.7) brightness(0.5) saturate(0.2)"
                       : selected
-                      ? "drop-shadow(0 6px 12px rgba(0,0,0,0.55)) drop-shadow(0 0 10px rgba(201,168,76,0.5))"
+                      ? "drop-shadow(0 8px 16px rgba(0,0,0,0.65)) drop-shadow(0 0 14px rgba(201,168,76,0.65))"
                       : "drop-shadow(0 2px 5px rgba(0,0,0,0.4))",
                 }}
                 whileHover={
                   playable
                     ? {
-                        y: cochina ? -18 : selected ? -20 : -14,
-                        scale: cochina ? 1.16 : 1.1,
-                        filter: "drop-shadow(0 14px 20px rgba(0,0,0,0.65)) drop-shadow(0 0 14px rgba(201,168,76,0.45))",
-                        transition: { type: "spring", stiffness: 500, damping: 20 },
+                        y: cochina ? -22 : selected ? -24 : -18,
+                        scale: cochina ? 1.18 : 1.13,
+                        filter: "drop-shadow(0 18px 28px rgba(0,0,0,0.75)) drop-shadow(0 0 20px rgba(201,168,76,0.7))",
+                        transition: { type: "spring", stiffness: 600, damping: 18 },
                       }
                     : undefined
                 }
