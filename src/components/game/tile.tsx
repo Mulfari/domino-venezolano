@@ -96,7 +96,7 @@ export function DominoTile({
   const isMobile = useIsMobile();
   const config = responsive && isMobile ? mobileSizeConfig : sizeConfig;
   const { w: baseW, h: baseH, pip, gap } = config[size];
-  const borderRadius = size === "small" ? 6 : size === "medium" ? 10 : 13;
+  const borderRadius = size === "small" ? 8 : size === "medium" ? 13 : 17;
   const uid = useId().replace(/:/g, "");
 
   const isHorizontal = orientation === "horizontal";
@@ -111,18 +111,24 @@ export function DominoTile({
       height={h}
       viewBox={`0 0 ${w} ${h}`}
       xmlns="http://www.w3.org/2000/svg"
-      className={`${highlight ? "drop-shadow-[0_0_8px_rgba(201,168,76,0.9)]" : "drop-shadow-[0_3px_7px_rgba(0,0,0,0.65)]"} ${disabled ? "opacity-55" : ""}`}
+      className={`${highlight ? "drop-shadow-[0_0_10px_rgba(201,168,76,0.95)]" : "drop-shadow-[0_4px_10px_rgba(0,0,0,0.75)]"} ${disabled ? "opacity-55" : ""}`}
+      style={!highlight && !faceDown ? { filter: "drop-shadow(0 4px 10px rgba(0,0,0,0.75)) drop-shadow(0 1px 3px rgba(0,0,0,0.5))" } : undefined}
     >
       <defs>
-        <linearGradient id={`face-${uid}`} x1="0" y1="0" x2="0.6" y2="1">
-          <stop offset="0%" stopColor="#fffdf7" />
-          <stop offset="40%" stopColor="#f5f0e8" />
-          <stop offset="100%" stopColor="#ddd5c4" />
+        <linearGradient id={`face-${uid}`} x1="0.15" y1="0" x2="0.85" y2="1">
+          <stop offset="0%" stopColor="#fefcf5" />
+          <stop offset="25%" stopColor="#f8f3ea" />
+          <stop offset="60%" stopColor="#f0ead9" />
+          <stop offset="100%" stopColor="#d8cebb" />
         </linearGradient>
-        <linearGradient id={`sheen-${uid}`} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="white" stopOpacity="0.22" />
-          <stop offset="55%" stopColor="white" stopOpacity="0.04" />
+        <linearGradient id={`sheen-${uid}`} x1="0" y1="0" x2="0.3" y2="1">
+          <stop offset="0%" stopColor="white" stopOpacity="0.35" />
+          <stop offset="40%" stopColor="white" stopOpacity="0.08" />
           <stop offset="100%" stopColor="white" stopOpacity="0" />
+        </linearGradient>
+        <linearGradient id={`edge-shadow-${uid}`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="transparent" />
+          <stop offset="100%" stopColor="rgba(0,0,0,0.12)" />
         </linearGradient>
         <linearGradient id={`back-${uid}`} x1="0" y1="0" x2="1" y2="1">
           <stop offset="0%" stopColor="#5c3a1e" />
@@ -142,13 +148,14 @@ export function DominoTile({
         <clipPath id={`clip-${uid}`}>
           <rect x={0} y={0} width={w} height={h} rx={borderRadius}/>
         </clipPath>
-        <radialGradient id={`pip-${uid}`} cx="32%" cy="28%" r="70%">
-          <stop offset="0%" stopColor="#555" />
-          <stop offset="45%" stopColor="#1a1a1a" />
-          <stop offset="100%" stopColor="#050505" />
+        <radialGradient id={`pip-${uid}`} cx="35%" cy="30%" r="75%">
+          <stop offset="0%" stopColor="#4a4a4a" />
+          <stop offset="35%" stopColor="#1a1a1a" />
+          <stop offset="100%" stopColor="#020202" />
         </radialGradient>
-        <radialGradient id={`pip-shine-${uid}`} cx="38%" cy="30%" r="45%">
-          <stop offset="0%" stopColor="white" stopOpacity="0.28" />
+        <radialGradient id={`pip-shine-${uid}`} cx="35%" cy="28%" r="50%">
+          <stop offset="0%" stopColor="white" stopOpacity="0.38" />
+          <stop offset="60%" stopColor="white" stopOpacity="0.08" />
           <stop offset="100%" stopColor="white" stopOpacity="0" />
         </radialGradient>
       </defs>
@@ -164,9 +171,12 @@ export function DominoTile({
         strokeWidth={selected || highlight ? 1.5 : 0.75}
       />
 
-      {/* Subtle surface sheen on face-up tiles */}
+      {/* Subtle surface sheen + bottom edge shadow on face-up tiles */}
       {!faceDown && (
-        <rect x={0} y={0} width={w} height={h * 0.5} rx={borderRadius} fill={`url(#sheen-${uid})`} clipPath={`url(#clip-${uid})`} />
+        <>
+          <rect x={0} y={0} width={w} height={h * 0.5} rx={borderRadius} fill={`url(#sheen-${uid})`} clipPath={`url(#clip-${uid})`} />
+          <rect x={0} y={0} width={w} height={h} rx={borderRadius} fill={`url(#edge-shadow-${uid})`} clipPath={`url(#clip-${uid})`} />
+        </>
       )}
 
       {faceDown ? (
