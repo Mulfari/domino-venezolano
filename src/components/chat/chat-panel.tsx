@@ -92,21 +92,21 @@ export function ChatPanel({
 
   return (
     <>
-      {/* Toast preview */}
+      {/* Toast preview — appears above the button */}
       <AnimatePresence>
         {toastMsg && !open && (
           <motion.div
-            initial={{ opacity: 0, x: 40, y: 4 }}
-            animate={{ opacity: 1, x: 0, y: 0 }}
-            exit={{ opacity: 0, x: 40 }}
-            transition={{ duration: 0.22, ease: "easeOut" }}
-            className="fixed bottom-[72px] right-16 z-40 max-w-[210px] rounded-xl px-3 py-2 text-xs text-[#e8dcc8] pointer-events-none"
+            initial={{ opacity: 0, y: 6, scale: 0.96 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 4, scale: 0.96 }}
+            transition={{ duration: 0.2, ease: "easeOut" }}
+            className="fixed bottom-20 right-4 z-40 max-w-[220px] rounded-xl px-3 py-2 text-xs text-[#e8dcc8] pointer-events-none"
             style={{
-              background: "rgba(8, 22, 14, 0.88)",
-              backdropFilter: "blur(14px)",
-              WebkitBackdropFilter: "blur(14px)",
-              border: "1px solid rgba(201,168,76,0.28)",
-              boxShadow: "0 4px 20px rgba(0,0,0,0.5)",
+              background: "rgba(8, 22, 14, 0.82)",
+              backdropFilter: "blur(20px) saturate(1.8)",
+              WebkitBackdropFilter: "blur(20px) saturate(1.8)",
+              border: "1px solid rgba(201,168,76,0.30)",
+              boxShadow: "0 4px 24px rgba(0,0,0,0.55)",
             }}
           >
             {toastMsg}
@@ -117,31 +117,32 @@ export function ChatPanel({
       {/* Floating toggle button */}
       <motion.button
         onClick={open ? handleClose : handleOpen}
-        animate={hasUnread ? { scale: [1, 1.08, 1] } : { scale: 1 }}
+        animate={
+          hasUnread
+            ? { scale: [1, 1.1, 1], boxShadow: ["0 0 0px rgba(201,168,76,0)", "0 0 18px rgba(201,168,76,0.5)", "0 0 0px rgba(201,168,76,0)"] }
+            : {}
+        }
         transition={
           hasUnread
-            ? { repeat: Infinity, duration: 2.2, ease: "easeInOut" }
+            ? { repeat: Infinity, duration: 2.4, ease: "easeInOut" }
             : { duration: 0.15 }
         }
-        className="fixed bottom-4 right-4 z-50 w-11 h-11 rounded-full flex items-center justify-center shadow-lg transition-colors border"
+        className="fixed bottom-4 right-4 z-50 w-12 h-12 rounded-full flex items-center justify-center shadow-xl transition-colors border"
         style={{
           background: open
-            ? "rgba(201,168,76,0.22)"
+            ? "rgba(201,168,76,0.18)"
             : hasUnread
-            ? "rgba(201,168,76,0.20)"
-            : "rgba(14, 40, 24, 0.85)",
-          backdropFilter: "blur(12px)",
-          WebkitBackdropFilter: "blur(12px)",
-          borderColor:
-            open || hasUnread
-              ? "rgba(201,168,76,0.65)"
-              : "rgba(201,168,76,0.22)",
+            ? "rgba(201,168,76,0.16)"
+            : "rgba(10, 30, 18, 0.88)",
+          backdropFilter: "blur(16px)",
+          WebkitBackdropFilter: "blur(16px)",
+          borderColor: open || hasUnread ? "rgba(201,168,76,0.70)" : "rgba(201,168,76,0.25)",
           color: "#c9a84c",
           boxShadow: hasUnread
-            ? "0 0 16px rgba(201,168,76,0.45), 0 4px 16px rgba(0,0,0,0.5)"
+            ? "0 0 20px rgba(201,168,76,0.40), 0 4px 20px rgba(0,0,0,0.55)"
             : open
-            ? "0 0 12px rgba(201,168,76,0.25), 0 4px 14px rgba(0,0,0,0.4)"
-            : "0 4px 14px rgba(0,0,0,0.45)",
+            ? "0 0 14px rgba(201,168,76,0.22), 0 4px 16px rgba(0,0,0,0.45)"
+            : "0 4px 16px rgba(0,0,0,0.50)",
         }}
         aria-label={open ? "Cerrar chat" : "Abrir chat"}
         aria-expanded={open}
@@ -196,34 +197,34 @@ export function ChatPanel({
               animate={{ scale: 1 }}
               exit={{ scale: 0 }}
               transition={{ type: "spring", stiffness: 500, damping: 25 }}
-              className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-red-500 text-[10px] font-bold flex items-center justify-center"
+              className="absolute -top-1.5 -right-1.5 min-w-[20px] h-5 px-1 rounded-full bg-red-500 text-[10px] font-bold flex items-center justify-center"
               aria-label={`${unread} mensajes sin leer`}
             >
-              <span className="absolute inset-0 rounded-full bg-red-500 animate-ping opacity-50" />
-              <span className="relative">{unread > 9 ? "9+" : unread}</span>
+              <span className="absolute inset-0 rounded-full bg-red-500 animate-ping opacity-40" />
+              <span className="relative leading-none">{unread > 9 ? "9+" : unread}</span>
             </motion.span>
           )}
         </AnimatePresence>
       </motion.button>
 
-      {/* Floating chat panel — no backdrop so the game stays interactive */}
+      {/* Floating chat panel */}
       <AnimatePresence>
         {open && (
           <motion.div
-            initial={{ opacity: 0, x: 32, scale: 0.96 }}
-            animate={{ opacity: 1, x: 0, scale: 1 }}
-            exit={{ opacity: 0, x: 32, scale: 0.96 }}
-            transition={{ duration: 0.2, ease: [0.25, 0.46, 0.45, 0.94] }}
-            className="fixed bottom-[72px] right-4 z-40 w-64 sm:w-72 max-w-[calc(100vw-2rem)] flex flex-col rounded-2xl overflow-hidden shadow-2xl"
+            initial={{ opacity: 0, y: 16, scale: 0.97 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 12, scale: 0.97 }}
+            transition={{ duration: 0.22, ease: [0.25, 0.46, 0.45, 0.94] }}
+            className="fixed bottom-20 right-4 z-40 w-64 sm:w-72 max-w-[calc(100vw-2rem)] flex flex-col rounded-2xl overflow-hidden"
             style={{
-              maxHeight: "min(380px, calc(100dvh - 180px))",
-              /* High transparency so the board shows through */
-              background: "rgba(5, 16, 10, 0.55)",
-              backdropFilter: "blur(40px) saturate(2)",
-              WebkitBackdropFilter: "blur(40px) saturate(2)",
-              border: "1px solid rgba(201,168,76,0.22)",
+              maxHeight: "min(360px, calc(100dvh - 200px))",
+              /* High transparency — board stays visible through the panel */
+              background: "rgba(4, 14, 9, 0.42)",
+              backdropFilter: "blur(48px) saturate(2.2) brightness(1.1)",
+              WebkitBackdropFilter: "blur(48px) saturate(2.2) brightness(1.1)",
+              border: "1px solid rgba(201,168,76,0.20)",
               boxShadow:
-                "0 8px 48px rgba(0,0,0,0.55), inset 0 1px 0 rgba(201,168,76,0.12), inset 0 -1px 0 rgba(0,0,0,0.2)",
+                "0 8px 48px rgba(0,0,0,0.50), inset 0 1px 0 rgba(201,168,76,0.10), inset 0 -1px 0 rgba(0,0,0,0.15)",
             }}
             role="dialog"
             aria-label="Chat de la partida"
@@ -231,15 +232,19 @@ export function ChatPanel({
             {/* Header */}
             <div
               className="flex items-center justify-between px-3 py-2 shrink-0"
-              style={{ borderBottom: "1px solid rgba(201,168,76,0.10)" }}
+              style={{
+                borderBottom: "1px solid rgba(201,168,76,0.10)",
+                background: "rgba(201,168,76,0.04)",
+              }}
             >
               <div className="flex items-center gap-2">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  className="w-3.5 h-3.5 text-[#c9a84c]/60"
+                  className="w-3.5 h-3.5"
                   viewBox="0 0 20 20"
                   fill="currentColor"
                   aria-hidden="true"
+                  style={{ color: "rgba(201,168,76,0.65)" }}
                 >
                   <path
                     fillRule="evenodd"
@@ -247,16 +252,18 @@ export function ChatPanel({
                     clipRule="evenodd"
                   />
                 </svg>
-                <h2 className="text-xs font-semibold text-[#f5f0e8]/85">Chat</h2>
+                <h2 className="text-xs font-semibold text-[#f5f0e8]/80 tracking-wide">
+                  Chat
+                </h2>
                 {messages.length > 0 && (
-                  <span className="text-[10px] text-[#a8c4a0]/35">
+                  <span className="text-[10px] text-[#a8c4a0]/30">
                     {messages.length}
                   </span>
                 )}
               </div>
               <button
                 onClick={handleClose}
-                className="text-[#a8c4a0]/35 hover:text-[#f5f0e8] transition-colors p-0.5 rounded"
+                className="text-[#a8c4a0]/30 hover:text-[#f5f0e8]/70 transition-colors p-0.5 rounded"
                 aria-label="Cerrar chat"
               >
                 <svg
@@ -279,14 +286,15 @@ export function ChatPanel({
             <div
               ref={scrollRef}
               className="flex-1 overflow-y-auto px-3 py-2.5 space-y-2.5 min-h-0"
+              style={{ scrollbarWidth: "none" }}
             >
               {loading && (
-                <p className="text-xs text-[#a8c4a0]/45 text-center animate-pulse">
+                <p className="text-xs text-[#a8c4a0]/40 text-center animate-pulse">
                   Cargando mensajes...
                 </p>
               )}
               {!loading && messages.length === 0 && (
-                <p className="text-xs text-[#a8c4a0]/30 text-center mt-4">
+                <p className="text-xs text-[#a8c4a0]/28 text-center mt-4">
                   No hay mensajes aún. ¡Saluda!
                 </p>
               )}
@@ -310,22 +318,18 @@ export function ChatPanel({
                 <button
                   key={r}
                   onClick={() => sendMessage(r)}
-                  className="rounded-full px-2 py-0.5 text-[11px] text-[#e8dcc8]/75 transition-all hover:text-[#f5f0e8]"
+                  className="rounded-full px-2 py-0.5 text-[11px] text-[#e8dcc8]/65 hover:text-[#f5f0e8] transition-all"
                   style={{
-                    background: "rgba(30,92,58,0.22)",
-                    border: "1px solid rgba(201,168,76,0.09)",
+                    background: "rgba(30,92,58,0.18)",
+                    border: "1px solid rgba(201,168,76,0.08)",
                   }}
                   onMouseEnter={(e) => {
-                    (e.currentTarget as HTMLButtonElement).style.background =
-                      "rgba(30,92,58,0.50)";
-                    (e.currentTarget as HTMLButtonElement).style.borderColor =
-                      "rgba(201,168,76,0.22)";
+                    (e.currentTarget as HTMLButtonElement).style.background = "rgba(30,92,58,0.42)";
+                    (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(201,168,76,0.20)";
                   }}
                   onMouseLeave={(e) => {
-                    (e.currentTarget as HTMLButtonElement).style.background =
-                      "rgba(30,92,58,0.22)";
-                    (e.currentTarget as HTMLButtonElement).style.borderColor =
-                      "rgba(201,168,76,0.09)";
+                    (e.currentTarget as HTMLButtonElement).style.background = "rgba(30,92,58,0.18)";
+                    (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(201,168,76,0.08)";
                   }}
                 >
                   {r}
@@ -345,13 +349,13 @@ export function ChatPanel({
                   placeholder="Escribe un mensaje..."
                   maxLength={280}
                   aria-label="Mensaje de chat"
-                  className="flex-1 min-w-0 text-xs text-[#f5f0e8] placeholder-[#a8c4a0]/30 rounded-lg px-2.5 py-1.5 outline-none focus:ring-1 focus:ring-[#c9a84c]/30 transition-all"
-                  style={{ background: "rgba(30,92,58,0.25)" }}
+                  className="flex-1 min-w-0 text-xs text-[#f5f0e8] placeholder-[#a8c4a0]/28 rounded-lg px-2.5 py-1.5 outline-none focus:ring-1 focus:ring-[#c9a84c]/25 transition-all"
+                  style={{ background: "rgba(30,92,58,0.22)" }}
                 />
                 <button
                   onClick={handleSend}
                   disabled={!input.trim()}
-                  className="shrink-0 px-2.5 py-1.5 bg-[#c9a84c] hover:bg-[#dfc06a] disabled:opacity-25 disabled:hover:bg-[#c9a84c] text-[#2a1a0a] rounded-lg transition-colors"
+                  className="shrink-0 px-2.5 py-1.5 bg-[#c9a84c] hover:bg-[#dfc06a] disabled:opacity-20 disabled:hover:bg-[#c9a84c] text-[#2a1a0a] rounded-lg transition-colors"
                   aria-label="Enviar mensaje"
                 >
                   <svg
