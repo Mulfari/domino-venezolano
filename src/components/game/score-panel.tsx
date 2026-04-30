@@ -158,11 +158,18 @@ function TeamBlock({
                 transition={{ duration: 0.5, ease: "easeOut" }}
                 className="absolute right-0 top-0 text-[10px] font-bold text-green-400 tabular-nums pointer-events-none"
                 style={{ textShadow: "0 0 8px rgba(74,222,128,0.6)" }}
+                aria-hidden="true"
               >
                 +{delta}
               </motion.span>
             )}
           </AnimatePresence>
+          {/* Announce score changes to screen readers */}
+          {delta !== null && (
+            <span className="sr-only" aria-live="polite" aria-atomic="true">
+              Equipo {teamIdx + 1} suma {delta} puntos, total {score}
+            </span>
+          )}
         </div>
       </div>
 

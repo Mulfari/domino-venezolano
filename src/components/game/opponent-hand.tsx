@@ -92,9 +92,9 @@ export function OpponentHand({
         </motion.div>
       </div>
 
-      {/* Face-down tiles — overlapping fan/stack arrangement */}
+      {/* Face-down tiles — overlapping fan/stack arrangement, decorative only */}
       {tileCount > 0 && (
-        <div className="relative">
+        <div className="relative" aria-hidden="true">
           <div
             className={`flex items-end justify-center ${
               isVertical ? "flex-col" : "flex-row"
