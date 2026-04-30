@@ -100,7 +100,7 @@ export function ChatPanel({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 4, scale: 0.96 }}
             transition={{ duration: 0.2, ease: "easeOut" }}
-            className="fixed bottom-20 right-4 z-40 max-w-[220px] rounded-xl px-3 py-2 text-xs text-[#e8dcc8] pointer-events-none"
+            className="fixed bottom-[168px] right-3 z-40 sm:bottom-20 sm:right-4 max-w-[220px] rounded-xl px-3 py-2 text-xs text-[#e8dcc8] pointer-events-none"
             style={{
               background: "rgba(8, 22, 14, 0.82)",
               backdropFilter: "blur(20px) saturate(1.8)",
@@ -127,7 +127,7 @@ export function ChatPanel({
             ? { repeat: Infinity, duration: 2.4, ease: "easeInOut" }
             : { duration: 0.15 }
         }
-        className="fixed bottom-4 right-4 z-50 w-12 h-12 rounded-full flex items-center justify-center shadow-xl transition-colors border"
+        className="fixed bottom-[92px] right-3 z-50 sm:bottom-4 sm:right-4 w-12 h-12 rounded-full flex items-center justify-center shadow-xl transition-colors border"
         style={{
           background: open
             ? "rgba(201,168,76,0.18)"
@@ -215,7 +215,7 @@ export function ChatPanel({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 12, scale: 0.97 }}
             transition={{ duration: 0.22, ease: [0.25, 0.46, 0.45, 0.94] }}
-            className="fixed bottom-20 right-4 z-40 w-64 sm:w-72 max-w-[calc(100vw-2rem)] flex flex-col rounded-2xl overflow-hidden"
+            className="fixed bottom-[168px] right-3 z-40 sm:bottom-20 sm:right-4 w-64 sm:w-72 max-w-[calc(100vw-2rem)] flex flex-col rounded-2xl overflow-hidden"
             style={{
               maxHeight: "min(360px, calc(100dvh - 200px))",
               /* High transparency — board stays visible through the panel */
