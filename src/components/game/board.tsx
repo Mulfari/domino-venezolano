@@ -199,74 +199,86 @@ export function Board({ onPlaceEnd, clearing = false }: BoardProps) {
                   0deg,
                   transparent,
                   transparent 2px,
-                  rgba(0,0,0,0.028) 2px,
-                  rgba(0,0,0,0.028) 3px
+                  rgba(0,0,0,0.035) 2px,
+                  rgba(0,0,0,0.035) 3px
                 ),
                 repeating-linear-gradient(
                   90deg,
                   transparent,
                   transparent 2px,
-                  rgba(0,0,0,0.028) 2px,
-                  rgba(0,0,0,0.028) 3px
+                  rgba(0,0,0,0.035) 2px,
+                  rgba(0,0,0,0.035) 3px
                 ),
                 repeating-linear-gradient(
                   45deg,
                   transparent,
                   transparent 3px,
-                  rgba(255,255,255,0.018) 3px,
-                  rgba(255,255,255,0.018) 4px
+                  rgba(255,255,255,0.022) 3px,
+                  rgba(255,255,255,0.022) 4px
                 ),
                 repeating-linear-gradient(
                   -45deg,
                   transparent,
                   transparent 3px,
-                  rgba(0,0,0,0.022) 3px,
-                  rgba(0,0,0,0.022) 4px
+                  rgba(0,0,0,0.028) 3px,
+                  rgba(0,0,0,0.028) 4px
                 ),
                 repeating-linear-gradient(
                   30deg,
                   transparent,
-                  transparent 6px,
-                  rgba(255,255,255,0.009) 6px,
-                  rgba(255,255,255,0.009) 7px
+                  transparent 5px,
+                  rgba(255,255,255,0.012) 5px,
+                  rgba(255,255,255,0.012) 6px
                 ),
                 repeating-linear-gradient(
                   -30deg,
                   transparent,
-                  transparent 6px,
-                  rgba(0,0,0,0.014) 6px,
-                  rgba(0,0,0,0.014) 7px
-                ),
-                repeating-linear-gradient(
-                  60deg,
-                  transparent,
                   transparent 5px,
-                  rgba(255,255,255,0.007) 5px,
-                  rgba(255,255,255,0.007) 6px
+                  rgba(0,0,0,0.018) 5px,
+                  rgba(0,0,0,0.018) 6px
                 ),
-                repeating-linear-gradient(
-                  -60deg,
-                  transparent,
-                  transparent 5px,
-                  rgba(0,0,0,0.011) 5px,
-                  rgba(0,0,0,0.011) 6px
-                ),
-                radial-gradient(ellipse at 30% 25%, rgba(255,255,255,0.13) 0%, transparent 50%),
-                radial-gradient(ellipse at 72% 78%, rgba(0,0,0,0.18) 0%, transparent 45%),
-                radial-gradient(ellipse at 15% 80%, rgba(0,0,0,0.10) 0%, transparent 35%),
-                radial-gradient(ellipse at 85% 15%, rgba(0,0,0,0.08) 0%, transparent 30%),
-                radial-gradient(ellipse at center, #1f6e3f 0%, #165a32 40%, #0f3d22 70%, #092818 100%)
+                radial-gradient(ellipse at 28% 22%, rgba(255,255,255,0.16) 0%, transparent 48%),
+                radial-gradient(ellipse at 75% 80%, rgba(0,0,0,0.22) 0%, transparent 42%),
+                radial-gradient(ellipse at 12% 82%, rgba(0,0,0,0.14) 0%, transparent 32%),
+                radial-gradient(ellipse at 88% 12%, rgba(0,0,0,0.10) 0%, transparent 28%),
+                radial-gradient(ellipse at center, #1f6e3f 0%, #165a32 38%, #0f3d22 68%, #082215 100%)
               `,
               boxShadow: `
-                inset 0 10px 35px rgba(0,0,0,0.85),
-                inset 0 0 70px rgba(0,0,0,0.50),
-                inset 10px 0 28px rgba(0,0,0,0.35),
-                inset -10px 0 28px rgba(0,0,0,0.35),
-                inset 0 -10px 28px rgba(0,0,0,0.35),
-                inset 0 2px 6px rgba(0,0,0,0.60)
+                inset 0 14px 45px rgba(0,0,0,0.90),
+                inset 0 0 80px rgba(0,0,0,0.55),
+                inset 14px 0 35px rgba(0,0,0,0.40),
+                inset -14px 0 35px rgba(0,0,0,0.40),
+                inset 0 -14px 35px rgba(0,0,0,0.40),
+                inset 0 3px 8px rgba(0,0,0,0.70),
+                inset 0 1px 0 rgba(255,255,255,0.04)
               `,
             }}
           >
+            {/* Textura de grano de fieltro — ruido fractal SVG como overlay */}
+            <div
+              aria-hidden="true"
+              style={{
+                position: "absolute",
+                inset: 0,
+                borderRadius: "inherit",
+                backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='256' height='256'%3E%3Cfilter id='f'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85 0.70' numOctaves='4' seed='7' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='256' height='256' filter='url(%23f)'/%3E%3C/svg%3E")`,
+                backgroundSize: "256px 256px",
+                opacity: 0.09,
+                mixBlendMode: "overlay",
+                pointerEvents: "none",
+              }}
+            />
+            {/* Vignette interna adicional para profundidad */}
+            <div
+              aria-hidden="true"
+              style={{
+                position: "absolute",
+                inset: 0,
+                borderRadius: "inherit",
+                background: `radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.45) 100%)`,
+                pointerEvents: "none",
+              }}
+            />
             {board.plays.length === 0 ? (
               <div className="absolute inset-0 flex items-center justify-center">
                 <p className="text-emerald-200/70 text-sm font-medium" aria-live="polite">
