@@ -22,8 +22,8 @@ export interface TileDims {
   gap: number;
 }
 
-export const DIMS_DESKTOP: TileDims = { horizW: 40, horizH: 22, doubleW: 22, doubleH: 40, gap: 4 };
-export const DIMS_MOBILE: TileDims = { horizW: 32, horizH: 18, doubleW: 18, doubleH: 32, gap: 3 };
+export const DIMS_DESKTOP: TileDims = { horizW: 54, horizH: 28, doubleW: 28, doubleH: 54, gap: 5 };
+export const DIMS_MOBILE: TileDims = { horizW: 42, horizH: 22, doubleW: 22, doubleH: 42, gap: 4 };
 
 function isHoriz(dir: Dir): boolean {
   return dir === "right" || dir === "left";
@@ -62,9 +62,6 @@ export function wouldOverflow(x: number, y: number, w: number, h: number, boardW
   return x - w / 2 < margin || x + w / 2 > boardW - margin || y - h / 2 < margin || y + h / 2 > boardH - margin;
 }
 
-// Cursor = attachment point at the edge of the last placed tile.
-// Each tile: center = cursor + gap + halfMain, then cursor advances to center + halfMain.
-// On overflow: shift cursor perpendicular, then place in new direction.
 export function layoutChain(
   tiles: TileEntry[],
   startX: number,
@@ -92,7 +89,6 @@ export function layoutChain(
       const newDir = turnFn(dir);
       const newSz = tileSize(entry.isDouble, newDir, dims);
 
-      // Cross offset: clear the current row and start a new one
       const prevCrossDim = isHoriz(dir) ? sz.h : sz.w;
       const newCrossDim = isHoriz(newDir) ? newSz.h : newSz.w;
       const crossOffset = prevCrossDim / 2 + dims.gap * 2 + newCrossDim / 2;
@@ -158,16 +154,18 @@ export function buildPlacedTiles(
     orientation: tileOrientation(firstEntry.isDouble, "right"),
   };
 
+  // Right chain: right -> up -> left (turnLeft)
   const rightTiles = rightChain.length > 1
     ? layoutChain(
         rightChain.slice(1),
         centerX + firstSz.w / 2,
         centerY,
         "right",
-        boardW, boardH, dims, turnRight
+        boardW, boardH, dims, turnLeft
       )
     : [];
 
+  // Left chain: left -> down -> right (turnLeft)
   const leftTiles = leftChain.length > 0
     ? layoutChain(
         [...leftChain].reverse(),

@@ -36,7 +36,7 @@ export function Board({ onPlaceEnd }: BoardProps) {
     return () => ro.disconnect();
   }, []);
 
-  const BOARD_SIZE = isMobile ? 300 : 420;
+  const BOARD_SIZE = Math.min(size.w, size.h, isMobile ? 500 : 600);
   const FRAME_PAD = isMobile ? 8 : 12;
 
   const prevLastKeyRef = useRef<string | null>(null);
@@ -64,7 +64,7 @@ export function Board({ onPlaceEnd }: BoardProps) {
   const viewBox = `0 0 ${BOARD_SIZE} ${BOARD_SIZE}`;
 
   return (
-    <div className="relative w-full flex-1 flex flex-col items-center justify-center overflow-hidden">
+    <div ref={containerRef} className="relative w-full flex-1 flex flex-col items-center justify-center overflow-hidden">
       {/* Marco de madera */}
       <div
         style={{
@@ -91,7 +91,6 @@ export function Board({ onPlaceEnd }: BoardProps) {
         >
           {/* Superficie de fieltro */}
           <div
-            ref={containerRef}
             className="relative rounded-md overflow-hidden"
             style={{
               width: "100%",
@@ -177,7 +176,7 @@ export function Board({ onPlaceEnd }: BoardProps) {
                   className="px-3 py-1.5 rounded-lg bg-amber-700/90 text-amber-100 text-xs font-medium hover:bg-amber-600 transition-colors shadow-lg"
                   onClick={() => onPlaceEnd?.("left")}
                 >
-                  ← Izq ({board.left})
+                  Izq ({board.left})
                 </motion.button>
                 <motion.button
                   initial={{ opacity: 0, y: 10 }}
@@ -185,7 +184,7 @@ export function Board({ onPlaceEnd }: BoardProps) {
                   className="px-3 py-1.5 rounded-lg bg-amber-700/90 text-amber-100 text-xs font-medium hover:bg-amber-600 transition-colors shadow-lg"
                   onClick={() => onPlaceEnd?.("right")}
                 >
-                  Der ({board.right}) →
+                  Der ({board.right})
                 </motion.button>
               </div>
             )}
