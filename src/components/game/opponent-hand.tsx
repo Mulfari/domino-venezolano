@@ -40,6 +40,8 @@ export function OpponentHand({
       className={`relative flex items-center gap-1.5 sm:gap-2 overflow-visible ${
         isVertical ? "flex-col" : "flex-col-reverse"
       }`}
+      role="region"
+      aria-label={`Mano de ${playerName}: ${tileCount} fichas${isCurrentTurn ? ", turno activo" : ""}`}
     >
       <PassIndicator show={showPass} playerName={playerName} />
 
@@ -49,6 +51,8 @@ export function OpponentHand({
           className={`h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full flex-shrink-0 ${
             connected ? "bg-[#4ade80]" : "bg-red-400"
           }`}
+          role="img"
+          aria-label={connected ? `${playerName} conectado` : `${playerName} desconectado`}
           animate={
             isCurrentTurn
               ? { scale: [1, 1.4, 1], opacity: [1, 0.6, 1] }

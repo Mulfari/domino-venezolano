@@ -99,8 +99,13 @@ export function Board({ onPlaceEnd, clearing = false }: BoardProps) {
 
   const viewBox = `0 0 ${BOARD_SIZE} ${BOARD_SIZE}`;
 
+  const boardDescription = board.plays.length === 0
+    ? (isMyTurn ? "Tablero vacío. Es tu turno, juega la primera ficha." : "Tablero vacío. Esperando la primera jugada.")
+    : `Tablero con ${board.plays.length} ficha${board.plays.length !== 1 ? "s" : ""}. Extremo izquierdo: ${board.left ?? 0}. Extremo derecho: ${board.right ?? 0}.${showPlacementOptions ? " Selecciona un extremo para colocar tu ficha." : ""}`;
+
   return (
     <div ref={containerRef} className="relative w-full flex-1 flex flex-col items-center justify-center overflow-hidden" role="region" aria-label="Tablero de juego">
+      <div className="sr-only" aria-live="polite" aria-atomic="true">{boardDescription}</div>
       {/* Marco de madera */}
       <div
         style={{

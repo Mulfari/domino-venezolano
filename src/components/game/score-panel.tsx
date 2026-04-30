@@ -95,11 +95,17 @@ function TeamBlock({
   const teamColor = teamIdx === 0 ? "#c9a84c" : "#a8c4a0";
   const barBg = teamIdx === 0 ? "bg-[#c9a84c]" : "bg-[#a8c4a0]/70";
 
-  // Flash the block border when score increases
   const prevScoreRef = useRef(score);
   const [flashing, setFlashing] = useState(false);
+  const [delta, setDelta] = useState<number | null>(null);
+  const deltaTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   useEffect(() => {
     if (score > prevScoreRef.current) {
+      const diff = score - prevScoreRef.current;
+      setDelta(diff);
+      if (deltaTimerRef.current) clearTimeout(deltaTimerRef.current);
+      deltaTimerRef.current = setTimeout(() => setDelta(null), 2000);
       setFlashing(true);
       const t = setTimeout(() => setFlashing(false), 900);
       prevScoreRef.current = score;
@@ -131,7 +137,7 @@ function TeamBlock({
             Equipo {teamIdx + 1}
           </span>
         </div>
-        <div className="flex items-baseline gap-0.5">
+        <div className="flex items-baseline gap-0.5 relative">
           <motion.span
             key={score}
             initial={{ scale: 1.4, color: "#ffffff" }}
@@ -142,6 +148,21 @@ function TeamBlock({
             {display}
           </motion.span>
           <span className="text-[8px] text-[#a8c4a0]/40 tabular-nums">/{targetScore}</span>
+          <AnimatePresence>
+            {delta !== null && (
+              <motion.span
+                key={`delta-${score}`}
+                initial={{ opacity: 0, y: 0, x: 4 }}
+                animate={{ opacity: 1, y: -14, x: 8 }}
+                exit={{ opacity: 0, y: -22, x: 8 }}
+                transition={{ duration: 0.5, ease: "easeOut" }}
+                className="absolute right-0 top-0 text-[10px] font-bold text-green-400 tabular-nums pointer-events-none"
+                style={{ textShadow: "0 0 8px rgba(74,222,128,0.6)" }}
+              >
+                +{delta}
+              </motion.span>
+            )}
+          </AnimatePresence>
         </div>
       </div>
 
@@ -290,9 +311,10 @@ export function ScorePanel() {
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.25 }}
                 className="flex items-center gap-1 bg-[#c9a84c]/10 border border-[#c9a84c]/20 rounded-full px-1.5 py-0.5"
+                aria-label={`Salió primero: ${firstPlayerName}`}
               >
-                <span className="text-[#c9a84c] text-[8px] leading-none">★</span>
-                <span className="text-[9px] text-[#f5f0e8]/80 leading-none">
+                <span className="text-[#c9a84c] text-[8px] leading-none" aria-hidden="true">★</span>
+                <span className="text-[9px] text-[#f5f0e8]/80 leading-none" aria-hidden="true">
                   {firstPlayerName}
                 </span>
               </motion.div>
