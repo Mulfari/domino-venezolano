@@ -261,6 +261,48 @@ export function ScorePanel() {
             </div>
           )}
         </div>
+        {roundHistory.length > 0 && (
+          <div
+            className="flex flex-wrap gap-0.5 pt-1 border-t border-[#c9a84c]/10"
+            role="list"
+            aria-label="Historial de rondas"
+          >
+            {roundHistory.map((entry) => {
+              const isTied = entry.winner_team === null;
+              const isMyTeamWon = myTeam !== null && entry.winner_team === myTeam;
+              const bgColor = isTied
+                ? "bg-[#a8c4a0]/10 border-[#a8c4a0]/25"
+                : isMyTeamWon
+                ? "bg-[#c9a84c]/15 border-[#c9a84c]/35"
+                : "bg-[#f5f0e8]/5 border-[#f5f0e8]/12";
+              const dotColor = isTied
+                ? "bg-[#a8c4a0]/50"
+                : entry.winner_team === 0
+                ? "bg-[#c9a84c]"
+                : "bg-[#a8c4a0]";
+              const reasonLabel =
+                entry.reason === "domino" ? "D" : entry.reason === "locked" ? "T" : "=";
+              const reasonTitle =
+                entry.reason === "domino" ? "dominó" : entry.reason === "locked" ? "trancado" : "empate";
+              return (
+                <motion.div
+                  key={entry.round}
+                  initial={{ opacity: 0, scale: 0.7 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.25 }}
+                  role="listitem"
+                  aria-label={`Ronda ${entry.round}: ${isTied ? "Empate" : `Equipo ${(entry.winner_team ?? 0) + 1} ganó`}, ${entry.points} puntos, ${reasonTitle}`}
+                  className={`flex items-center gap-0.5 px-1 py-0.5 rounded border text-[8px] font-semibold tabular-nums ${bgColor}`}
+                >
+                  <span className="text-[#f5f0e8]/30 leading-none">{entry.round}</span>
+                  <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${dotColor}`} />
+                  <span className="text-[#f5f0e8]/70">{entry.points}</span>
+                  <span className="text-[#f5f0e8]/40 text-[7px] leading-none font-bold">{reasonLabel}</span>
+                </motion.div>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {/* Desktop full panel */}
