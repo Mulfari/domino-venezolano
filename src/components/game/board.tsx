@@ -291,11 +291,11 @@ export function Board({ onPlaceEnd }: BoardProps) {
                       : (pt.isDouble ? dims.doubleH : dims.horizW);
                     const isNew = pt.key === animatingKey;
 
-                    // Highlight ring when hovering the corresponding ghost
-                    const isHighlighted =
-                      showPlacementOptions &&
-                      ((hoveredEnd === "left" && pt === leftEndTile) ||
-                        (hoveredEnd === "right" && pt === rightEndTile));
+                    const isLeftEnd = showPlacementOptions && pt === leftEndTile && ghostTiles["left"] !== undefined;
+                    const isRightEnd = showPlacementOptions && pt === rightEndTile && ghostTiles["right"] !== undefined;
+                    const isEndTile = isLeftEnd || isRightEnd;
+                    const thisEnd: "left" | "right" | null = isLeftEnd ? "left" : isRightEnd ? "right" : null;
+                    const isHoveredEnd = thisEnd !== null && hoveredEnd === thisEnd;
 
                     return (
                       <motion.g
@@ -305,21 +305,36 @@ export function Board({ onPlaceEnd }: BoardProps) {
                         transition={isNew ? { type: "spring", stiffness: 380, damping: 18 } : undefined}
                         style={{ transformOrigin: `${pt.x}px ${pt.y}px` }}
                       >
-                        {isHighlighted && (
-                          <motion.rect
-                            x={pt.x - tw / 2 - 4}
-                            y={pt.y - th / 2 - 4}
-                            width={tw + 8}
-                            height={th + 8}
-                            rx={5}
-                            fill="none"
-                            stroke="#c9a84c"
-                            strokeWidth={2.5}
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: [0.5, 1, 0.5] }}
-                            transition={{ duration: 0.9, repeat: Infinity, ease: "easeInOut" }}
-                            style={{ filter: "drop-shadow(0 0 6px #c9a84c)" }}
-                          />
+                        {isEndTile && (
+                          <>
+                            {/* Outer glow */}
+                            <motion.rect
+                              x={pt.x - tw / 2 - 7}
+                              y={pt.y - th / 2 - 7}
+                              width={tw + 14}
+                              height={th + 14}
+                              rx={7}
+                              fill={isHoveredEnd ? "rgba(201,168,76,0.15)" : "rgba(201,168,76,0.06)"}
+                              stroke="none"
+                              animate={{ opacity: isHoveredEnd ? [0.6, 1, 0.6] : [0.3, 0.6, 0.3] }}
+                              transition={{ duration: 0.9, repeat: Infinity, ease: "easeInOut" }}
+                              style={{ filter: "blur(3px)" }}
+                            />
+                            {/* Highlight ring */}
+                            <motion.rect
+                              x={pt.x - tw / 2 - 4}
+                              y={pt.y - th / 2 - 4}
+                              width={tw + 8}
+                              height={th + 8}
+                              rx={5}
+                              fill="none"
+                              stroke="#c9a84c"
+                              strokeWidth={isHoveredEnd ? 3 : 2}
+                              animate={{ opacity: isHoveredEnd ? [0.8, 1, 0.8] : [0.4, 0.85, 0.4] }}
+                              transition={{ duration: 0.9, repeat: Infinity, ease: "easeInOut" }}
+                              style={{ filter: isHoveredEnd ? "drop-shadow(0 0 8px #c9a84c)" : "drop-shadow(0 0 4px rgba(201,168,76,0.6))" }}
+                            />
+                          </>
                         )}
                         <foreignObject
                           x={pt.x - tw / 2}
@@ -353,42 +368,67 @@ export function Board({ onPlaceEnd }: BoardProps) {
                         ? (ghost.isDouble ? dims.doubleW : dims.horizH)
                         : (ghost.isDouble ? dims.doubleH : dims.horizW);
                       const isHovered = hoveredEnd === end;
+                      // Hit area padding for easier touch/click
+                      const hitPad = isMobile ? 10 : 6;
 
                       return (
                         <motion.g
                           key={`ghost-${end}`}
-                          initial={{ opacity: 0, scale: 0.7 }}
+                          initial={{ opacity: 0, scale: 0.6 }}
                           animate={{ opacity: 1, scale: 1 }}
-                          exit={{ opacity: 0, scale: 0.7 }}
-                          transition={{ type: "spring", stiffness: 400, damping: 22 }}
+                          exit={{ opacity: 0, scale: 0.6 }}
+                          transition={{ type: "spring", stiffness: 420, damping: 22 }}
                           style={{
                             transformOrigin: `${ghost.x}px ${ghost.y}px`,
                             cursor: "pointer",
                           }}
-                          onClick={() => onPlaceEnd?.(end)}
+                          onClick={() => { onPlaceEnd?.(end); setHoveredEnd(null); }}
                           onMouseEnter={() => setHoveredEnd(end)}
                           onMouseLeave={() => setHoveredEnd(null)}
+                          onTouchStart={() => setHoveredEnd(end)}
+                          onTouchEnd={() => { onPlaceEnd?.(end); setHoveredEnd(null); }}
                         >
-                          {/* Glow halo */}
+                          {/* Invisible enlarged hit area */}
+                          <rect
+                            x={ghost.x - tw / 2 - hitPad}
+                            y={ghost.y - th / 2 - hitPad}
+                            width={tw + hitPad * 2}
+                            height={th + hitPad * 2}
+                            fill="transparent"
+                          />
+                          {/* Outer glow blur */}
                           <motion.rect
-                            x={ghost.x - tw / 2 - 5}
-                            y={ghost.y - th / 2 - 5}
-                            width={tw + 10}
-                            height={th + 10}
-                            rx={6}
-                            fill={isHovered ? "rgba(201,168,76,0.18)" : "rgba(201,168,76,0.08)"}
+                            x={ghost.x - tw / 2 - 8}
+                            y={ghost.y - th / 2 - 8}
+                            width={tw + 16}
+                            height={th + 16}
+                            rx={8}
+                            fill={isHovered ? "rgba(201,168,76,0.25)" : "rgba(201,168,76,0.12)"}
+                            stroke="none"
+                            animate={{ opacity: isHovered ? [0.7, 1, 0.7] : [0.4, 0.8, 0.4] }}
+                            transition={{ duration: 1.0, repeat: Infinity, ease: "easeInOut" }}
+                            style={{ filter: "blur(4px)" }}
+                          />
+                          {/* Dashed border */}
+                          <motion.rect
+                            x={ghost.x - tw / 2 - 4}
+                            y={ghost.y - th / 2 - 4}
+                            width={tw + 8}
+                            height={th + 8}
+                            rx={5}
+                            fill={isHovered ? "rgba(201,168,76,0.12)" : "rgba(201,168,76,0.05)"}
                             stroke="#c9a84c"
-                            strokeWidth={isHovered ? 2 : 1.5}
-                            strokeDasharray="4 3"
+                            strokeWidth={isHovered ? 2.5 : 1.8}
+                            strokeDasharray="5 3"
                             animate={{
-                              opacity: isHovered ? [0.8, 1, 0.8] : [0.4, 0.75, 0.4],
-                              strokeDashoffset: [0, -14],
+                              opacity: isHovered ? [0.9, 1, 0.9] : [0.5, 0.85, 0.5],
+                              strokeDashoffset: [0, -16],
                             }}
                             transition={{
-                              opacity: { duration: 1.1, repeat: Infinity, ease: "easeInOut" },
-                              strokeDashoffset: { duration: 1.2, repeat: Infinity, ease: "linear" },
+                              opacity: { duration: 1.0, repeat: Infinity, ease: "easeInOut" },
+                              strokeDashoffset: { duration: 1.1, repeat: Infinity, ease: "linear" },
                             }}
-                            style={{ filter: isHovered ? "drop-shadow(0 0 8px rgba(201,168,76,0.7))" : undefined }}
+                            style={{ filter: isHovered ? "drop-shadow(0 0 10px rgba(201,168,76,0.8))" : "drop-shadow(0 0 4px rgba(201,168,76,0.4))" }}
                           />
                           {/* Ghost tile */}
                           <foreignObject
@@ -396,7 +436,7 @@ export function Board({ onPlaceEnd }: BoardProps) {
                             y={ghost.y - th / 2}
                             width={tw}
                             height={th}
-                            style={{ opacity: isHovered ? 0.85 : 0.55, pointerEvents: "none" }}
+                            style={{ opacity: isHovered ? 0.92 : 0.65, pointerEvents: "none" }}
                           >
                             <DominoTile
                               tile={ghost.tile}
@@ -404,6 +444,23 @@ export function Board({ onPlaceEnd }: BoardProps) {
                               orientation={ghost.orientation}
                             />
                           </foreignObject>
+                          {/* "Tap to place" label on mobile */}
+                          {isMobile && (
+                            <motion.text
+                              x={ghost.x}
+                              y={ghost.y + th / 2 + 10}
+                              textAnchor="middle"
+                              fontSize={7}
+                              fill="#c9a84c"
+                              fontWeight="600"
+                              letterSpacing="0.05em"
+                              animate={{ opacity: [0.6, 1, 0.6] }}
+                              transition={{ duration: 1.2, repeat: Infinity, ease: "easeInOut" }}
+                              style={{ pointerEvents: "none", userSelect: "none" }}
+                            >
+                              {end === "left" ? "IZQ" : "DER"}
+                            </motion.text>
+                          )}
                         </motion.g>
                       );
                     })}
