@@ -16,7 +16,8 @@ interface OpponentHandProps {
   showPass?: boolean;
 }
 
-const MAX_DISPLAY = 7;
+// Medium tiles are large enough to show wood grain details clearly
+const MAX_DISPLAY = 5;
 
 export function OpponentHand({
   tileCount,
@@ -28,11 +29,11 @@ export function OpponentHand({
 }: OpponentHandProps) {
   const isVertical = position === "left" || position === "right";
   const isMobile = useIsMobile();
-  const maxDisplay = isMobile && isVertical ? 3 : MAX_DISPLAY;
+  const maxDisplay = isMobile ? (isVertical ? 3 : 4) : MAX_DISPLAY;
   const displayCount = Math.min(tileCount, maxDisplay);
 
-  // Overlap offset: tiles partially cover each other like a real hand
-  const overlapPx = isMobile ? 6 : 8;
+  // More overlap to keep the stack compact with medium-sized tiles
+  const overlapPx = isMobile ? 10 : 14;
 
   return (
     <div
@@ -87,10 +88,9 @@ export function OpponentHand({
         </motion.div>
       </div>
 
-      {/* Face-down tiles — overlapping fan arrangement */}
-      {!(isMobile && isVertical) && tileCount > 0 && (
+      {/* Face-down tiles — overlapping fan/stack arrangement */}
+      {tileCount > 0 && (
         <div className="relative">
-          {/* Tile stack with overlap */}
           <div
             className={`flex items-end justify-center ${
               isVertical ? "flex-col" : "flex-row"
@@ -98,9 +98,7 @@ export function OpponentHand({
           >
             {Array.from({ length: displayCount }).map((_, i) => {
               const offset = i - (displayCount - 1) / 2;
-              // Gentle fan rotation for horizontal (top) position
               const rotation = !isVertical ? offset * 3.5 : 0;
-              // Arc lift: middle tiles slightly higher in the fan
               const yLift = !isVertical ? -Math.abs(offset) * 1.5 : 0;
 
               return (
@@ -110,10 +108,8 @@ export function OpponentHand({
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   transition={{ delay: i * 0.04, type: "spring", stiffness: 380, damping: 22 }}
                   style={{
-                    // Overlap tiles
                     marginTop: isVertical && i > 0 ? `-${overlapPx}px` : undefined,
                     marginLeft: !isVertical && i > 0 ? `-${overlapPx}px` : undefined,
-                    // Fan rotation + arc
                     transform: `rotate(${rotation}deg) translateY(${yLift}px)`,
                     transformOrigin: "bottom center",
                     zIndex: i,
@@ -121,7 +117,7 @@ export function OpponentHand({
                 >
                   <DominoTile
                     faceDown
-                    size="small"
+                    size="medium"
                     responsive
                     orientation={isVertical ? "horizontal" : "vertical"}
                   />
