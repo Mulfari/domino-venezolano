@@ -199,39 +199,68 @@ export function Board({ onPlaceEnd, clearing = false }: BoardProps) {
             style={{
               width: "100%",
               aspectRatio: "1 / 1",
-              /* Tejido de fieltro: fibras diagonales cruzadas + gradiente radial de profundidad */
+              /* Tejido de fieltro: fibras multi-direccionales + gradiente radial de profundidad */
               background: `
                 repeating-linear-gradient(
                   47deg,
                   transparent,
                   transparent 1px,
-                  rgba(255,255,255,0.028) 1px,
-                  rgba(255,255,255,0.028) 2px
+                  rgba(255,255,255,0.034) 1px,
+                  rgba(255,255,255,0.034) 2px
                 ),
                 repeating-linear-gradient(
                   -47deg,
                   transparent,
                   transparent 1px,
-                  rgba(0,0,0,0.038) 1px,
-                  rgba(0,0,0,0.038) 2px
+                  rgba(0,0,0,0.044) 1px,
+                  rgba(0,0,0,0.044) 2px
                 ),
                 repeating-linear-gradient(
                   43deg,
                   transparent,
                   transparent 3px,
-                  rgba(255,255,255,0.014) 3px,
-                  rgba(255,255,255,0.014) 4px
+                  rgba(255,255,255,0.018) 3px,
+                  rgba(255,255,255,0.018) 4px
                 ),
                 repeating-linear-gradient(
                   -43deg,
                   transparent,
                   transparent 3px,
-                  rgba(0,0,0,0.020) 3px,
-                  rgba(0,0,0,0.020) 4px
+                  rgba(0,0,0,0.026) 3px,
+                  rgba(0,0,0,0.026) 4px
                 ),
-                radial-gradient(ellipse at 30% 20%, rgba(255,255,255,0.13) 0%, transparent 45%),
-                radial-gradient(ellipse at 72% 78%, rgba(0,0,0,0.20) 0%, transparent 40%),
-                radial-gradient(ellipse at center, #1e6b3c 0%, #165830 35%, #0e3b1f 65%, #071a0e 100%)
+                repeating-linear-gradient(
+                  0deg,
+                  transparent,
+                  transparent 6px,
+                  rgba(0,0,0,0.014) 6px,
+                  rgba(0,0,0,0.014) 7px
+                ),
+                repeating-linear-gradient(
+                  90deg,
+                  transparent,
+                  transparent 6px,
+                  rgba(255,255,255,0.011) 6px,
+                  rgba(255,255,255,0.011) 7px
+                ),
+                repeating-linear-gradient(
+                  30deg,
+                  transparent,
+                  transparent 8px,
+                  rgba(255,255,255,0.008) 8px,
+                  rgba(255,255,255,0.008) 9px
+                ),
+                repeating-linear-gradient(
+                  -30deg,
+                  transparent,
+                  transparent 8px,
+                  rgba(0,0,0,0.010) 8px,
+                  rgba(0,0,0,0.010) 9px
+                ),
+                radial-gradient(ellipse at 28% 22%, rgba(255,255,255,0.18) 0%, transparent 40%),
+                radial-gradient(ellipse at 70% 76%, rgba(0,0,0,0.28) 0%, transparent 38%),
+                radial-gradient(ellipse at 52% 48%, rgba(22,88,48,0.55) 0%, transparent 52%),
+                radial-gradient(ellipse at center, #1e6b3c 0%, #165830 28%, #0e3b1f 58%, #071a0e 100%)
               `,
               /* Canal tallado: sombra interna pronunciada en todos los bordes */
               boxShadow: `
