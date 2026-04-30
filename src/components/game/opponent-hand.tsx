@@ -36,11 +36,11 @@ export function OpponentHand({
 
   return (
     <div
-      className={`relative flex items-center gap-1.5 sm:gap-2 ${
+      className={`relative flex items-center gap-1.5 sm:gap-2 overflow-visible ${
         isVertical ? "flex-col" : "flex-col-reverse"
       }`}
     >
-      <PassIndicator show={showPass} />
+      <PassIndicator show={showPass} playerName={playerName} />
 
       {/* Player name + connection dot + tile count */}
       <div className="flex items-center gap-1 sm:gap-1.5">
