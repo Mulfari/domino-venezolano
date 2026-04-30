@@ -29,7 +29,7 @@ export function OpponentHand({
 }: OpponentHandProps) {
   const isVertical = position === "left" || position === "right";
   const isMobile = useIsMobile();
-  const maxDisplay = isMobile ? (isVertical ? 3 : 4) : MAX_DISPLAY;
+  const maxDisplay = isMobile ? (isVertical ? 2 : 4) : MAX_DISPLAY;
   const displayCount = Math.min(tileCount, maxDisplay);
 
   // More overlap to keep the stack compact with medium-sized tiles
