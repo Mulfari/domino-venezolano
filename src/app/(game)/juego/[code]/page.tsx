@@ -86,6 +86,7 @@ export default function GamePage() {
   const [actionLoading, setActionLoading] = useState(false);
   const [lastPassSeat, setLastPassSeat] = useState<Seat | null>(null);
   const [boardTransitioning, setBoardTransitioning] = useState(false);
+  const [transitionRound, setTransitionRound] = useState<number | null>(null);
   const passTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   /* ---- Zustand store ---- */
@@ -288,8 +289,13 @@ export default function GamePage() {
             setRoundResult(null);
             reset();
             await fetchGameState(event.game_id);
+            // Show the new round number once state is loaded
+            setTransitionRound(useGameStore.getState().round);
+          }, 600);
+          setTimeout(() => {
             setBoardTransitioning(false);
-          }, 400);
+            setTransitionRound(null);
+          }, 1600);
           break;
         }
 
@@ -565,20 +571,56 @@ export default function GamePage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.25 }}
-            className="fixed inset-0 z-40 flex items-center justify-center bg-black/60 backdrop-blur-sm pointer-events-none"
+            transition={{ duration: 0.3 }}
+            className="fixed inset-0 z-40 flex items-center justify-center bg-black/70 backdrop-blur-md pointer-events-none"
           >
             <motion.div
-              initial={{ scale: 0.7, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 1.1, opacity: 0 }}
-              transition={{ type: "spring", stiffness: 320, damping: 22 }}
-              className="flex flex-col items-center gap-3"
+              initial={{ scale: 0.75, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 1.05, opacity: 0, y: -10 }}
+              transition={{ type: "spring", stiffness: 280, damping: 24, delay: 0.05 }}
+              className="flex flex-col items-center gap-4"
             >
-              <div className="h-10 w-10 animate-spin rounded-full border-2 border-[#c9a84c] border-t-transparent" />
-              <p className="text-[#c9a84c] font-bold uppercase tracking-widest text-sm">
-                Nueva ronda
-              </p>
+              {/* Decorative line */}
+              <motion.div
+                initial={{ scaleX: 0 }}
+                animate={{ scaleX: 1 }}
+                transition={{ duration: 0.4, delay: 0.2 }}
+                className="h-px w-32 bg-gradient-to-r from-transparent via-[#c9a84c]/60 to-transparent"
+              />
+
+              <div className="flex flex-col items-center gap-1">
+                <span className="text-[11px] uppercase tracking-[0.25em] text-[#a8c4a0]/70 font-semibold">
+                  Nueva ronda
+                </span>
+                {transitionRound !== null && (
+                  <motion.span
+                    key={transitionRound}
+                    initial={{ opacity: 0, scale: 0.6 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ type: "spring", stiffness: 350, damping: 20, delay: 0.15 }}
+                    className="text-6xl font-bold text-[#c9a84c] tabular-nums leading-none"
+                    style={{ textShadow: "0 0 40px rgba(201,168,76,0.5)" }}
+                  >
+                    {transitionRound}
+                  </motion.span>
+                )}
+              </div>
+
+              {/* Decorative line */}
+              <motion.div
+                initial={{ scaleX: 0 }}
+                animate={{ scaleX: 1 }}
+                transition={{ duration: 0.4, delay: 0.25 }}
+                className="h-px w-32 bg-gradient-to-r from-transparent via-[#c9a84c]/60 to-transparent"
+              />
+
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.4 }}
+                className="h-5 w-5 animate-spin rounded-full border-2 border-[#c9a84c]/60 border-t-transparent"
+              />
             </motion.div>
           </motion.div>
         )}

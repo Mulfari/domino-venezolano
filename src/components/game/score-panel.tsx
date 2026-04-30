@@ -206,9 +206,18 @@ export function ScorePanel() {
       {/* Mobile compact — scores + history */}
       <div className="flex sm:hidden flex-col gap-1 rounded-xl bg-[#3a2210]/85 border border-[#c9a84c]/25 backdrop-blur-sm px-2 py-1.5 shadow-lg shadow-black/30 shrink-0" role="region" aria-label="Marcador">
         <div className="flex items-center gap-2">
-          <span className="text-[10px] font-bold uppercase tracking-widest text-[#c9a84c] shrink-0">
-            R{round}
-          </span>
+          <AnimatePresence mode="wait">
+            <motion.span
+              key={round}
+              initial={{ opacity: 0, y: -6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 6 }}
+              transition={{ duration: 0.25, ease: "easeOut" }}
+              className="text-[10px] font-bold uppercase tracking-widest text-[#c9a84c] shrink-0"
+            >
+              R{round}
+            </motion.span>
+          </AnimatePresence>
           <div className="flex flex-col gap-0.5">
             {([0, 1] as const).map((teamIdx) => {
               const score = scores[teamIdx];
@@ -257,9 +266,18 @@ export function ScorePanel() {
         {/* Header */}
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-1.5">
-            <span className="text-[11px] font-bold uppercase tracking-widest text-[#c9a84c]">
-              Ronda {round}
-            </span>
+            <AnimatePresence mode="wait">
+              <motion.span
+                key={round}
+                initial={{ opacity: 0, y: -8, scale: 0.85 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 8, scale: 0.85 }}
+                transition={{ duration: 0.3, ease: "easeOut" }}
+                className="text-[11px] font-bold uppercase tracking-widest text-[#c9a84c]"
+              >
+                Ronda {round}
+              </motion.span>
+            </AnimatePresence>
           </div>
           <AnimatePresence mode="wait">
             {firstPlayerName && (
