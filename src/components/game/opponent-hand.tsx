@@ -26,8 +26,8 @@ export function OpponentHand({
 }: OpponentHandProps) {
   const isVertical = position === "left" || position === "right";
   const isMobile = useIsMobile();
-  // On mobile, lateral opponents show at most 4 tiles to avoid squeezing the board
-  const displayCount = isMobile && isVertical ? Math.min(tileCount, 4) : tileCount;
+  // On mobile, lateral opponents show at most 2 tiles to avoid squeezing the board
+  const displayCount = isMobile && isVertical ? Math.min(tileCount, 2) : tileCount;
 
   return (
     <div

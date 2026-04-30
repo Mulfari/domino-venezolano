@@ -31,7 +31,7 @@ const sizeConfig: Record<TileSize, { w: number; h: number; pip: number; gap: num
 const mobileSizeConfig: Record<TileSize, { w: number; h: number; pip: number; gap: number }> = {
   small: { w: 16, h: 28, pip: 2, gap: 1 },
   medium: { w: 22, h: 42, pip: 2.5, gap: 1 },
-  large: { w: 32, h: 58, pip: 3.5, gap: 2 },
+  large: { w: 38, h: 68, pip: 4, gap: 2 },
 };
 
 function getPipPositions(value: number): [number, number][] {
