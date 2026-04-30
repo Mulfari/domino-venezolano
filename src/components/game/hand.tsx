@@ -95,13 +95,19 @@ export function Hand({ onPlayTile, onPass, disabled = false }: HandProps) {
                 layout
                 initial={{ opacity: 0, y: 30, scale: 0.8 }}
                 animate={{
-                  opacity: 1,
+                  opacity: isMyTurn && !playable && !cochina ? 0.45 : 1,
                   y: cochina ? -6 : 0,
                   scale: cochina ? 1.1 : 1,
                 }}
+                whileHover={
+                  playable
+                    ? { y: cochina ? -14 : -8, scale: cochina ? 1.15 : 1.06 }
+                    : undefined
+                }
                 exit={{ opacity: 0, y: -20, scale: 0.8 }}
-                transition={{ type: "spring", stiffness: 300, damping: 25, delay: i * 0.03 }}
+                transition={{ type: "spring", stiffness: 350, damping: 22, delay: i * 0.03 }}
                 className={cochina || playable ? "relative" : ""}
+                style={{ cursor: playable ? "pointer" : "default" }}
               >
                 {cochina && (
                   <>
