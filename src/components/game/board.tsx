@@ -183,14 +183,14 @@ export function Board({ onPlaceEnd, clearing = false }: BoardProps) {
           />
         ))}
 
-        {/* Filete dorado */}
+        {/* Filete dorado con bisel tallado */}
         <div
           style={{
             borderRadius: "10px",
-            padding: "2px",
+            padding: "3px",
             background:
-              "linear-gradient(135deg, #e8c96a 0%, #9b7820 20%, #c9a84c 45%, #f0d878 50%, #c9a84c 55%, #9b7820 80%, #e8c96a 100%)",
-            boxShadow: "0 0 14px rgba(201,168,76,0.45), inset 0 1px 0 rgba(255,255,255,0.25)",
+              "linear-gradient(135deg, #f0d878 0%, #9b7820 18%, #c9a84c 42%, #f5e090 50%, #c9a84c 58%, #9b7820 82%, #f0d878 100%)",
+            boxShadow: "0 0 22px rgba(201,168,76,0.6), inset 0 1px 0 rgba(255,255,255,0.35), 0 0 0 2px rgba(0,0,0,0.65), 0 0 0 4px rgba(255,255,255,0.06)",
           }}
         >
           {/* Superficie de fieltro */}
@@ -199,88 +199,74 @@ export function Board({ onPlaceEnd, clearing = false }: BoardProps) {
             style={{
               width: "100%",
               aspectRatio: "1 / 1",
+              /* Tejido de fieltro: fibras diagonales cruzadas + gradiente radial de profundidad */
               background: `
                 repeating-linear-gradient(
-                  0deg,
+                  47deg,
                   transparent,
-                  transparent 2px,
-                  rgba(0,0,0,0.035) 2px,
-                  rgba(0,0,0,0.035) 3px
+                  transparent 1px,
+                  rgba(255,255,255,0.028) 1px,
+                  rgba(255,255,255,0.028) 2px
                 ),
                 repeating-linear-gradient(
-                  90deg,
+                  -47deg,
                   transparent,
-                  transparent 2px,
-                  rgba(0,0,0,0.035) 2px,
-                  rgba(0,0,0,0.035) 3px
+                  transparent 1px,
+                  rgba(0,0,0,0.038) 1px,
+                  rgba(0,0,0,0.038) 2px
                 ),
                 repeating-linear-gradient(
-                  45deg,
+                  43deg,
                   transparent,
                   transparent 3px,
-                  rgba(255,255,255,0.022) 3px,
-                  rgba(255,255,255,0.022) 4px
+                  rgba(255,255,255,0.014) 3px,
+                  rgba(255,255,255,0.014) 4px
                 ),
                 repeating-linear-gradient(
-                  -45deg,
+                  -43deg,
                   transparent,
                   transparent 3px,
-                  rgba(0,0,0,0.028) 3px,
-                  rgba(0,0,0,0.028) 4px
+                  rgba(0,0,0,0.020) 3px,
+                  rgba(0,0,0,0.020) 4px
                 ),
-                repeating-linear-gradient(
-                  30deg,
-                  transparent,
-                  transparent 5px,
-                  rgba(255,255,255,0.012) 5px,
-                  rgba(255,255,255,0.012) 6px
-                ),
-                repeating-linear-gradient(
-                  -30deg,
-                  transparent,
-                  transparent 5px,
-                  rgba(0,0,0,0.018) 5px,
-                  rgba(0,0,0,0.018) 6px
-                ),
-                radial-gradient(ellipse at 28% 22%, rgba(255,255,255,0.16) 0%, transparent 48%),
-                radial-gradient(ellipse at 75% 80%, rgba(0,0,0,0.22) 0%, transparent 42%),
-                radial-gradient(ellipse at 12% 82%, rgba(0,0,0,0.14) 0%, transparent 32%),
-                radial-gradient(ellipse at 88% 12%, rgba(0,0,0,0.10) 0%, transparent 28%),
-                radial-gradient(ellipse at center, #1f6e3f 0%, #165a32 38%, #0f3d22 68%, #082215 100%)
+                radial-gradient(ellipse at 30% 20%, rgba(255,255,255,0.13) 0%, transparent 45%),
+                radial-gradient(ellipse at 72% 78%, rgba(0,0,0,0.20) 0%, transparent 40%),
+                radial-gradient(ellipse at center, #1e6b3c 0%, #165830 35%, #0e3b1f 65%, #071a0e 100%)
               `,
+              /* Canal tallado: sombra interna pronunciada en todos los bordes */
               boxShadow: `
-                inset 0 14px 45px rgba(0,0,0,0.90),
-                inset 0 0 80px rgba(0,0,0,0.55),
-                inset 14px 0 35px rgba(0,0,0,0.40),
-                inset -14px 0 35px rgba(0,0,0,0.40),
-                inset 0 -14px 35px rgba(0,0,0,0.40),
-                inset 0 3px 8px rgba(0,0,0,0.70),
-                inset 0 1px 0 rgba(255,255,255,0.04)
+                inset 0 0 0 3px rgba(0,0,0,0.55),
+                inset 0 6px 18px rgba(0,0,0,0.85),
+                inset 0 -6px 18px rgba(0,0,0,0.60),
+                inset 6px 0 18px rgba(0,0,0,0.55),
+                inset -6px 0 18px rgba(0,0,0,0.55),
+                inset 0 0 60px rgba(0,0,0,0.40),
+                inset 0 1px 0 rgba(255,255,255,0.05)
               `,
             }}
           >
-            {/* Textura de grano de fieltro — ruido fractal SVG como overlay */}
+            {/* Ruido fractal de fibra de fieltro */}
             <div
               aria-hidden="true"
               style={{
                 position: "absolute",
                 inset: 0,
                 borderRadius: "inherit",
-                backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='256' height='256'%3E%3Cfilter id='f'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85 0.70' numOctaves='4' seed='7' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='256' height='256' filter='url(%23f)'/%3E%3C/svg%3E")`,
-                backgroundSize: "256px 256px",
-                opacity: 0.09,
-                mixBlendMode: "overlay",
+                backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='f'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75 0.55' numOctaves='5' seed='12' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23f)'/%3E%3C/svg%3E")`,
+                backgroundSize: "200px 200px",
+                opacity: 0.11,
+                mixBlendMode: "soft-light",
                 pointerEvents: "none",
               }}
             />
-            {/* Vignette interna adicional para profundidad */}
+            {/* Vignette: oscurece bordes, simula hundimiento del fieltro */}
             <div
               aria-hidden="true"
               style={{
                 position: "absolute",
                 inset: 0,
                 borderRadius: "inherit",
-                background: `radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.45) 100%)`,
+                background: `radial-gradient(ellipse at 38% 35%, transparent 30%, rgba(0,0,0,0.38) 80%, rgba(0,0,0,0.60) 100%)`,
                 pointerEvents: "none",
               }}
             />
