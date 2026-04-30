@@ -200,64 +200,65 @@ export function Board({ onPlaceEnd, clearing = false }: BoardProps) {
             style={{
               width: "100%",
               aspectRatio: "1 / 1",
-              /* Tejido de fieltro: trama cruzada densa + gradiente radial de profundidad */
+              /* Fieltro casino: fibra fina + trama cruzada + gradiente de profundidad */
               background: `
-                repeating-linear-gradient(
-                  45deg,
-                  transparent,
-                  transparent 1.5px,
-                  rgba(255,255,255,0.058) 1.5px,
-                  rgba(255,255,255,0.058) 2.5px
-                ),
-                repeating-linear-gradient(
-                  -45deg,
-                  transparent,
-                  transparent 1.5px,
-                  rgba(0,0,0,0.072) 1.5px,
-                  rgba(0,0,0,0.072) 2.5px
-                ),
-                repeating-linear-gradient(
-                  44deg,
-                  transparent,
-                  transparent 4px,
-                  rgba(255,255,255,0.024) 4px,
-                  rgba(255,255,255,0.024) 5px
-                ),
-                repeating-linear-gradient(
-                  -44deg,
-                  transparent,
-                  transparent 4px,
-                  rgba(0,0,0,0.032) 4px,
-                  rgba(0,0,0,0.032) 5px
-                ),
                 repeating-linear-gradient(
                   0deg,
                   transparent,
-                  transparent 5px,
-                  rgba(0,0,0,0.020) 5px,
-                  rgba(0,0,0,0.020) 6px
+                  transparent 2px,
+                  rgba(0,0,0,0.028) 2px,
+                  rgba(0,0,0,0.028) 3px
                 ),
                 repeating-linear-gradient(
                   90deg,
                   transparent,
-                  transparent 5px,
-                  rgba(255,255,255,0.016) 5px,
-                  rgba(255,255,255,0.016) 6px
+                  transparent 2px,
+                  rgba(255,255,255,0.018) 2px,
+                  rgba(255,255,255,0.018) 3px
                 ),
-                radial-gradient(ellipse at 25% 20%, rgba(255,255,255,0.24) 0%, transparent 42%),
-                radial-gradient(ellipse at 72% 78%, rgba(0,0,0,0.36) 0%, transparent 40%),
-                radial-gradient(ellipse at 50% 46%, rgba(28,105,58,0.52) 0%, transparent 54%),
-                radial-gradient(ellipse at center, #1e6b3c 0%, #165830 30%, #0e3b1f 60%, #071a0e 100%)
+                repeating-linear-gradient(
+                  47deg,
+                  transparent,
+                  transparent 1px,
+                  rgba(255,255,255,0.048) 1px,
+                  rgba(255,255,255,0.048) 2px
+                ),
+                repeating-linear-gradient(
+                  -47deg,
+                  transparent,
+                  transparent 1px,
+                  rgba(0,0,0,0.062) 1px,
+                  rgba(0,0,0,0.062) 2px
+                ),
+                repeating-linear-gradient(
+                  43deg,
+                  transparent,
+                  transparent 3px,
+                  rgba(255,255,255,0.022) 3px,
+                  rgba(255,255,255,0.022) 4px
+                ),
+                repeating-linear-gradient(
+                  -43deg,
+                  transparent,
+                  transparent 3px,
+                  rgba(0,0,0,0.028) 3px,
+                  rgba(0,0,0,0.028) 4px
+                ),
+                radial-gradient(ellipse at 38% 32%, rgba(255,255,255,0.18) 0%, transparent 38%),
+                radial-gradient(ellipse at 62% 68%, rgba(0,0,0,0.28) 0%, transparent 36%),
+                radial-gradient(ellipse at 50% 48%, rgba(30,110,62,0.45) 0%, transparent 52%),
+                radial-gradient(ellipse at center, #1f7040 0%, #175c32 25%, #0f4022 55%, #082010 100%)
               `,
-              /* Canal tallado: sombra interna pronunciada en todos los bordes */
+              /* Sombra interna: canal hundido con luz cenital */
               boxShadow: `
-                inset 0 0 0 3px rgba(0,0,0,0.55),
-                inset 0 6px 18px rgba(0,0,0,0.85),
-                inset 0 -6px 18px rgba(0,0,0,0.60),
-                inset 6px 0 18px rgba(0,0,0,0.55),
-                inset -6px 0 18px rgba(0,0,0,0.55),
-                inset 0 0 60px rgba(0,0,0,0.40),
-                inset 0 1px 0 rgba(255,255,255,0.05)
+                inset 0 0 0 2px rgba(0,0,0,0.70),
+                inset 0 8px 28px rgba(0,0,0,0.90),
+                inset 0 -8px 28px rgba(0,0,0,0.65),
+                inset 8px 0 28px rgba(0,0,0,0.60),
+                inset -8px 0 28px rgba(0,0,0,0.60),
+                inset 0 0 80px rgba(0,0,0,0.45),
+                inset 0 2px 6px rgba(255,255,255,0.06),
+                inset 0 1px 0 rgba(255,255,255,0.08)
               `,
             }}
           >
