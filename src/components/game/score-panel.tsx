@@ -248,64 +248,68 @@ export function ScorePanel() {
     <>
       {/* ── Mobile compact ── */}
       <div
-        className="flex sm:hidden items-center gap-2 rounded-xl bg-[#3a2210]/85 border border-[#c9a84c]/25 backdrop-blur-sm px-2.5 py-1.5 shadow-lg shadow-black/30 shrink-0"
+        className="flex sm:hidden flex-col gap-1 rounded-xl bg-[#3a2210]/85 border border-[#c9a84c]/25 backdrop-blur-sm px-2.5 py-1.5 shadow-lg shadow-black/30 shrink-0"
         role="region"
         aria-label="Marcador"
       >
-        <AnimatePresence mode="wait">
-          <motion.span
-            key={round}
-            initial={{ opacity: 0, y: -5 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 5 }}
-            transition={{ duration: 0.2 }}
-            className="text-[11px] font-bold uppercase tracking-widest text-[#c9a84c] shrink-0"
-          >
-            R{round}
-          </motion.span>
-        </AnimatePresence>
+        <div className="flex items-center gap-2">
+          <AnimatePresence mode="wait">
+            <motion.span
+              key={round}
+              initial={{ opacity: 0, y: -5 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 5 }}
+              transition={{ duration: 0.2 }}
+              className="text-[11px] font-bold uppercase tracking-widest text-[#c9a84c] shrink-0"
+            >
+              R{round}
+            </motion.span>
+          </AnimatePresence>
 
-        <div className="flex flex-col gap-0.5">
-          {([0, 1] as const).map((teamIdx) => {
-            const s = scores[teamIdx];
-            const pct = Math.min((s / targetScore) * 100, 100);
-            const color = teamIdx === 0 ? "#c9a84c" : "#a8c4a0";
-            const isMyTeam = myTeam === teamIdx;
-            return (
-              <div key={teamIdx} className="flex items-center gap-1.5">
-                {isMyTeam && <span className="text-[#c9a84c] text-[8px] shrink-0">◆</span>}
-                <span className="text-[10px] font-bold tabular-nums w-5 text-right shrink-0" style={{ color }}>
-                  {s}
-                </span>
-                <div
-                  className="w-12 h-1.5 rounded-full bg-[#0f3520]/60 overflow-hidden"
-                  role="progressbar"
-                  aria-valuenow={s}
-                  aria-valuemin={0}
-                  aria-valuemax={targetScore}
-                  aria-label={`Equipo ${teamIdx + 1}: ${s} de ${targetScore}`}
-                >
-                  <motion.div
-                    className="h-full rounded-full"
-                    initial={false}
-                    animate={{ width: `${pct}%` }}
-                    transition={{ duration: 0.6, ease: "easeOut" }}
-                    style={{ backgroundColor: color }}
-                  />
+          <div className="flex flex-col gap-0.5">
+            {([0, 1] as const).map((teamIdx) => {
+              const s = scores[teamIdx];
+              const pct = Math.min((s / targetScore) * 100, 100);
+              const color = teamIdx === 0 ? "#c9a84c" : "#a8c4a0";
+              const isMyTeam = myTeam === teamIdx;
+              return (
+                <div key={teamIdx} className="flex items-center gap-1.5">
+                  {isMyTeam && <span className="text-[#c9a84c] text-[8px] shrink-0">◆</span>}
+                  <span className="text-[10px] font-bold tabular-nums w-5 text-right shrink-0" style={{ color }}>
+                    {s}
+                  </span>
+                  <div
+                    className="w-12 h-1.5 rounded-full bg-[#0f3520]/60 overflow-hidden"
+                    role="progressbar"
+                    aria-valuenow={s}
+                    aria-valuemin={0}
+                    aria-valuemax={targetScore}
+                    aria-label={`Equipo ${teamIdx + 1}: ${s} de ${targetScore}`}
+                  >
+                    <motion.div
+                      className="h-full rounded-full"
+                      initial={false}
+                      animate={{ width: `${pct}%` }}
+                      transition={{ duration: 0.6, ease: "easeOut" }}
+                      style={{ backgroundColor: color }}
+                    />
+                  </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
+
+          {firstPlayerName && (
+            <div className="flex items-center gap-0.5 shrink-0 bg-[#c9a84c]/10 border border-[#c9a84c]/20 rounded-full px-1.5 py-0.5">
+              <span className="text-[#c9a84c] text-[8px]">★</span>
+              <span className="text-[9px] text-[#f5f0e8]/75 max-w-[36px] truncate leading-none">
+                {firstPlayerName}
+              </span>
+            </div>
+          )}
         </div>
 
-        {firstPlayerName && (
-          <div className="flex items-center gap-0.5 shrink-0 bg-[#c9a84c]/10 border border-[#c9a84c]/20 rounded-full px-1.5 py-0.5">
-            <span className="text-[#c9a84c] text-[8px]">★</span>
-            <span className="text-[9px] text-[#f5f0e8]/75 max-w-[36px] truncate leading-none">
-              {firstPlayerName}
-            </span>
-          </div>
-        )}
+        <RoundHistory history={roundHistory} myTeam={myTeam} />
       </div>
 
       {/* ── Desktop full panel ── */}
