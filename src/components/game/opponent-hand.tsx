@@ -35,10 +35,10 @@ export function OpponentHand({
         isVertical ? "flex-col" : "flex-col-reverse"
       }`}
     >
-      {/* Player name + status — on mobile, lateral players only show the dot */}
+      {/* Player name + tile count */}
       <div className="flex items-center gap-1 sm:gap-2">
         <motion.div
-          className={`h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full ${
+          className={`h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full flex-shrink-0 ${
             connected ? "bg-[#4ade80]" : "bg-red-400"
           }`}
           animate={
@@ -59,9 +59,27 @@ export function OpponentHand({
         >
           {playerName}
         </span>
+        {/* Tile count pill — always visible */}
+        <motion.div
+          key={tileCount}
+          initial={{ scale: 1.5, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ type: "spring", stiffness: 500, damping: 22 }}
+          className={`flex-shrink-0 flex items-center justify-center gap-0.5
+            min-w-[20px] sm:min-w-[24px] h-5 sm:h-6 px-1.5
+            rounded-full text-[10px] sm:text-xs font-bold leading-none
+            border shadow-md
+            ${isCurrentTurn
+              ? "bg-[#c9a84c] text-[#1a0e00] border-[#e8c96a] shadow-[0_0_6px_rgba(201,168,76,0.5)]"
+              : "bg-[#2a1a08] text-[#c9a84c] border-[#5c3a1e]"
+            }`}
+          aria-label={`${tileCount} fichas`}
+        >
+          {tileCount}
+        </motion.div>
       </div>
 
-      {/* Face-down tiles + counter badge */}
+      {/* Face-down tiles */}
       <div className="relative flex items-center justify-center">
         <PassIndicator show={showPass} />
         <div
@@ -85,26 +103,6 @@ export function OpponentHand({
             </motion.div>
           ))}
         </div>
-
-        {/* Tile count badge */}
-        <motion.div
-          key={tileCount}
-          initial={{ scale: 1.4, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ type: "spring", stiffness: 500, damping: 20 }}
-          className={`absolute -bottom-1 -right-1 sm:-bottom-1.5 sm:-right-1.5
-            min-w-[16px] sm:min-w-[20px] h-4 sm:h-5 px-1
-            flex items-center justify-center
-            rounded-full text-[9px] sm:text-[11px] font-bold leading-none
-            shadow-md border
-            ${
-              isCurrentTurn
-                ? "bg-[#c9a84c] text-[#1a0e00] border-[#e8c96a]"
-                : "bg-[#3a2210] text-[#c9a84c] border-[#5c3a1e]"
-            }`}
-        >
-          {tileCount}
-        </motion.div>
       </div>
     </div>
   );

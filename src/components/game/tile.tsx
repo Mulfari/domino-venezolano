@@ -106,6 +106,9 @@ export function DominoTile({
   const h = isHorizontal ? baseW : baseH;
 
   const showFace = !faceDown && tile;
+  const ornSize = Math.min(w, h) * 0.14;
+  const cornerPipR = Math.min(w, h) * 0.055;
+  const cornerPad = Math.min(w, h) * 0.2;
 
   const svgContent = (
     <svg
@@ -184,28 +187,37 @@ export function DominoTile({
       {faceDown ? (
         <>
           {/* Primary wood grain */}
-          <rect x={0} y={0} width={w} height={h} rx={borderRadius} fill={`url(#grain-${uid})`} clipPath={`url(#clip-${uid})`} opacity={0.6} />
+          <rect x={0} y={0} width={w} height={h} rx={borderRadius} fill={`url(#grain-${uid})`} clipPath={`url(#clip-${uid})`} opacity={0.7} />
           {/* Secondary cross-grain for depth */}
-          <rect x={0} y={0} width={w} height={h} rx={borderRadius} fill={`url(#grain2-${uid})`} clipPath={`url(#clip-${uid})`} opacity={0.4} />
+          <rect x={0} y={0} width={w} height={h} rx={borderRadius} fill={`url(#grain2-${uid})`} clipPath={`url(#clip-${uid})`} opacity={0.45} />
           {/* Vignette to give rounded depth */}
           <rect x={0} y={0} width={w} height={h} rx={borderRadius} fill={`url(#vignette-${uid})`} clipPath={`url(#clip-${uid})`} />
           {/* Outer inset border */}
-          <rect x={1.5} y={1.5} width={w - 3} height={h - 3} rx={borderRadius - 0.5} fill="none" stroke="#8b5e30" strokeWidth={1} opacity={0.5} />
+          <rect x={1.5} y={1.5} width={w - 3} height={h - 3} rx={borderRadius - 0.5} fill="none" stroke="#9b6e3a" strokeWidth={1.2} opacity={0.6} />
           {/* Inner decorative frame */}
-          <rect x={3.5} y={3.5} width={w - 7} height={h - 7} rx={borderRadius - 2} fill="none" stroke="#6b4420" strokeWidth={0.6} opacity={0.65} />
+          <rect x={3.5} y={3.5} width={w - 7} height={h - 7} rx={borderRadius - 2} fill="none" stroke="#7a5228" strokeWidth={0.8} opacity={0.7} />
           {/* Divider line */}
           {isHorizontal ? (
-            <line x1={w / 2} y1={4} x2={w / 2} y2={h - 4} stroke="#6b4420" strokeWidth={0.7} opacity={0.7} />
+            <line x1={w / 2} y1={5} x2={w / 2} y2={h - 5} stroke="#7a5228" strokeWidth={0.8} opacity={0.75} />
           ) : (
-            <line x1={4} y1={h / 2} x2={w - 4} y2={h / 2} stroke="#6b4420" strokeWidth={0.7} opacity={0.7} />
+            <line x1={5} y1={h / 2} x2={w - 5} y2={h / 2} stroke="#7a5228" strokeWidth={0.8} opacity={0.75} />
           )}
-          {/* Center ornament dot */}
-          <circle
-            cx={w / 2} cy={h / 2} r={Math.min(w, h) * 0.08}
-            fill="#5a3010" stroke="#7a4d28" strokeWidth={0.5} opacity={0.8}
+          {/* Center diamond ornament */}
+          <polygon
+            points={`${w/2},${h/2 - ornSize} ${w/2 + ornSize * 0.65},${h/2} ${w/2},${h/2 + ornSize} ${w/2 - ornSize * 0.65},${h/2}`}
+            fill="#4a2808" stroke="#9b6e3a" strokeWidth={0.8} opacity={0.9}
           />
+          <polygon
+            points={`${w/2},${h/2 - ornSize * 0.55} ${w/2 + ornSize * 0.38},${h/2} ${w/2},${h/2 + ornSize * 0.55} ${w/2 - ornSize * 0.38},${h/2}`}
+            fill="none" stroke="#c9a84c" strokeWidth={0.5} opacity={0.5}
+          />
+          {/* Corner pip accents */}
+          <circle cx={cornerPad} cy={cornerPad} r={cornerPipR} fill="#5a3010" stroke="#8b5e30" strokeWidth={0.5} opacity={0.8} />
+          <circle cx={w - cornerPad} cy={cornerPad} r={cornerPipR} fill="#5a3010" stroke="#8b5e30" strokeWidth={0.5} opacity={0.8} />
+          <circle cx={cornerPad} cy={h - cornerPad} r={cornerPipR} fill="#5a3010" stroke="#8b5e30" strokeWidth={0.5} opacity={0.8} />
+          <circle cx={w - cornerPad} cy={h - cornerPad} r={cornerPipR} fill="#5a3010" stroke="#8b5e30" strokeWidth={0.5} opacity={0.8} />
           {/* Top-left highlight sheen */}
-          <rect x={1} y={1} width={w * 0.6} height={h * 0.3} rx={borderRadius - 1} fill="white" opacity={0.07} clipPath={`url(#clip-${uid})`} />
+          <rect x={1} y={1} width={w * 0.65} height={h * 0.35} rx={borderRadius - 1} fill="white" opacity={0.09} clipPath={`url(#clip-${uid})`} />
         </>
       ) : showFace ? (
         isHorizontal ? (
