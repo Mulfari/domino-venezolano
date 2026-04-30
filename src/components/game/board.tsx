@@ -109,38 +109,48 @@ export function Board({ onPlaceEnd }: BoardProps) {
           padding: `${FRAME_PAD}px`,
           background: `
             repeating-linear-gradient(
-              90deg,
+              92deg,
               transparent,
-              transparent 18px,
-              rgba(0,0,0,0.06) 18px,
-              rgba(0,0,0,0.06) 20px
+              transparent 14px,
+              rgba(0,0,0,0.07) 14px,
+              rgba(0,0,0,0.07) 16px
             ),
             repeating-linear-gradient(
-              90deg,
+              88deg,
               transparent,
-              transparent 6px,
-              rgba(255,255,255,0.025) 6px,
-              rgba(255,255,255,0.025) 7px
+              transparent 5px,
+              rgba(255,255,255,0.03) 5px,
+              rgba(255,255,255,0.03) 6px
+            ),
+            repeating-linear-gradient(
+              180deg,
+              transparent,
+              transparent 22px,
+              rgba(0,0,0,0.04) 22px,
+              rgba(0,0,0,0.04) 24px
             ),
             linear-gradient(180deg,
-              #9a6b3e 0%,
-              #7a4f2a 6%,
-              #4a2e14 18%,
-              #6b4020 35%,
-              #3a2210 55%,
-              #5c3818 72%,
-              #4a2e14 85%,
-              #7a4f2a 94%,
-              #8b5e3c 100%
+              #b07d4a 0%,
+              #8a5c2e 4%,
+              #5c3818 12%,
+              #7a4f2a 22%,
+              #3a2210 38%,
+              #4a2e14 50%,
+              #6b4020 62%,
+              #3a2210 72%,
+              #5c3818 82%,
+              #7a4f2a 92%,
+              #9a6b3e 100%
             )
           `,
           boxShadow: `
-            0 20px 60px rgba(0,0,0,0.85),
-            0 8px 24px rgba(0,0,0,0.55),
-            inset 0 2px 0 rgba(255,255,255,0.14),
-            inset 0 -2px 0 rgba(0,0,0,0.45),
-            inset 2px 0 0 rgba(255,255,255,0.07),
-            inset -2px 0 0 rgba(0,0,0,0.35)
+            0 24px 70px rgba(0,0,0,0.9),
+            0 10px 30px rgba(0,0,0,0.6),
+            inset 0 3px 0 rgba(255,255,255,0.18),
+            inset 0 -3px 0 rgba(0,0,0,0.55),
+            inset 3px 0 0 rgba(255,255,255,0.09),
+            inset -3px 0 0 rgba(0,0,0,0.45),
+            inset 0 1px 8px rgba(255,255,255,0.06)
           `,
           border: "1px solid #3a2210",
           position: "relative",
