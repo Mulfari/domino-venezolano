@@ -132,6 +132,13 @@ export function DominoTile({
         <pattern id={`grain-${uid}`} x="0" y="0" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(22)">
           <line x1="0" y1="0" x2="0" y2="5" stroke="#7a4d28" strokeWidth="0.7" opacity="0.4"/>
         </pattern>
+        <pattern id={`grain2-${uid}`} x="0" y="0" width="9" height="9" patternUnits="userSpaceOnUse" patternTransform="rotate(68)">
+          <line x1="0" y1="0" x2="0" y2="9" stroke="#5a2e0e" strokeWidth="0.5" opacity="0.25"/>
+        </pattern>
+        <radialGradient id={`vignette-${uid}`} cx="50%" cy="50%" r="70%">
+          <stop offset="0%" stopColor="transparent" />
+          <stop offset="100%" stopColor="#0a0400" stopOpacity="0.55" />
+        </radialGradient>
         <clipPath id={`clip-${uid}`}>
           <rect x={0} y={0} width={w} height={h} rx={borderRadius}/>
         </clipPath>
@@ -164,18 +171,29 @@ export function DominoTile({
 
       {faceDown ? (
         <>
-          {/* Wood grain overlay */}
-          <rect x={0} y={0} width={w} height={h} rx={borderRadius} fill={`url(#grain-${uid})`} clipPath={`url(#clip-${uid})`} opacity={0.55} />
-          {/* Inner frame */}
-          <rect x={2.5} y={2.5} width={w - 5} height={h - 5} rx={borderRadius - 1} fill="none" stroke="#7a4d28" strokeWidth={0.75} opacity={0.7} />
+          {/* Primary wood grain */}
+          <rect x={0} y={0} width={w} height={h} rx={borderRadius} fill={`url(#grain-${uid})`} clipPath={`url(#clip-${uid})`} opacity={0.6} />
+          {/* Secondary cross-grain for depth */}
+          <rect x={0} y={0} width={w} height={h} rx={borderRadius} fill={`url(#grain2-${uid})`} clipPath={`url(#clip-${uid})`} opacity={0.4} />
+          {/* Vignette to give rounded depth */}
+          <rect x={0} y={0} width={w} height={h} rx={borderRadius} fill={`url(#vignette-${uid})`} clipPath={`url(#clip-${uid})`} />
+          {/* Outer inset border */}
+          <rect x={1.5} y={1.5} width={w - 3} height={h - 3} rx={borderRadius - 0.5} fill="none" stroke="#8b5e30" strokeWidth={1} opacity={0.5} />
+          {/* Inner decorative frame */}
+          <rect x={3.5} y={3.5} width={w - 7} height={h - 7} rx={borderRadius - 2} fill="none" stroke="#6b4420" strokeWidth={0.6} opacity={0.65} />
           {/* Divider line */}
           {isHorizontal ? (
-            <line x1={w / 2} y1={3} x2={w / 2} y2={h - 3} stroke="#7a4d28" strokeWidth={0.6} opacity={0.7} />
+            <line x1={w / 2} y1={4} x2={w / 2} y2={h - 4} stroke="#6b4420" strokeWidth={0.7} opacity={0.7} />
           ) : (
-            <line x1={3} y1={h / 2} x2={w - 3} y2={h / 2} stroke="#7a4d28" strokeWidth={0.6} opacity={0.7} />
+            <line x1={4} y1={h / 2} x2={w - 4} y2={h / 2} stroke="#6b4420" strokeWidth={0.7} opacity={0.7} />
           )}
-          {/* Highlight sheen */}
-          <rect x={1} y={1} width={w * 0.55} height={h * 0.35} rx={borderRadius - 1} fill="white" opacity={0.06} clipPath={`url(#clip-${uid})`} />
+          {/* Center ornament dot */}
+          <circle
+            cx={w / 2} cy={h / 2} r={Math.min(w, h) * 0.08}
+            fill="#5a3010" stroke="#7a4d28" strokeWidth={0.5} opacity={0.8}
+          />
+          {/* Top-left highlight sheen */}
+          <rect x={1} y={1} width={w * 0.6} height={h * 0.3} rx={borderRadius - 1} fill="white" opacity={0.07} clipPath={`url(#clip-${uid})`} />
         </>
       ) : showFace ? (
         isHorizontal ? (
