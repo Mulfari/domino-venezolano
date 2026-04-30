@@ -324,7 +324,7 @@ function RoundEndView({
       aria-modal="true"
       aria-labelledby="round-end-title"
     >
-      <Confetti active={iWon} />
+      <Confetti active={!isDraw} />
       <FlashOverlay color={flashColor} />
 
       <motion.div
@@ -537,7 +537,7 @@ function GameOverView({ scores, myTeam, team0Names, team1Names, onBackToLobby }:
       aria-modal="true"
       aria-labelledby="game-over-title"
     >
-      <Confetti active={iWon} />
+      <Confetti active />
       <FlashOverlay color={iWon ? "rgba(201,168,76,0.4)" : "rgba(255,255,255,0.12)"} />
 
       <motion.div
@@ -589,48 +589,37 @@ function GameOverView({ scores, myTeam, team0Names, team1Names, onBackToLobby }:
 
         {/* Podium */}
         <div className="mx-5 mt-3 mb-2" aria-label="Podio final">
-          <p className="text-[10px] uppercase tracking-widest text-[#a8c4a0]/45 text-center mb-3">
-            Resultado final
-          </p>
+          <motion.p
+            initial={{ opacity: 0, letterSpacing: "0.6em" }}
+            animate={{ opacity: 1, letterSpacing: "0.3em" }}
+            transition={{ delay: 0.5, duration: 0.5 }}
+            className="text-[10px] font-bold uppercase text-[#c9a84c]/55 text-center mb-4"
+            style={{ letterSpacing: "0.3em" }}
+          >
+            — Resultado final —
+          </motion.p>
 
-          {/* Pedestals — winner center/tall, loser side/short */}
-          <div className="flex items-end justify-center gap-2">
+          <div className="flex items-end justify-center gap-3">
 
-            {/* Loser — left, shorter */}
-            <motion.div
-              initial={{ opacity: 0, y: 24 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.9, type: "spring", stiffness: 220, damping: 22 }}
-              className="flex flex-col items-center w-[38%]"
-            >
-              <span className="text-xl mb-1" aria-hidden="true">🥈</span>
-              <p className="text-[10px] text-[#a8c4a0]/50 uppercase tracking-wider mb-0.5 text-center leading-tight">
-                {loserTeam === myTeam ? "tu equipo" : `equipo ${loserTeam === 0 ? "A" : "B"}`}
-              </p>
-              <p className="text-[11px] font-medium text-[#f5f0e8]/55 text-center px-1 mb-2 leading-tight line-clamp-2">
-                {teamLabel(loserTeam)}
-              </p>
-              <motion.div
-                initial={{ scaleY: 0 }}
-                animate={{ scaleY: 1 }}
-                transition={{ delay: 1.05, duration: 0.45, ease: "easeOut" }}
-                style={{ originY: 1, height: 60 }}
-                className="w-full rounded-t-lg bg-[#1e5c3a]/70 border border-[#f5f0e8]/10 flex flex-col items-center justify-center"
-              >
-                <p className="text-lg font-bold text-[#f5f0e8]/60 tabular-nums leading-none">
-                  {scores[loserTeam]}
-                </p>
-                <p className="text-[9px] text-[#a8c4a0]/35 uppercase tracking-wider">pts</p>
-              </motion.div>
-            </motion.div>
-
-            {/* Winner — center, tallest */}
+            {/* Winner — left, tallest */}
             <motion.div
               initial={{ opacity: 0, y: 32 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.55, type: "spring", stiffness: 260, damping: 20 }}
-              className="flex flex-col items-center w-[44%]"
+              className="flex flex-col items-center w-[48%]"
             >
+              {/* Campeones badge */}
+              <motion.div
+                initial={{ opacity: 0, scale: 0.5, y: -8 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                transition={{ delay: 1.2, type: "spring", stiffness: 320, damping: 18 }}
+                className="mb-1.5 px-3 py-0.5 rounded-full bg-[#c9a84c]/20 border border-[#c9a84c]/45"
+              >
+                <p className="text-[9px] font-bold uppercase tracking-widest text-[#c9a84c]">
+                  Campeones
+                </p>
+              </motion.div>
+
               <motion.span
                 initial={{ scale: 0, rotate: -20 }}
                 animate={{ scale: [0, 1.6, 0.88, 1], rotate: [0, 18, -6, 0] }}
@@ -656,9 +645,16 @@ function GameOverView({ scores, myTeam, team0Names, team1Names, onBackToLobby }:
                 animate={{ scaleY: 1 }}
                 transition={{ delay: 0.7, duration: 0.55, ease: "easeOut" }}
                 style={{ originY: 1, height: 100 }}
-                className="w-full rounded-t-xl bg-gradient-to-b from-[#c9a84c]/40 to-[#c9a84c]/15 border border-[#c9a84c]/55 flex flex-col items-center justify-center"
+                className="relative w-full rounded-t-xl bg-gradient-to-b from-[#c9a84c]/40 to-[#c9a84c]/15 border border-[#c9a84c]/55 flex flex-col items-center justify-center overflow-hidden"
                 aria-label={`Ganador: ${scores[winnerTeam]} puntos`}
               >
+                {/* Shimmer sweep */}
+                <motion.div
+                  initial={{ x: "-120%" }}
+                  animate={{ x: "220%" }}
+                  transition={{ delay: 1.35, duration: 0.75, ease: "easeInOut" }}
+                  className="absolute inset-y-0 w-1/3 bg-gradient-to-r from-transparent via-white/25 to-transparent -skew-x-12 pointer-events-none"
+                />
                 <motion.p
                   initial={{ scale: 0.3, opacity: 0 }}
                   animate={{ scale: [0.3, 1.4, 0.9, 1], opacity: 1 }}
@@ -669,6 +665,34 @@ function GameOverView({ scores, myTeam, team0Names, team1Names, onBackToLobby }:
                   <AnimatedNumber value={scores[winnerTeam]} delay={1.1} />
                 </motion.p>
                 <p className="text-[9px] text-[#c9a84c]/55 uppercase tracking-wider mt-0.5">pts</p>
+              </motion.div>
+            </motion.div>
+
+            {/* Loser — right, shorter */}
+            <motion.div
+              initial={{ opacity: 0, y: 24 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.9, type: "spring", stiffness: 220, damping: 22 }}
+              className="flex flex-col items-center w-[38%]"
+            >
+              <span className="text-xl mb-1" aria-hidden="true">🥈</span>
+              <p className="text-[10px] text-[#a8c4a0]/50 uppercase tracking-wider mb-0.5 text-center leading-tight">
+                {loserTeam === myTeam ? "tu equipo" : `equipo ${loserTeam === 0 ? "A" : "B"}`}
+              </p>
+              <p className="text-[11px] font-medium text-[#f5f0e8]/55 text-center px-1 mb-2 leading-tight line-clamp-2">
+                {teamLabel(loserTeam)}
+              </p>
+              <motion.div
+                initial={{ scaleY: 0 }}
+                animate={{ scaleY: 1 }}
+                transition={{ delay: 1.05, duration: 0.45, ease: "easeOut" }}
+                style={{ originY: 1, height: 60 }}
+                className="w-full rounded-t-lg bg-[#1e5c3a]/70 border border-[#f5f0e8]/10 flex flex-col items-center justify-center"
+              >
+                <p className="text-lg font-bold text-[#f5f0e8]/60 tabular-nums leading-none">
+                  {scores[loserTeam]}
+                </p>
+                <p className="text-[9px] text-[#a8c4a0]/35 uppercase tracking-wider">pts</p>
               </motion.div>
             </motion.div>
 
