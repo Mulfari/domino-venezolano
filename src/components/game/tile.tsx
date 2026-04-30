@@ -102,7 +102,7 @@ export function DominoTile({
   const isMobile = useIsMobile();
   const config = responsive && isMobile ? mobileSizeConfig : sizeConfig;
   const { w: baseW, h: baseH, pip, gap } = config[size];
-  const borderRadius = size === "small" ? 16 : size === "medium" ? 23 : 32;
+  const borderRadius = size === "small" ? 3 : size === "medium" ? 4 : 5;
   const uid = useId().replace(/:/g, "");
 
   const isHorizontal = orientation === "horizontal";
