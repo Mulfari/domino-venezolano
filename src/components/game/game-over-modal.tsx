@@ -131,8 +131,8 @@ function Confetti({ active }: { active: boolean }) {
 
 // ─── Animated counter ─────────────────────────────────────────────────────────
 
-function AnimatedNumber({ value, delay = 0 }: { value: number; delay?: number }) {
-  const [display, setDisplay] = useState(0);
+function AnimatedNumber({ value, from = 0, delay = 0 }: { value: number; from?: number; delay?: number }) {
+  const [display, setDisplay] = useState(from);
 
   useEffect(() => {
     const timeout = setTimeout(() => {
@@ -142,13 +142,13 @@ function AnimatedNumber({ value, delay = 0 }: { value: number; delay?: number })
         const elapsed = Date.now() - start;
         const t = Math.min(elapsed / duration, 1);
         const eased = 1 - Math.pow(1 - t, 3);
-        setDisplay(Math.round(eased * value));
+        setDisplay(Math.round(from + (value - from) * eased));
         if (t < 1) requestAnimationFrame(tick);
       };
       requestAnimationFrame(tick);
     }, delay * 1000);
     return () => clearTimeout(timeout);
-  }, [value, delay]);
+  }, [value, from, delay]);
 
   return <>{display}</>;
 }
@@ -460,7 +460,7 @@ function RoundEndView({
                     {names.length > 0 ? names.join(" & ") : `Equipo ${team === 0 ? "A" : "B"}`}
                   </span>
                   <span className={`text-sm font-bold tabular-nums ${isMyT ? "text-[#c9a84c]" : "text-[#f5f0e8]"}`}>
-                    {score}
+                    <AnimatedNumber value={score} from={team === 0 ? prevScore0 : prevScore1} delay={0.72} />
                     <span className="text-[10px] font-normal text-[#a8c4a0]/60">/{targetScore}</span>
                   </span>
                 </div>

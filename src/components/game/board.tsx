@@ -11,9 +11,10 @@ import type { Seat } from "@/lib/game/types";
 
 interface BoardProps {
   onPlaceEnd?: (end: "left" | "right") => void;
+  clearing?: boolean;
 }
 
-export function Board({ onPlaceEnd }: BoardProps) {
+export function Board({ onPlaceEnd, clearing = false }: BoardProps) {
   const board = useGameStore((s) => s.board);
   const selectedTile = useGameStore((s) => s.selectedTile);
   const isMyTurnFn = useGameStore((s) => s.isMyTurn);
@@ -281,7 +282,7 @@ export function Board({ onPlaceEnd }: BoardProps) {
                 className="absolute inset-0"
               >
                 <AnimatePresence>
-                  {placedTiles.map((pt) => {
+                  {placedTiles.map((pt, tileIdx) => {
                     const isH = pt.orientation === "horizontal";
                     const tw = isH
                       ? (pt.isDouble ? dims.doubleH : dims.horizW)
@@ -296,12 +297,18 @@ export function Board({ onPlaceEnd }: BoardProps) {
                     const isEndTile = isLeftEnd || isRightEnd;
                     const thisEnd: "left" | "right" | null = isLeftEnd ? "left" : isRightEnd ? "right" : null;
                     const isHoveredEnd = thisEnd !== null && hoveredEnd === thisEnd;
+                    // Stagger exit from center outward
+                    const totalTiles = placedTiles.length;
+                    const centerIdx = (totalTiles - 1) / 2;
+                    const distFromCenter = Math.abs(tileIdx - centerIdx);
+                    const exitDelay = clearing ? distFromCenter * 0.03 : 0;
 
                     return (
                       <motion.g
                         key={pt.key}
                         initial={isNew ? { scale: 0 } : false}
                         animate={isNew ? { scale: 1 } : undefined}
+                        exit={clearing ? { scale: 0, opacity: 0, transition: { duration: 0.25, delay: exitDelay, ease: "easeIn" } } : undefined}
                         transition={isNew ? { type: "spring", stiffness: 380, damping: 18 } : undefined}
                         style={{ transformOrigin: `${pt.x}px ${pt.y}px` }}
                       >

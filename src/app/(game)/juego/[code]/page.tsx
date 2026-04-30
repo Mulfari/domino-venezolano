@@ -665,7 +665,7 @@ export default function GamePage() {
         </div>
 
         {/* Board — takes full width on mobile */}
-        <Board onPlaceEnd={handlePlaceEnd} />
+        <Board onPlaceEnd={handlePlaceEnd} clearing={boardTransitioning} />
 
         {/* Right opponent — absolute overlay on mobile, in-flow on desktop */}
         <div className="absolute right-0 top-1/2 -translate-y-1/2 z-10 sm:relative sm:right-auto sm:top-auto sm:translate-y-0 sm:shrink-0 sm:px-4">
