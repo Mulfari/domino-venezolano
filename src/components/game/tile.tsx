@@ -102,7 +102,7 @@ export function DominoTile({
   const isMobile = useIsMobile();
   const config = responsive && isMobile ? mobileSizeConfig : sizeConfig;
   const { w: baseW, h: baseH, pip, gap } = config[size];
-  const borderRadius = size === "small" ? 13 : size === "medium" ? 19 : 26;
+  const borderRadius = size === "small" ? 16 : size === "medium" ? 23 : 32;
   const uid = useId().replace(/:/g, "");
 
   const isHorizontal = orientation === "horizontal";
@@ -125,8 +125,8 @@ export function DominoTile({
       style={highlight
         ? { filter: "drop-shadow(0 0 12px rgba(201,168,76,0.98)) drop-shadow(0 0 4px rgba(201,168,76,0.6))" }
         : !faceDown
-          ? { filter: "drop-shadow(0 6px 14px rgba(0,0,0,0.85)) drop-shadow(0 2px 4px rgba(0,0,0,0.65)) drop-shadow(0 1px 1px rgba(0,0,0,0.45))" }
-          : { filter: "drop-shadow(0 5px 12px rgba(0,0,0,0.8)) drop-shadow(0 2px 4px rgba(0,0,0,0.55))" }}
+          ? { filter: "drop-shadow(0 3px 6px rgba(0,0,0,0.5)) drop-shadow(0 1px 2px rgba(0,0,0,0.3))" }
+          : { filter: "drop-shadow(0 3px 8px rgba(0,0,0,0.6)) drop-shadow(0 1px 3px rgba(0,0,0,0.35))" }}
     >
       <defs>
         <linearGradient id={`face-${uid}`} x1="0.15" y1="0" x2="0.85" y2="1">
