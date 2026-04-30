@@ -28,9 +28,11 @@ interface ConfettiParticle {
   radius: number;
 }
 
-function Confetti({ active }: { active: boolean }) {
+function Confetti({ active, intensity = 1 }: { active: boolean; intensity?: number }) {
+  const fallingCount = Math.round(70 * intensity);
+  const burstCount = Math.round(40 * intensity);
   const particles = useMemo<ConfettiParticle[]>(() => {
-    const falling = Array.from({ length: 70 }, (_, i) => {
+    const falling = Array.from({ length: fallingCount }, (_, i) => {
       const shape = (i % 3 === 0 ? "circle" : i % 3 === 1 ? "strip" : "rect") as "rect" | "circle" | "strip";
       return {
         id: i,
@@ -49,10 +51,10 @@ function Confetti({ active }: { active: boolean }) {
       };
     });
     // Burst particles from center
-    const burst = Array.from({ length: 40 }, (_, i) => {
-      const angle = (i / 40) * Math.PI * 2;
+    const burst = Array.from({ length: burstCount }, (_, i) => {
+      const angle = (i / burstCount) * Math.PI * 2;
       return {
-        id: 70 + i,
+        id: fallingCount + i,
         x: 50,
         startY: 0,
         color: CONFETTI_COLORS[Math.floor(Math.random() * CONFETTI_COLORS.length)],
@@ -68,7 +70,7 @@ function Confetti({ active }: { active: boolean }) {
       };
     });
     return [...falling, ...burst];
-  }, []);
+  }, [fallingCount, burstCount]);
 
   if (!active) return null;
 
@@ -153,6 +155,51 @@ function AnimatedNumber({ value, from = 0, delay = 0 }: { value: number; from?: 
   return <>{display}</>;
 }
 
+// ─── Reason splash ────────────────────────────────────────────────────────────
+
+const REASON_SPLASH: Record<string, { text: string; sub: string; color: string; shadow: string }> = {
+  domino:  { text: "¡Dominó!",  sub: "Jugó todas sus fichas",      color: "#c9a84c", shadow: "0 0 80px rgba(201,168,76,0.9), 0 4px 24px rgba(0,0,0,0.9)" },
+  locked:  { text: "Trancado",  sub: "El juego quedó bloqueado",   color: "#f5f0e8", shadow: "0 0 40px rgba(255,255,255,0.3), 0 4px 24px rgba(0,0,0,0.9)" },
+  tied:    { text: "Empate",    sub: "Ambos equipos empataron",    color: "#a8c4a0", shadow: "0 0 40px rgba(168,196,160,0.5), 0 4px 24px rgba(0,0,0,0.9)" },
+};
+
+function ReasonSplash({ reason }: { reason: string }) {
+  const splash = REASON_SPLASH[reason] ?? { text: reason, sub: "", color: "#f5f0e8", shadow: "0 4px 24px rgba(0,0,0,0.9)" };
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: [0, 1, 1, 1, 0] }}
+      transition={{ duration: 2.2, times: [0, 0.12, 0.55, 0.75, 1], ease: "easeInOut" }}
+      className="pointer-events-none fixed inset-0 z-[65] flex items-center justify-center bg-black/60"
+      aria-hidden="true"
+    >
+      <motion.div
+        initial={{ scale: 0.25, rotate: -10, opacity: 0 }}
+        animate={{ scale: [0.25, 1.18, 0.96, 1], rotate: [-10, 5, -2, 0], opacity: [0, 1, 1, 1] }}
+        transition={{ duration: 0.65, ease: "easeOut" }}
+        className="text-center px-8"
+      >
+        <p
+          className="text-[72px] sm:text-[108px] font-black uppercase tracking-tight leading-none select-none"
+          style={{ color: splash.color, textShadow: splash.shadow }}
+        >
+          {splash.text}
+        </p>
+        {splash.sub && (
+          <motion.p
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.35 }}
+            className="text-sm sm:text-base text-[#f5f0e8]/70 mt-2 font-medium tracking-wide"
+          >
+            {splash.sub}
+          </motion.p>
+        )}
+      </motion.div>
+    </motion.div>
+  );
+}
+
 // ─── Flash overlay ────────────────────────────────────────────────────────────
 
 function FlashOverlay({ color = "white" }: { color?: string }) {
@@ -182,6 +229,7 @@ export function GameOverModal({ onNextRound, onBackToLobby }: GameOverModalProps
   const mySeat = useGameStore((s) => s.mySeat);
   const players = useGameStore((s) => s.players);
   const round = useGameStore((s) => s.round);
+  const roundHistory = useGameStore((s) => s.roundHistory);
 
   const [countdown, setCountdown] = useState(AUTO_START_DELAY);
   const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -234,6 +282,7 @@ export function GameOverModal({ onNextRound, onBackToLobby }: GameOverModalProps
         myTeam={myTeam}
         team0Names={team0Names}
         team1Names={team1Names}
+        roundHistory={roundHistory}
         onBackToLobby={onBackToLobby}
       />
     );
@@ -326,6 +375,7 @@ function RoundEndView({
     >
       <Confetti active={!isDraw} />
       <FlashOverlay color={flashColor} />
+      <ReasonSplash reason={roundResult.reason} />
 
       <motion.div
         initial={{ scale: 0.55, opacity: 0, y: 60 }}
@@ -517,10 +567,11 @@ interface GameOverViewProps {
   myTeam: 0 | 1 | null;
   team0Names: string[];
   team1Names: string[];
+  roundHistory: import("@/stores/game-store").RoundHistoryEntry[];
   onBackToLobby?: () => void;
 }
 
-function GameOverView({ scores, myTeam, team0Names, team1Names, onBackToLobby }: GameOverViewProps) {
+function GameOverView({ scores, myTeam, team0Names, team1Names, roundHistory, onBackToLobby }: GameOverViewProps) {
   const winnerTeam: 0 | 1 = scores[0] >= scores[1] ? 0 : 1;
   const loserTeam: 0 | 1 = winnerTeam === 0 ? 1 : 0;
   const iWon = myTeam === winnerTeam;
@@ -537,7 +588,7 @@ function GameOverView({ scores, myTeam, team0Names, team1Names, onBackToLobby }:
       aria-modal="true"
       aria-labelledby="game-over-title"
     >
-      <Confetti active />
+      <Confetti active intensity={2} />
       <FlashOverlay color={iWon ? "rgba(201,168,76,0.4)" : "rgba(255,255,255,0.12)"} />
 
       <motion.div
@@ -704,7 +755,7 @@ function GameOverView({ scores, myTeam, team0Names, team1Names, onBackToLobby }:
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 1.3 }}
-          className="mx-5 mt-3 mb-4 text-center"
+          className="mx-5 mt-3 mb-3 text-center"
         >
           <p className="text-xs text-[#a8c4a0]/45">
             Diferencia de{" "}
@@ -713,6 +764,62 @@ function GameOverView({ scores, myTeam, team0Names, team1Names, onBackToLobby }:
             </span>
           </p>
         </motion.div>
+
+        {/* Round history */}
+        {roundHistory.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 1.5 }}
+            className="mx-5 mb-4"
+          >
+            <p className="text-[9px] uppercase tracking-widest text-[#a8c4a0]/40 mb-2 text-center">
+              Historial de rondas
+            </p>
+            <div className="rounded-xl border border-[#f5f0e8]/8 overflow-hidden">
+              {/* Header */}
+              <div className="grid grid-cols-[2rem_1fr_1fr_2.5rem] gap-x-2 px-3 py-1.5 bg-[#0f3520]/60">
+                <span className="text-[9px] uppercase tracking-wider text-[#a8c4a0]/40">#</span>
+                <span className="text-[9px] uppercase tracking-wider text-[#a8c4a0]/40">Ganador</span>
+                <span className="text-[9px] uppercase tracking-wider text-[#a8c4a0]/40">Motivo</span>
+                <span className="text-[9px] uppercase tracking-wider text-[#a8c4a0]/40 text-right">Pts</span>
+              </div>
+              {roundHistory.map((entry, i) => {
+                const isTeam0Win = entry.winner_team === 0;
+                const isTeam1Win = entry.winner_team === 1;
+                const isDraw = entry.winner_team === null;
+                const winnerLabel = isDraw
+                  ? "Empate"
+                  : isTeam0Win
+                  ? (team0Names[0] ?? "Eq. A")
+                  : (team1Names[0] ?? "Eq. B");
+                const reasonIcon = entry.reason === "domino" ? "🁣" : entry.reason === "locked" ? "🔒" : "🤝";
+                const reasonLabel = entry.reason === "domino" ? "Dominó" : entry.reason === "locked" ? "Trancado" : "Empate";
+                const isMyTeamWin = myTeam !== null && entry.winner_team === myTeam;
+                return (
+                  <div
+                    key={i}
+                    className={`grid grid-cols-[2rem_1fr_1fr_2.5rem] gap-x-2 px-3 py-1.5 border-t border-[#f5f0e8]/5 ${
+                      i % 2 === 0 ? "bg-[#163d28]" : "bg-[#1a4530]/40"
+                    }`}
+                  >
+                    <span className="text-[10px] text-[#a8c4a0]/35 tabular-nums">{entry.round}</span>
+                    <span className={`text-[10px] font-medium truncate ${isMyTeamWin ? "text-[#c9a84c]" : isDraw ? "text-[#a8c4a0]/60" : "text-[#f5f0e8]/55"}`}>
+                      {winnerLabel}
+                    </span>
+                    <span className="text-[10px] text-[#a8c4a0]/50 flex items-center gap-1">
+                      <span aria-hidden="true">{reasonIcon}</span>
+                      {reasonLabel}
+                    </span>
+                    <span className={`text-[10px] font-bold tabular-nums text-right ${isMyTeamWin ? "text-[#c9a84c]" : "text-[#f5f0e8]/50"}`}>
+                      +{entry.points}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </motion.div>
+        )}
 
         {/* CTA */}
         <motion.div
