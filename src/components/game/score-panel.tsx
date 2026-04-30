@@ -89,13 +89,27 @@ function TeamBlock({
   const display = useAnimatedCounter(score, 600);
   const pct = Math.min((score / targetScore) * 100, 100);
   const remaining = Math.max(targetScore - score, 0);
-  const isLeading = score > 0;
 
   const teamColor = teamIdx === 0 ? "#c9a84c" : "#a8c4a0";
   const barBg = teamIdx === 0 ? "bg-[#c9a84c]" : "bg-[#a8c4a0]/70";
 
+  // Flash the block border when score increases
+  const prevScoreRef = useRef(score);
+  const [flashing, setFlashing] = useState(false);
+  useEffect(() => {
+    if (score > prevScoreRef.current) {
+      setFlashing(true);
+      const t = setTimeout(() => setFlashing(false), 900);
+      prevScoreRef.current = score;
+      return () => clearTimeout(t);
+    }
+    prevScoreRef.current = score;
+  }, [score]);
+
   return (
-    <div
+    <motion.div
+      animate={flashing ? { boxShadow: ["0 0 0px rgba(201,168,76,0)", "0 0 18px rgba(201,168,76,0.55)", "0 0 0px rgba(201,168,76,0)"] } : {}}
+      transition={{ duration: 0.9, ease: "easeOut" }}
       className={`rounded-xl p-2 sm:p-2.5 border transition-opacity ${
         isMyTeam
           ? "border-[#c9a84c]/35 bg-[#c9a84c]/5"
@@ -160,7 +174,7 @@ function TeamBlock({
           {remaining > 0 ? `faltan ${remaining}` : "¡meta!"}
         </span>
       </div>
-    </div>
+    </motion.div>
   );
 }
 

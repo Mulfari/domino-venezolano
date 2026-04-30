@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback, useRef } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useParams, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Board } from "@/components/game/board";
@@ -557,9 +557,36 @@ export default function GamePage() {
         </div>
       </div>
 
+      {/* Round transition overlay */}
+      <AnimatePresence>
+        {boardTransitioning && (
+          <motion.div
+            key="round-transition"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.25 }}
+            className="fixed inset-0 z-40 flex items-center justify-center bg-black/60 backdrop-blur-sm pointer-events-none"
+          >
+            <motion.div
+              initial={{ scale: 0.7, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 1.1, opacity: 0 }}
+              transition={{ type: "spring", stiffness: 320, damping: 22 }}
+              className="flex flex-col items-center gap-3"
+            >
+              <div className="h-10 w-10 animate-spin rounded-full border-2 border-[#c9a84c] border-t-transparent" />
+              <p className="text-[#c9a84c] font-bold uppercase tracking-widest text-sm">
+                Nueva ronda
+              </p>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Game area — fades out/in on round transitions */}
       <motion.div
-        animate={{ opacity: boardTransitioning ? 0 : 1 }}
+        animate={{ opacity: boardTransitioning ? 0 : 1, scale: boardTransitioning ? 0.97 : 1 }}
         transition={{ duration: 0.35, ease: "easeInOut" }}
         className="flex flex-col flex-1 min-h-0"
       >
