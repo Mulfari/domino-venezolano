@@ -100,7 +100,7 @@ export function Board({ onPlaceEnd, clearing = false }: BoardProps) {
   const viewBox = `0 0 ${BOARD_SIZE} ${BOARD_SIZE}`;
 
   return (
-    <div ref={containerRef} className="relative w-full flex-1 flex flex-col items-center justify-center overflow-hidden">
+    <div ref={containerRef} className="relative w-full flex-1 flex flex-col items-center justify-center overflow-hidden" role="region" aria-label="Tablero de juego">
       {/* Marco de madera */}
       <div
         style={{
@@ -269,7 +269,7 @@ export function Board({ onPlaceEnd, clearing = false }: BoardProps) {
           >
             {board.plays.length === 0 ? (
               <div className="absolute inset-0 flex items-center justify-center">
-                <p className="text-emerald-200/40 text-sm font-medium">
+                <p className="text-emerald-200/70 text-sm font-medium" aria-live="polite">
                   {isMyTurn ? "Juega tu primera ficha" : "Esperando primera jugada..."}
                 </p>
               </div>
@@ -280,6 +280,7 @@ export function Board({ onPlaceEnd, clearing = false }: BoardProps) {
                 viewBox={viewBox}
                 preserveAspectRatio="xMidYMid meet"
                 className="absolute inset-0"
+                aria-hidden="true"
               >
                 <AnimatePresence>
                   {placedTiles.map((pt, tileIdx) => {

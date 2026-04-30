@@ -116,6 +116,7 @@ export function DominoTile({
       height={h}
       viewBox={`0 0 ${w} ${h}`}
       xmlns="http://www.w3.org/2000/svg"
+      aria-hidden="true"
       className={`${highlight ? "drop-shadow-[0_0_12px_rgba(201,168,76,0.98)]" : ""} ${disabled ? "opacity-55" : ""}`}
       style={highlight
         ? { filter: "drop-shadow(0 0 12px rgba(201,168,76,0.98)) drop-shadow(0 0 4px rgba(201,168,76,0.6))" }

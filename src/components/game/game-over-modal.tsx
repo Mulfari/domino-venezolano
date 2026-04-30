@@ -696,6 +696,8 @@ function GameOverView({ scores, myTeam, team0Names, team1Names, onBackToLobby }:
         >
           <button
             onClick={onBackToLobby}
+            autoFocus
+            aria-label="Volver al inicio"
             className="w-full rounded-xl bg-[#c9a84c] hover:bg-[#dfc06a] active:bg-[#b8943e] px-6 py-3 text-sm font-bold text-[#2a1a0a] transition-colors shadow-lg"
           >
             Volver al inicio
