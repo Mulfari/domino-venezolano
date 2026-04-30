@@ -6,19 +6,21 @@ import type { Team } from "@/lib/game/types";
 
 const TEAM_COLORS: Record<
   Team,
-  { bg: string; text: string; glow: string; subtle: string }
+  { bg: string; text: string; glow: string; subtle: string; border: string }
 > = {
   0: {
     bg: "#c9a84c",
     text: "text-[#c9a84c]",
     glow: "#c9a84c",
-    subtle: "rgba(201,168,76,0.12)",
+    subtle: "rgba(201,168,76,0.15)",
+    border: "rgba(201,168,76,0.35)",
   },
   1: {
     bg: "#4ca8c9",
     text: "text-[#4ca8c9]",
     glow: "#4ca8c9",
-    subtle: "rgba(76,168,201,0.12)",
+    subtle: "rgba(76,168,201,0.15)",
+    border: "rgba(76,168,201,0.35)",
   },
 };
 
@@ -55,37 +57,39 @@ export function TurnIndicator() {
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: 8 }}
         transition={{ duration: 0.25 }}
-        className="flex items-center gap-2 rounded-full px-2 py-1"
+        className="flex items-center gap-2 rounded-full px-3 py-1.5"
         style={{
-          backgroundColor: isMyTurn ? colors.subtle : "transparent",
-          transition: "background-color 0.4s ease",
+          backgroundColor: isMyTurn ? colors.subtle : "rgba(0,0,0,0.18)",
+          border: `1px solid ${isMyTurn ? colors.border : "rgba(255,255,255,0.07)"}`,
+          transition: "background-color 0.4s ease, border-color 0.4s ease",
         }}
       >
-        {/* Avatar */}
+        {/* Avatar with team badge */}
         <div className="relative flex h-8 w-8 shrink-0 items-center justify-center">
-          {/* Outer pulse ring */}
+          {/* Pulse rings — only on my turn */}
           {isMyTurn && (
-            <motion.span
-              className="absolute inset-0 rounded-full"
-              style={{ border: `2px solid ${colors.glow}` }}
-              animate={{ scale: [1, 1.65], opacity: [0.65, 0] }}
-              transition={{ duration: 1.4, repeat: Infinity, ease: "easeOut" }}
-            />
+            <>
+              <motion.span
+                className="absolute inset-0 rounded-full"
+                style={{ border: `2px solid ${colors.glow}` }}
+                animate={{ scale: [1, 1.65], opacity: [0.65, 0] }}
+                transition={{ duration: 1.4, repeat: Infinity, ease: "easeOut" }}
+              />
+              <motion.span
+                className="absolute inset-0 rounded-full"
+                style={{ border: `1.5px solid ${colors.glow}` }}
+                animate={{ scale: [1, 1.35], opacity: [0.45, 0] }}
+                transition={{
+                  duration: 1.4,
+                  repeat: Infinity,
+                  ease: "easeOut",
+                  delay: 0.55,
+                }}
+              />
+            </>
           )}
-          {/* Inner pulse ring — staggered */}
-          {isMyTurn && (
-            <motion.span
-              className="absolute inset-0 rounded-full"
-              style={{ border: `1.5px solid ${colors.glow}` }}
-              animate={{ scale: [1, 1.35], opacity: [0.45, 0] }}
-              transition={{
-                duration: 1.4,
-                repeat: Infinity,
-                ease: "easeOut",
-                delay: 0.55,
-              }}
-            />
-          )}
+
+          {/* Avatar circle */}
           <motion.div
             className="flex h-8 w-8 items-center justify-center rounded-full text-[11px] font-bold text-[#0f1e14] shadow"
             style={{ backgroundColor: colors.bg }}
@@ -108,15 +112,27 @@ export function TurnIndicator() {
           >
             {initials(displayName)}
           </motion.div>
+
+          {/* Team number badge */}
+          <div
+            className="absolute -bottom-0.5 -right-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full text-[7px] font-black text-[#0f1e14]"
+            style={{
+              backgroundColor: colors.bg,
+              border: "1.5px solid #0f1e14",
+              lineHeight: 1,
+            }}
+          >
+            {team + 1}
+          </div>
         </div>
 
-        {/* Label */}
+        {/* Name + status */}
         <div className="flex flex-col leading-tight">
           <span className={`text-xs font-semibold ${colors.text}`}>
-            {isMyTurn ? "¡Tu turno!" : displayName}
+            {displayName}
           </span>
           <span className="text-[10px] text-[#a8c4a0]/60">
-            {isMyTurn ? displayName : `Equipo ${team + 1}`}
+            {isMyTurn ? "¡Tu turno!" : `Equipo ${team + 1}`}
           </span>
         </div>
       </motion.div>
