@@ -5,7 +5,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import { DominoTile } from "./tile";
 import { useGameStore } from "@/stores/game-store";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { buildPlacedTiles, DIMS_DESKTOP, DIMS_MOBILE } from "@/lib/game/board-layout";
+import { buildPlacedTiles, DIMS_DESKTOP, DIMS_MOBILE, tileSize, tileOrientation } from "@/lib/game/board-layout";
+import type { PlacedTile } from "@/lib/game/board-layout";
+import type { Seat } from "@/lib/game/types";
 
 interface BoardProps {
   onPlaceEnd?: (end: "left" | "right") => void;
@@ -15,13 +17,16 @@ export function Board({ onPlaceEnd }: BoardProps) {
   const board = useGameStore((s) => s.board);
   const selectedTile = useGameStore((s) => s.selectedTile);
   const isMyTurnFn = useGameStore((s) => s.isMyTurn);
+  const validMovesFn = useGameStore((s) => s.validMoves);
   const containerRef = useRef<HTMLDivElement>(null);
   const [size, setSize] = useState({ w: 400, h: 400 });
+  const [hoveredEnd, setHoveredEnd] = useState<"left" | "right" | null>(null);
   const isMobile = useIsMobile();
   const dims = isMobile ? DIMS_MOBILE : DIMS_DESKTOP;
 
   const isMyTurn = isMyTurnFn();
-  const showPlacementOptions = selectedTile !== null && isMyTurn;
+  const validMoves = validMovesFn();
+  const showPlacementOptions = selectedTile !== null && isMyTurn && board.plays.length > 0;
 
   useEffect(() => {
     const el = containerRef.current;
@@ -60,6 +65,36 @@ export function Board({ onPlaceEnd }: BoardProps) {
     () => buildPlacedTiles(board.plays, BOARD_SIZE, BOARD_SIZE, dims),
     [board.plays, BOARD_SIZE, dims]
   );
+
+  // Compute ghost tile positions by simulating placement on each valid end
+  const ghostTiles = useMemo<Partial<Record<"left" | "right", PlacedTile>>>(() => {
+    if (!selectedTile || !showPlacementOptions) return {};
+
+    const validEnds = validMoves
+      .filter(
+        (m) =>
+          (m.tile[0] === selectedTile[0] && m.tile[1] === selectedTile[1]) ||
+          (m.tile[0] === selectedTile[1] && m.tile[1] === selectedTile[0])
+      )
+      .map((m) => m.end);
+
+    const result: Partial<Record<"left" | "right", PlacedTile>> = {};
+
+    for (const end of validEnds) {
+      const simulatedPlays = [
+        ...board.plays,
+        { tile: selectedTile, seat: 0 as Seat, end },
+      ];
+      const placed = buildPlacedTiles(simulatedPlays, BOARD_SIZE, BOARD_SIZE, dims);
+      result[end] = end === "right" ? placed[placed.length - 1] : placed[0];
+    }
+
+    return result;
+  }, [selectedTile, showPlacementOptions, board.plays, validMoves, BOARD_SIZE, dims]);
+
+  // The actual end tiles on the board (for highlight ring)
+  const leftEndTile = placedTiles.length > 0 ? placedTiles[0] : null;
+  const rightEndTile = placedTiles.length > 0 ? placedTiles[placedTiles.length - 1] : null;
 
   const viewBox = `0 0 ${BOARD_SIZE} ${BOARD_SIZE}`;
 
@@ -214,6 +249,13 @@ export function Board({ onPlaceEnd }: BoardProps) {
                       ? (pt.isDouble ? dims.doubleW : dims.horizH)
                       : (pt.isDouble ? dims.doubleH : dims.horizW);
                     const isNew = pt.key === animatingKey;
+
+                    // Highlight ring when hovering the corresponding ghost
+                    const isHighlighted =
+                      showPlacementOptions &&
+                      ((hoveredEnd === "left" && pt === leftEndTile) ||
+                        (hoveredEnd === "right" && pt === rightEndTile));
+
                     return (
                       <motion.g
                         key={pt.key}
@@ -222,6 +264,22 @@ export function Board({ onPlaceEnd }: BoardProps) {
                         transition={isNew ? { type: "spring", stiffness: 380, damping: 18 } : undefined}
                         style={{ transformOrigin: `${pt.x}px ${pt.y}px` }}
                       >
+                        {isHighlighted && (
+                          <motion.rect
+                            x={pt.x - tw / 2 - 4}
+                            y={pt.y - th / 2 - 4}
+                            width={tw + 8}
+                            height={th + 8}
+                            rx={5}
+                            fill="none"
+                            stroke="#c9a84c"
+                            strokeWidth={2.5}
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: [0.5, 1, 0.5] }}
+                            transition={{ duration: 0.9, repeat: Infinity, ease: "easeInOut" }}
+                            style={{ filter: "drop-shadow(0 0 6px #c9a84c)" }}
+                          />
+                        )}
                         <foreignObject
                           x={pt.x - tw / 2}
                           y={pt.y - th / 2}
@@ -238,28 +296,78 @@ export function Board({ onPlaceEnd }: BoardProps) {
                     );
                   })}
                 </AnimatePresence>
-              </svg>
-            )}
 
-            {showPlacementOptions && board.plays.length > 0 && (
-              <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-3 z-10">
-                <motion.button
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="px-3 py-1.5 rounded-lg bg-amber-700/90 text-amber-100 text-xs font-medium hover:bg-amber-600 transition-colors shadow-lg"
-                  onClick={() => onPlaceEnd?.("left")}
-                >
-                  Izq ({board.left})
-                </motion.button>
-                <motion.button
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="px-3 py-1.5 rounded-lg bg-amber-700/90 text-amber-100 text-xs font-medium hover:bg-amber-600 transition-colors shadow-lg"
-                  onClick={() => onPlaceEnd?.("right")}
-                >
-                  Der ({board.right})
-                </motion.button>
-              </div>
+                {/* Ghost tile previews */}
+                <AnimatePresence>
+                  {showPlacementOptions &&
+                    (["left", "right"] as const).map((end) => {
+                      const ghost = ghostTiles[end];
+                      if (!ghost) return null;
+
+                      const isH = ghost.orientation === "horizontal";
+                      const tw = isH
+                        ? (ghost.isDouble ? dims.doubleH : dims.horizW)
+                        : (ghost.isDouble ? dims.doubleW : dims.horizH);
+                      const th = isH
+                        ? (ghost.isDouble ? dims.doubleW : dims.horizH)
+                        : (ghost.isDouble ? dims.doubleH : dims.horizW);
+                      const isHovered = hoveredEnd === end;
+
+                      return (
+                        <motion.g
+                          key={`ghost-${end}`}
+                          initial={{ opacity: 0, scale: 0.7 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          exit={{ opacity: 0, scale: 0.7 }}
+                          transition={{ type: "spring", stiffness: 400, damping: 22 }}
+                          style={{
+                            transformOrigin: `${ghost.x}px ${ghost.y}px`,
+                            cursor: "pointer",
+                          }}
+                          onClick={() => onPlaceEnd?.(end)}
+                          onMouseEnter={() => setHoveredEnd(end)}
+                          onMouseLeave={() => setHoveredEnd(null)}
+                        >
+                          {/* Glow halo */}
+                          <motion.rect
+                            x={ghost.x - tw / 2 - 5}
+                            y={ghost.y - th / 2 - 5}
+                            width={tw + 10}
+                            height={th + 10}
+                            rx={6}
+                            fill={isHovered ? "rgba(201,168,76,0.18)" : "rgba(201,168,76,0.08)"}
+                            stroke="#c9a84c"
+                            strokeWidth={isHovered ? 2 : 1.5}
+                            strokeDasharray="4 3"
+                            animate={{
+                              opacity: isHovered ? [0.8, 1, 0.8] : [0.4, 0.75, 0.4],
+                              strokeDashoffset: [0, -14],
+                            }}
+                            transition={{
+                              opacity: { duration: 1.1, repeat: Infinity, ease: "easeInOut" },
+                              strokeDashoffset: { duration: 1.2, repeat: Infinity, ease: "linear" },
+                            }}
+                            style={{ filter: isHovered ? "drop-shadow(0 0 8px rgba(201,168,76,0.7))" : undefined }}
+                          />
+                          {/* Ghost tile */}
+                          <foreignObject
+                            x={ghost.x - tw / 2}
+                            y={ghost.y - th / 2}
+                            width={tw}
+                            height={th}
+                            style={{ opacity: isHovered ? 0.85 : 0.55, pointerEvents: "none" }}
+                          >
+                            <DominoTile
+                              tile={ghost.tile}
+                              size="small"
+                              orientation={ghost.orientation}
+                            />
+                          </foreignObject>
+                        </motion.g>
+                      );
+                    })}
+                </AnimatePresence>
+              </svg>
             )}
           </div>
         </div>
