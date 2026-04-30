@@ -69,27 +69,25 @@ function getRelativeSeats(mySeat: Seat): {
 /* ------------------------------------------------------------------ */
 /*  Animated score counter for the round transition overlay           */
 /* ------------------------------------------------------------------ */
-function AnimatedScore({ target, duration = 800 }: { target: number; duration?: number }) {
-  const [display, setDisplay] = useState(target);
-  const prevRef = useRef(target);
+function AnimatedScore({ from, to, duration = 900, delay = 0 }: { from: number; to: number; duration?: number; delay?: number }) {
+  const [display, setDisplay] = useState(from);
   const rafRef = useRef<number | null>(null);
 
   useEffect(() => {
-    const from = prevRef.current;
-    if (from === target) return;
-    prevRef.current = target;
-    const start = performance.now();
-    const diff = target - from;
+    if (from === to) { setDisplay(to); return; }
+    let startTime: number | null = null;
     function tick(now: number) {
-      const elapsed = now - start;
+      if (startTime === null) startTime = now;
+      const elapsed = now - startTime - delay;
+      if (elapsed < 0) { rafRef.current = requestAnimationFrame(tick); return; }
       const progress = Math.min(elapsed / duration, 1);
       const eased = 1 - Math.pow(1 - progress, 3);
-      setDisplay(Math.round(from + diff * eased));
+      setDisplay(Math.round(from + (to - from) * eased));
       if (progress < 1) rafRef.current = requestAnimationFrame(tick);
     }
     rafRef.current = requestAnimationFrame(tick);
     return () => { if (rafRef.current !== null) cancelAnimationFrame(rafRef.current); };
-  }, [target, duration]);
+  }, [from, to, duration, delay]);
 
   return <>{display}</>;
 }
@@ -115,6 +113,8 @@ export default function GamePage() {
   const [lastPassSeat, setLastPassSeat] = useState<Seat | null>(null);
   const [boardTransitioning, setBoardTransitioning] = useState(false);
   const [transitionRound, setTransitionRound] = useState<number | null>(null);
+  const [transitionScores, setTransitionScores] = useState<{ prev: { 0: number; 1: number }; next: { 0: number; 1: number } } | null>(null);
+  const [transitionWinner, setTransitionWinner] = useState<{ team: 0 | 1 | null; points: number; reason: string } | null>(null);
   const passTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   /* ---- Zustand store ---- */
@@ -319,13 +319,14 @@ export default function GamePage() {
             setRoundResult(null);
             reset();
             await fetchGameState(event.game_id);
-            // Show the new round number once state is loaded
             setTransitionRound(useGameStore.getState().round);
-          }, 600);
+          }, 700);
           setTimeout(() => {
             setBoardTransitioning(false);
             setTransitionRound(null);
-          }, 1600);
+            setTransitionScores(null);
+            setTransitionWinner(null);
+          }, 2800);
           break;
         }
 
@@ -336,6 +337,17 @@ export default function GamePage() {
           } else if (event.winner_team !== null) {
             playDefeat();
           }
+          // Capture current scores before updating so the overlay can animate from old → new
+          const prevScores = useGameStore.getState().scores;
+          setTransitionWinner({
+            team: event.winner_team as (0 | 1 | null),
+            points: event.points,
+            reason: event.reason,
+          });
+          setTransitionScores({
+            prev: { 0: prevScores[0], 1: prevScores[1] },
+            next: { 0: event.scores.team0, 1: event.scores.team1 },
+          });
           setScores({ 0: event.scores.team0, 1: event.scores.team1 });
           setRoundResult({
             winner_team: event.winner_team as (0 | 1 | null),
@@ -601,86 +613,112 @@ export default function GamePage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.3 }}
-            className="fixed inset-0 z-40 flex items-center justify-center bg-black/70 backdrop-blur-md pointer-events-none"
+            transition={{ duration: 0.35 }}
+            className="fixed inset-0 z-40 flex items-center justify-center bg-black/75 backdrop-blur-md pointer-events-none"
           >
             <motion.div
-              initial={{ scale: 0.75, opacity: 0, y: 20 }}
+              initial={{ scale: 0.8, opacity: 0, y: 24 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 1.05, opacity: 0, y: -10 }}
-              transition={{ type: "spring", stiffness: 280, damping: 24, delay: 0.05 }}
-              className="flex flex-col items-center gap-4"
+              exit={{ scale: 1.04, opacity: 0, y: -12 }}
+              transition={{ type: "spring", stiffness: 260, damping: 22, delay: 0.05 }}
+              className="flex flex-col items-center gap-3"
             >
+              {/* Winner badge */}
+              {transitionWinner && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.1, duration: 0.3 }}
+                  className="flex flex-col items-center gap-1"
+                >
+                  {transitionWinner.team === null ? (
+                    <span className="text-[12px] uppercase tracking-[0.2em] text-[#a8c4a0]/80 font-semibold">
+                      Empate
+                    </span>
+                  ) : (
+                    <>
+                      <span
+                        className="text-[12px] uppercase tracking-[0.2em] font-bold"
+                        style={{
+                          color: (mySeat !== null && transitionWinner.team === (mySeat % 2))
+                            ? "#c9a84c"
+                            : "rgba(168,196,160,0.85)",
+                        }}
+                      >
+                        {(mySeat !== null && transitionWinner.team === (mySeat % 2))
+                          ? "¡Ganamos la ronda!"
+                          : "Ronda para ellos"}
+                      </span>
+                      <span className="text-[10px] text-[#a8c4a0]/50 uppercase tracking-widest">
+                        {transitionWinner.reason === "domino" ? "dominó" : transitionWinner.reason === "locked" ? "trancado" : "empate"} · +{transitionWinner.points} pts
+                      </span>
+                    </>
+                  )}
+                </motion.div>
+              )}
+
               {/* Decorative line */}
               <motion.div
                 initial={{ scaleX: 0 }}
                 animate={{ scaleX: 1 }}
                 transition={{ duration: 0.4, delay: 0.2 }}
-                className="h-px w-32 bg-gradient-to-r from-transparent via-[#c9a84c]/60 to-transparent"
-              />
-
-              <div className="flex flex-col items-center gap-1">
-                <span className="text-[11px] uppercase tracking-[0.25em] text-[#a8c4a0]/70 font-semibold">
-                  Nueva ronda
-                </span>
-                {transitionRound !== null && (
-                  <motion.span
-                    key={transitionRound}
-                    initial={{ opacity: 0, scale: 0.6 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ type: "spring", stiffness: 350, damping: 20, delay: 0.15 }}
-                    className="text-6xl font-bold text-[#c9a84c] tabular-nums leading-none"
-                    style={{ textShadow: "0 0 40px rgba(201,168,76,0.5)" }}
-                  >
-                    {transitionRound}
-                  </motion.span>
-                )}
-              </div>
-
-              {/* Decorative line */}
-              <motion.div
-                initial={{ scaleX: 0 }}
-                animate={{ scaleX: 1 }}
-                transition={{ duration: 0.4, delay: 0.25 }}
-                className="h-px w-32 bg-gradient-to-r from-transparent via-[#c9a84c]/60 to-transparent"
+                className="h-px w-40 bg-gradient-to-r from-transparent via-[#c9a84c]/55 to-transparent"
               />
 
               {/* Score display with count-up animation */}
               <motion.div
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.35, duration: 0.3 }}
-                className="flex items-center gap-4"
+                transition={{ delay: 0.25, duration: 0.3 }}
+                className="flex items-center gap-6"
               >
                 {([0, 1] as const).map((team) => {
                   const myTeam = mySeat !== null ? (mySeat % 2) as 0 | 1 : null;
                   const isMyTeam = myTeam === team;
-                  const color = team === 0 ? "#c9a84c" : "#a8c4a0";
-                  const pct = Math.min((scores[team] / (targetScore || 100)) * 100, 100);
+                  const color = isMyTeam ? "#c9a84c" : "#a8c4a0";
+                  const fromScore = transitionScores?.prev[team] ?? scores[team];
+                  const toScore = transitionScores?.next[team] ?? scores[team];
+                  const pctFrom = Math.min((fromScore / (targetScore || 100)) * 100, 100);
+                  const pctTo = Math.min((toScore / (targetScore || 100)) * 100, 100);
+                  const isWinner = transitionWinner?.team === team;
                   return (
-                    <div key={team} className="flex flex-col items-center gap-1 min-w-[64px]">
+                    <div key={team} className="flex flex-col items-center gap-1.5 min-w-[72px]">
                       <span
                         className="text-[9px] uppercase tracking-widest font-bold"
-                        style={{ color: isMyTeam ? "#c9a84c" : "rgba(168,196,160,0.7)" }}
+                        style={{ color: isMyTeam ? "#c9a84c" : "rgba(168,196,160,0.65)" }}
                       >
                         {isMyTeam ? "◆ " : ""}Equipo {team + 1}
                       </span>
-                      <span
-                        className="text-2xl font-bold tabular-nums leading-none"
-                        style={{ color, textShadow: isMyTeam ? "0 0 16px rgba(201,168,76,0.5)" : undefined }}
-                      >
-                        <AnimatedScore target={scores[team]} duration={700} />
-                      </span>
-                      <div className="w-16 h-1 rounded-full bg-black/30 overflow-hidden">
+                      <div className="relative flex items-center justify-center">
+                        <motion.span
+                          className="text-3xl font-bold tabular-nums leading-none"
+                          style={{ color, textShadow: isMyTeam ? "0 0 20px rgba(201,168,76,0.45)" : undefined }}
+                        >
+                          <AnimatedScore from={fromScore} to={toScore} duration={900} delay={300} />
+                        </motion.span>
+                        {isWinner && transitionWinner && transitionWinner.team !== null && (
+                          <motion.span
+                            initial={{ opacity: 0, y: 4 }}
+                            animate={{ opacity: 1, y: -20 }}
+                            exit={{ opacity: 0 }}
+                            transition={{ delay: 0.6, duration: 0.5 }}
+                            className="absolute -top-1 -right-2 text-[11px] font-bold text-green-400 tabular-nums pointer-events-none"
+                            style={{ textShadow: "0 0 8px rgba(74,222,128,0.7)" }}
+                          >
+                            +{transitionWinner.points}
+                          </motion.span>
+                        )}
+                      </div>
+                      <div className="w-20 h-1.5 rounded-full bg-black/35 overflow-hidden">
                         <motion.div
-                          initial={{ width: 0 }}
-                          animate={{ width: `${pct}%` }}
-                          transition={{ delay: 0.5, duration: 0.6, ease: "easeOut" }}
+                          initial={{ width: `${pctFrom}%` }}
+                          animate={{ width: `${pctTo}%` }}
+                          transition={{ delay: 0.4, duration: 0.8, ease: "easeOut" }}
                           className="h-full rounded-full"
                           style={{ backgroundColor: color }}
                         />
                       </div>
-                      <span className="text-[8px] tabular-nums" style={{ color: "rgba(168,196,160,0.45)" }}>
+                      <span className="text-[8px] tabular-nums" style={{ color: "rgba(168,196,160,0.4)" }}>
                         /{targetScore}
                       </span>
                     </div>
@@ -688,11 +726,38 @@ export default function GamePage() {
                 })}
               </motion.div>
 
+              {/* Decorative line */}
+              <motion.div
+                initial={{ scaleX: 0 }}
+                animate={{ scaleX: 1 }}
+                transition={{ duration: 0.4, delay: 0.3 }}
+                className="h-px w-40 bg-gradient-to-r from-transparent via-[#c9a84c]/55 to-transparent"
+              />
+
+              {/* New round label */}
+              <div className="flex flex-col items-center gap-0.5">
+                <span className="text-[10px] uppercase tracking-[0.25em] text-[#a8c4a0]/55 font-semibold">
+                  Nueva ronda
+                </span>
+                {transitionRound !== null && (
+                  <motion.span
+                    key={transitionRound}
+                    initial={{ opacity: 0, scale: 0.55 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ type: "spring", stiffness: 340, damping: 20, delay: 0.15 }}
+                    className="text-5xl font-bold text-[#c9a84c] tabular-nums leading-none"
+                    style={{ textShadow: "0 0 36px rgba(201,168,76,0.5)" }}
+                  >
+                    {transitionRound}
+                  </motion.span>
+                )}
+              </div>
+
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                transition={{ delay: 0.5 }}
-                className="h-5 w-5 animate-spin rounded-full border-2 border-[#c9a84c]/60 border-t-transparent"
+                transition={{ delay: 0.55 }}
+                className="h-4 w-4 animate-spin rounded-full border-2 border-[#c9a84c]/50 border-t-transparent"
               />
             </motion.div>
           </motion.div>
