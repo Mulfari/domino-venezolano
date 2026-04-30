@@ -47,7 +47,7 @@ function getPipPositions(value: number): [number, number][] {
   return positions[value] ?? [];
 }
 
-function PipDots({ value, pipSize, halfWidth, halfHeight, horizontal = false, pipGradientId, pipShineId }: {
+function PipDots({ value, pipSize, halfWidth, halfHeight, horizontal = false, pipGradientId, pipShineId, pipRimId }: {
   value: number;
   pipSize: number;
   halfWidth: number;
@@ -55,6 +55,7 @@ function PipDots({ value, pipSize, halfWidth, halfHeight, horizontal = false, pi
   horizontal?: boolean;
   pipGradientId: string;
   pipShineId: string;
+  pipRimId: string;
 }) {
   const positions = getPipPositions(value);
   const padX = halfWidth * 0.22;
@@ -73,7 +74,10 @@ function PipDots({ value, pipSize, halfWidth, halfHeight, horizontal = false, pi
           : padY + (areaH * row) / 2;
         return (
           <g key={i}>
+            {/* Subtle inset shadow ring */}
+            <circle cx={cx} cy={cy + pipSize * 0.15} r={pipSize * 0.92} fill="rgba(0,0,0,0.35)" />
             <circle cx={cx} cy={cy} r={pipSize} fill={`url(#${pipGradientId})`} />
+            <circle cx={cx} cy={cy} r={pipSize} fill={`url(#${pipRimId})`} />
             <circle cx={cx} cy={cy} r={pipSize} fill={`url(#${pipShineId})`} />
           </g>
         );
@@ -98,7 +102,7 @@ export function DominoTile({
   const isMobile = useIsMobile();
   const config = responsive && isMobile ? mobileSizeConfig : sizeConfig;
   const { w: baseW, h: baseH, pip, gap } = config[size];
-  const borderRadius = size === "small" ? 10 : size === "medium" ? 15 : 20;
+  const borderRadius = size === "small" ? 13 : size === "medium" ? 19 : 26;
   const uid = useId().replace(/:/g, "");
 
   const isHorizontal = orientation === "horizontal";
@@ -125,17 +129,17 @@ export function DominoTile({
           : { filter: "drop-shadow(0 5px 12px rgba(0,0,0,0.8)) drop-shadow(0 2px 4px rgba(0,0,0,0.55))" }}
     >
       <defs>
-        <linearGradient id={`face-${uid}`} x1="0.1" y1="0" x2="0.9" y2="1">
-          <stop offset="0%" stopColor="#fffdf7" />
-          <stop offset="18%" stopColor="#faf5ec" />
-          <stop offset="50%" stopColor="#f2ece0" />
-          <stop offset="80%" stopColor="#e8e0d0" />
-          <stop offset="100%" stopColor="#cfc4ae" />
+        <linearGradient id={`face-${uid}`} x1="0.15" y1="0" x2="0.85" y2="1">
+          <stop offset="0%" stopColor="#fffef9" />
+          <stop offset="12%" stopColor="#fdf8ef" />
+          <stop offset="40%" stopColor="#f5ede0" />
+          <stop offset="72%" stopColor="#e6d9c8" />
+          <stop offset="100%" stopColor="#c8b99e" />
         </linearGradient>
-        <radialGradient id={`face-inner-${uid}`} cx="38%" cy="30%" r="65%">
-          <stop offset="0%" stopColor="white" stopOpacity="0.18" />
-          <stop offset="55%" stopColor="white" stopOpacity="0.04" />
-          <stop offset="100%" stopColor="black" stopOpacity="0.08" />
+        <radialGradient id={`face-inner-${uid}`} cx="35%" cy="28%" r="60%">
+          <stop offset="0%" stopColor="white" stopOpacity="0.28" />
+          <stop offset="40%" stopColor="white" stopOpacity="0.08" />
+          <stop offset="100%" stopColor="black" stopOpacity="0.14" />
         </radialGradient>
         <linearGradient id={`sheen-${uid}`} x1="0" y1="0" x2="0.25" y2="1">
           <stop offset="0%" stopColor="white" stopOpacity="0.42" />
@@ -184,16 +188,20 @@ export function DominoTile({
         <clipPath id={`clip-${uid}`}>
           <rect x={0} y={0} width={w} height={h} rx={borderRadius}/>
         </clipPath>
-        <radialGradient id={`pip-${uid}`} cx="32%" cy="28%" r="80%">
-          <stop offset="0%" stopColor="#5a5a5a" />
-          <stop offset="30%" stopColor="#1e1e1e" />
-          <stop offset="70%" stopColor="#080808" />
+        <radialGradient id={`pip-${uid}`} cx="35%" cy="30%" r="75%">
+          <stop offset="0%" stopColor="#3a3a3a" />
+          <stop offset="25%" stopColor="#141414" />
+          <stop offset="60%" stopColor="#050505" />
           <stop offset="100%" stopColor="#000000" />
         </radialGradient>
-        <radialGradient id={`pip-shine-${uid}`} cx="30%" cy="25%" r="45%">
-          <stop offset="0%" stopColor="white" stopOpacity="0.48" />
-          <stop offset="50%" stopColor="white" stopOpacity="0.12" />
+        <radialGradient id={`pip-shine-${uid}`} cx="28%" cy="22%" r="42%">
+          <stop offset="0%" stopColor="white" stopOpacity="0.62" />
+          <stop offset="45%" stopColor="white" stopOpacity="0.18" />
           <stop offset="100%" stopColor="white" stopOpacity="0" />
+        </radialGradient>
+        <radialGradient id={`pip-rim-${uid}`} cx="50%" cy="50%" r="50%">
+          <stop offset="70%" stopColor="transparent" />
+          <stop offset="100%" stopColor="rgba(0,0,0,0.55)" />
         </radialGradient>
       </defs>
       <rect
@@ -261,7 +269,7 @@ export function DominoTile({
         isHorizontal ? (
           <>
             <g>
-              <PipDots value={tile[0]} pipSize={pip} halfWidth={w / 2} halfHeight={h} horizontal pipGradientId={`pip-${uid}`} pipShineId={`pip-shine-${uid}`} />
+              <PipDots value={tile[0]} pipSize={pip} halfWidth={w / 2} halfHeight={h} horizontal pipGradientId={`pip-${uid}`} pipShineId={`pip-shine-${uid}`} pipRimId={`pip-rim-${uid}`} />
             </g>
             <line
               x1={w / 2} y1={3}
@@ -269,13 +277,13 @@ export function DominoTile({
               stroke="#c0b8a8" strokeWidth={0.6}
             />
             <g transform={`translate(${w / 2}, 0)`}>
-              <PipDots value={tile[1]} pipSize={pip} halfWidth={w / 2} halfHeight={h} horizontal pipGradientId={`pip-${uid}`} pipShineId={`pip-shine-${uid}`} />
+              <PipDots value={tile[1]} pipSize={pip} halfWidth={w / 2} halfHeight={h} horizontal pipGradientId={`pip-${uid}`} pipShineId={`pip-shine-${uid}`} pipRimId={`pip-rim-${uid}`} />
             </g>
           </>
         ) : (
           <>
             <g>
-              <PipDots value={tile[0]} pipSize={pip} halfWidth={w} halfHeight={(h - gap) / 2} pipGradientId={`pip-${uid}`} pipShineId={`pip-shine-${uid}`} />
+              <PipDots value={tile[0]} pipSize={pip} halfWidth={w} halfHeight={(h - gap) / 2} pipGradientId={`pip-${uid}`} pipShineId={`pip-shine-${uid}`} pipRimId={`pip-rim-${uid}`} />
             </g>
             <line
               x1={3} y1={(h - gap) / 2 + gap / 2}
@@ -283,7 +291,7 @@ export function DominoTile({
               stroke="#c0b8a8" strokeWidth={0.6}
             />
             <g transform={`translate(0, ${(h - gap) / 2 + gap})`}>
-              <PipDots value={tile[1]} pipSize={pip} halfWidth={w} halfHeight={(h - gap) / 2} pipGradientId={`pip-${uid}`} pipShineId={`pip-shine-${uid}`} />
+              <PipDots value={tile[1]} pipSize={pip} halfWidth={w} halfHeight={(h - gap) / 2} pipGradientId={`pip-${uid}`} pipShineId={`pip-shine-${uid}`} pipRimId={`pip-rim-${uid}`} />
             </g>
           </>
         )
