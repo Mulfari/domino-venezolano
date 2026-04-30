@@ -650,9 +650,9 @@ export default function GamePage() {
       </div>
 
       {/* Middle row: left opponent, board, right opponent */}
-      <div className="flex flex-1 min-h-0 items-center">
-        {/* Left opponent */}
-        <div className="shrink-0 px-1 sm:px-4">
+      <div className="relative flex flex-1 min-h-0 items-center">
+        {/* Left opponent — absolute overlay on mobile, in-flow on desktop */}
+        <div className="absolute left-0 top-1/2 -translate-y-1/2 z-10 sm:relative sm:left-auto sm:top-auto sm:translate-y-0 sm:shrink-0 sm:px-4">
           <OpponentHand
             seat={seats.left}
             tileCount={handCounts[seats.left] ?? 0}
@@ -664,11 +664,11 @@ export default function GamePage() {
           />
         </div>
 
-        {/* Board */}
+        {/* Board — takes full width on mobile */}
         <Board onPlaceEnd={handlePlaceEnd} />
 
-        {/* Right opponent */}
-        <div className="shrink-0 px-1 sm:px-4">
+        {/* Right opponent — absolute overlay on mobile, in-flow on desktop */}
+        <div className="absolute right-0 top-1/2 -translate-y-1/2 z-10 sm:relative sm:right-auto sm:top-auto sm:translate-y-0 sm:shrink-0 sm:px-4">
           <OpponentHand
             seat={seats.right}
             tileCount={handCounts[seats.right] ?? 0}
