@@ -63,7 +63,11 @@ function TeamCard({
     prevRef.current = score;
   }, [score]);
 
-  const teamLabel = isMyTeam ? "Nosotros" : "Rivales";
+  const teamNames = seats.map((s) => {
+    const p = players.find((pl) => pl.seat === s);
+    return p?.displayName.split(" ")[0] ?? `J${s + 1}`;
+  });
+  const teamLabel = teamNames.join(" & ");
 
   return (
     <motion.div
@@ -82,11 +86,15 @@ function TeamCard({
           <div className="flex items-center gap-1.5">
             {isMyTeam && <span className="text-[#c9a84c] text-[9px] shrink-0">◆</span>}
             <span
-              className="text-[11px] font-bold uppercase tracking-widest leading-none"
+              className="text-[11px] font-bold uppercase tracking-widest leading-none truncate max-w-[120px]"
               style={{ color: isMyTeam ? "#c9a84c" : "#a8c4a0" }}
+              title={teamLabel}
             >
               {teamLabel}
             </span>
+            {isMyTeam && (
+              <span className="text-[8px] text-[#c9a84c]/50 uppercase tracking-wider shrink-0 leading-none">(tú)</span>
+            )}
           </div>
           <div className="flex flex-col gap-0.5">
             {seats.map((s) => {
