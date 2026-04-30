@@ -539,12 +539,14 @@ export default function GamePage() {
           <p className="text-sm text-red-300/80">{error}</p>
           <button
             onClick={() => { setError(null); setLoading(true); fetchGameState().then(() => setLoading(false)); }}
+            aria-label="Reintentar cargar la partida"
             className="rounded-xl bg-[#3a2210] hover:bg-[#4a2c0f] px-5 py-2 text-sm text-[#f5f0e8] transition-colors"
           >
             Reintentar
           </button>
           <button
             onClick={() => router.push("/")}
+            aria-label="Volver al inicio"
             className="block mx-auto text-sm text-[#a8c4a0]/60 hover:text-[#f5f0e8] transition-colors"
           >
             Volver al inicio

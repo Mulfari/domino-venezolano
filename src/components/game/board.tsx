@@ -22,6 +22,7 @@ export function Board({ onPlaceEnd, clearing = false }: BoardProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [size, setSize] = useState({ w: 400, h: 400 });
   const [hoveredEnd, setHoveredEnd] = useState<"left" | "right" | null>(null);
+  const [focusedEnd, setFocusedEnd] = useState<"left" | "right" | null>(null);
   const isMobile = useIsMobile();
   const dims = isMobile ? DIMS_MOBILE : DIMS_DESKTOP;
 
@@ -410,7 +411,7 @@ export function Board({ onPlaceEnd, clearing = false }: BoardProps) {
                           style={{
                             transformOrigin: `${ghost.x}px ${ghost.y}px`,
                             cursor: "pointer",
-                            outline: "none",
+                            outline: "none", // focus ring drawn manually below
                           }}
                           onClick={() => { onPlaceEnd?.(end); setHoveredEnd(null); }}
                           onKeyDown={(e: React.KeyboardEvent) => {
@@ -418,8 +419,11 @@ export function Board({ onPlaceEnd, clearing = false }: BoardProps) {
                               e.preventDefault();
                               onPlaceEnd?.(end);
                               setHoveredEnd(null);
+                              setFocusedEnd(null);
                             }
                           }}
+                          onFocus={() => setFocusedEnd(end)}
+                          onBlur={() => setFocusedEnd(null)}
                           onMouseEnter={() => setHoveredEnd(end)}
                           onMouseLeave={() => setHoveredEnd(null)}
                           onTouchStart={() => setHoveredEnd(end)}
@@ -446,6 +450,21 @@ export function Board({ onPlaceEnd, clearing = false }: BoardProps) {
                             transition={{ duration: 1.0, repeat: Infinity, ease: "easeInOut" }}
                             style={{ filter: "blur(4px)" }}
                           />
+                          {/* Keyboard focus ring */}
+                          {focusedEnd === end && (
+                            <rect
+                              x={ghost.x - tw / 2 - 6}
+                              y={ghost.y - th / 2 - 6}
+                              width={tw + 12}
+                              height={th + 12}
+                              rx={7}
+                              fill="none"
+                              stroke="#ffffff"
+                              strokeWidth={2.5}
+                              strokeDasharray="none"
+                              opacity={0.9}
+                            />
+                          )}
                           {/* Dashed border */}
                           <motion.rect
                             x={ghost.x - tw / 2 - 4}

@@ -311,7 +311,7 @@ export function DominoTile({
   );
 
   const sharedAttrs = {
-    className: `inline-block ${clickable && !disabled ? "cursor-pointer" : ""}`,
+    className: `inline-block ${clickable && !disabled ? "cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#c9a84c] focus-visible:ring-offset-1 focus-visible:rounded-lg" : ""}`,
     onClick: clickable && !disabled ? onClick : undefined,
     onKeyDown: clickable && !disabled
       ? (e: React.KeyboardEvent) => {
@@ -323,6 +323,7 @@ export function DominoTile({
     "aria-label": tile
       ? `Ficha ${tile[0]}-${tile[1]}${selected ? ", seleccionada" : ""}${disabled ? ", no jugable" : ""}`
       : faceDown ? "Ficha boca abajo" : undefined,
+    "aria-pressed": clickable && selected ? true : undefined,
     "aria-disabled": clickable && disabled ? true : undefined,
   };
 
