@@ -70,51 +70,124 @@ export function Board({ onPlaceEnd }: BoardProps) {
         style={{
           width: "100%",
           maxWidth: `${BOARD_SIZE + FRAME_PAD * 2 + 4}px`,
-          borderRadius: "14px",
+          borderRadius: "16px",
           padding: `${FRAME_PAD}px`,
-          background:
-            "linear-gradient(160deg, #7a4f2a 0%, #4a2e14 20%, #6b4020 45%, #3a2210 70%, #5c3818 100%)",
-          boxShadow:
-            "0 12px 40px rgba(0,0,0,0.7), 0 4px 16px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.08)",
-          border: "1px solid #8b5e3c",
+          background: `
+            repeating-linear-gradient(
+              90deg,
+              transparent,
+              transparent 18px,
+              rgba(0,0,0,0.06) 18px,
+              rgba(0,0,0,0.06) 20px
+            ),
+            repeating-linear-gradient(
+              90deg,
+              transparent,
+              transparent 6px,
+              rgba(255,255,255,0.025) 6px,
+              rgba(255,255,255,0.025) 7px
+            ),
+            linear-gradient(180deg,
+              #9a6b3e 0%,
+              #7a4f2a 6%,
+              #4a2e14 18%,
+              #6b4020 35%,
+              #3a2210 55%,
+              #5c3818 72%,
+              #4a2e14 85%,
+              #7a4f2a 94%,
+              #8b5e3c 100%
+            )
+          `,
+          boxShadow: `
+            0 20px 60px rgba(0,0,0,0.85),
+            0 8px 24px rgba(0,0,0,0.55),
+            inset 0 2px 0 rgba(255,255,255,0.14),
+            inset 0 -2px 0 rgba(0,0,0,0.45),
+            inset 2px 0 0 rgba(255,255,255,0.07),
+            inset -2px 0 0 rgba(0,0,0,0.35)
+          `,
+          border: "1px solid #3a2210",
+          position: "relative",
         }}
       >
+        {/* Esquinas decorativas */}
+        {[
+          { top: 4, left: 4 },
+          { top: 4, right: 4 },
+          { bottom: 4, left: 4 },
+          { bottom: 4, right: 4 },
+        ].map((pos, i) => (
+          <div
+            key={i}
+            style={{
+              position: "absolute",
+              width: 10,
+              height: 10,
+              borderRadius: "50%",
+              background: "radial-gradient(circle at 35% 35%, #e8c96a, #9b7820)",
+              boxShadow: "0 1px 3px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.3)",
+              ...pos,
+            }}
+          />
+        ))}
+
         {/* Filete dorado */}
         <div
           style={{
-            borderRadius: "8px",
+            borderRadius: "10px",
             padding: "2px",
             background:
-              "linear-gradient(135deg, #c9a84c 0%, #8b6914 30%, #e8c96a 50%, #8b6914 70%, #c9a84c 100%)",
-            boxShadow: "0 0 8px rgba(201,168,76,0.3)",
+              "linear-gradient(135deg, #e8c96a 0%, #9b7820 20%, #c9a84c 45%, #f0d878 50%, #c9a84c 55%, #9b7820 80%, #e8c96a 100%)",
+            boxShadow: "0 0 14px rgba(201,168,76,0.45), inset 0 1px 0 rgba(255,255,255,0.25)",
           }}
         >
           {/* Superficie de fieltro */}
           <div
-            className="relative rounded-md overflow-hidden"
+            className="relative rounded-lg overflow-hidden"
             style={{
               width: "100%",
               aspectRatio: "1 / 1",
               background: `
                 repeating-linear-gradient(
+                  0deg,
+                  transparent,
+                  transparent 1px,
+                  rgba(0,0,0,0.025) 1px,
+                  rgba(0,0,0,0.025) 2px
+                ),
+                repeating-linear-gradient(
+                  90deg,
+                  transparent,
+                  transparent 1px,
+                  rgba(0,0,0,0.025) 1px,
+                  rgba(0,0,0,0.025) 2px
+                ),
+                repeating-linear-gradient(
                   45deg,
                   transparent,
-                  transparent 2px,
-                  rgba(0,0,0,0.04) 2px,
-                  rgba(0,0,0,0.04) 4px
+                  transparent 4px,
+                  rgba(255,255,255,0.012) 4px,
+                  rgba(255,255,255,0.012) 5px
                 ),
                 repeating-linear-gradient(
                   -45deg,
                   transparent,
-                  transparent 2px,
-                  rgba(0,0,0,0.04) 2px,
-                  rgba(0,0,0,0.04) 4px
+                  transparent 4px,
+                  rgba(0,0,0,0.018) 4px,
+                  rgba(0,0,0,0.018) 5px
                 ),
-                radial-gradient(ellipse at 38% 32%, rgba(255,255,255,0.07) 0%, transparent 55%),
-                radial-gradient(ellipse at center, #1a5c35 0%, #14472a 60%, #0f3520 100%)
+                radial-gradient(ellipse at 35% 28%, rgba(255,255,255,0.09) 0%, transparent 48%),
+                radial-gradient(ellipse at 70% 75%, rgba(0,0,0,0.12) 0%, transparent 40%),
+                radial-gradient(ellipse at center, #1e6b3d 0%, #165230 45%, #0f3a22 75%, #0a2a18 100%)
               `,
-              boxShadow:
-                "inset 0 3px 14px rgba(0,0,0,0.65), inset 0 0 32px rgba(0,0,0,0.3)",
+              boxShadow: `
+                inset 0 5px 22px rgba(0,0,0,0.72),
+                inset 0 0 50px rgba(0,0,0,0.38),
+                inset 5px 0 18px rgba(0,0,0,0.22),
+                inset -5px 0 18px rgba(0,0,0,0.22),
+                inset 0 -5px 18px rgba(0,0,0,0.22)
+              `,
             }}
           >
             {board.plays.length === 0 ? (
