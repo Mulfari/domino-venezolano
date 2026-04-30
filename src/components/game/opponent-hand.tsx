@@ -81,8 +81,8 @@ export function OpponentHand({
         </motion.div>
       </div>
 
-      {/* Face-down tiles + floating count badge */}
-      <div className="relative flex items-center justify-center">
+      {/* Face-down tiles — hidden on mobile for lateral positions to save space */}
+      <div className={`relative flex items-center justify-center ${isMobile && isVertical ? "hidden" : ""}`}>
         <div
           className={`flex ${
             isVertical ? "flex-col gap-0.5" : "flex-row gap-0.5"

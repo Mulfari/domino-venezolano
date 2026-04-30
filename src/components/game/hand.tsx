@@ -118,7 +118,7 @@ export function Hand({ onPlayTile, onPass, disabled = false }: HandProps) {
                 exit={{ opacity: 0, y: -20, scale: 0.8 }}
                 transition={{ type: "spring", stiffness: 350, damping: 22, delay: i * 0.03 }}
                 className="relative"
-                style={{ cursor: playable ? "pointer" : "default" }}
+                style={{ cursor: playable ? "pointer" : "default", minWidth: 44, minHeight: 44, display: "flex", alignItems: "center", justifyContent: "center" }}
               >
                 {/* Cochina: strong pulsing gold aura */}
                 {cochina && (

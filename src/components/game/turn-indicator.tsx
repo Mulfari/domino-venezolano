@@ -57,7 +57,7 @@ export function TurnIndicator() {
         animate={{ opacity: 1, y: 0, scale: 1 }}
         exit={{ opacity: 0, y: 8, scale: 0.95 }}
         transition={{ duration: 0.22, ease: "easeOut" }}
-        className="flex items-center gap-2 rounded-full px-3 py-1.5"
+        className="flex items-center gap-1.5 sm:gap-2 rounded-full px-2 sm:px-3 py-1 sm:py-1.5"
         role="status"
         aria-live="polite"
         aria-label={isMyTurn ? "Es tu turno" : `Turno de ${displayName}, Equipo ${team + 1}`}
@@ -68,9 +68,8 @@ export function TurnIndicator() {
           transition: "background-color 0.35s ease, border-color 0.35s ease, box-shadow 0.35s ease",
         }}
       >
-        {/* Avatar */}
-        <div className="relative flex h-8 w-8 shrink-0 items-center justify-center">
-          {/* Background pulse — only on my turn */}
+        {/* Avatar — 24px on mobile, 32px on desktop */}
+        <div className="relative flex h-6 w-6 sm:h-8 sm:w-8 shrink-0 items-center justify-center">
           {isMyTurn && (
             <motion.span
               className="absolute inset-0 rounded-full"
@@ -80,9 +79,8 @@ export function TurnIndicator() {
             />
           )}
 
-          {/* Avatar circle */}
           <motion.div
-            className="relative z-10 flex h-8 w-8 items-center justify-center rounded-full text-[11px] font-bold text-[#0f1e14] shadow"
+            className="relative z-10 flex h-6 w-6 sm:h-8 sm:w-8 items-center justify-center rounded-full text-[9px] sm:text-[11px] font-bold text-[#0f1e14] shadow"
             style={{ backgroundColor: colors.bg }}
             animate={
               isMyTurn
@@ -106,7 +104,7 @@ export function TurnIndicator() {
 
           {/* Team badge */}
           <div
-            className="absolute -bottom-0.5 -right-0.5 z-20 flex h-3.5 w-3.5 items-center justify-center rounded-full text-[7px] font-black text-[#0f1e14]"
+            className="absolute -bottom-0.5 -right-0.5 z-20 flex h-3 w-3 sm:h-3.5 sm:w-3.5 items-center justify-center rounded-full text-[6px] sm:text-[7px] font-black text-[#0f1e14]"
             style={{
               backgroundColor: colors.bg,
               border: "1.5px solid #0f1e14",
@@ -117,9 +115,9 @@ export function TurnIndicator() {
           </div>
         </div>
 
-        {/* Name + status */}
+        {/* Name + status — name hidden on mobile */}
         <div className="flex flex-col leading-tight">
-          <span className={`text-xs font-semibold ${colors.text}`}>
+          <span className={`hidden sm:inline text-xs font-semibold ${colors.text}`}>
             {displayName}
           </span>
           <AnimatePresence mode="wait">

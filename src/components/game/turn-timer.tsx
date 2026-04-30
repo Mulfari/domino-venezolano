@@ -62,9 +62,10 @@ export function TurnTimer({ onAutoPass, onAutoPlay }: TurnTimerProps) {
   const strokeDashoffset = circumference * (1 - pct);
 
   return (
-    <div className="flex items-center gap-2">
-      <div className="relative w-10 h-10">
-        <svg width={40} height={40} className="-rotate-90">
+    <div className="flex items-center gap-1.5 sm:gap-2">
+      {/* 32px on mobile, 40px on desktop */}
+      <div className="relative w-8 h-8 sm:w-10 sm:h-10">
+        <svg width="100%" height="100%" viewBox="0 0 40 40" className="-rotate-90">
           <circle
             cx={20} cy={20} r={radius}
             fill="none"
@@ -83,7 +84,7 @@ export function TurnTimer({ onAutoPass, onAutoPlay }: TurnTimerProps) {
           />
         </svg>
         <span
-          className={`absolute inset-0 flex items-center justify-center text-xs font-bold tabular-nums ${
+          className={`absolute inset-0 flex items-center justify-center text-[10px] sm:text-xs font-bold tabular-nums ${
             urgent ? "text-red-400" : isMyTurn ? "text-[#c9a84c]" : "text-[#a8c4a0]/70"
           }`}
         >
@@ -94,7 +95,7 @@ export function TurnTimer({ onAutoPass, onAutoPlay }: TurnTimerProps) {
         <motion.span
           animate={{ opacity: [1, 0.3, 1] }}
           transition={{ duration: 0.6, repeat: Infinity }}
-          className="text-xs text-red-400 font-semibold"
+          className="hidden sm:inline text-xs text-red-400 font-semibold"
         >
           ¡Apúrate!
         </motion.span>
