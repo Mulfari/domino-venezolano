@@ -320,7 +320,7 @@ export function ScorePanel() {
             <div className="text-[8px] uppercase tracking-wider text-[#a8c4a0]/40 mb-1">
               Historial
             </div>
-            <div className="flex flex-wrap gap-1">
+            <div className="flex flex-wrap gap-1" role="list" aria-label="Historial de rondas">
               {roundHistory.map((entry) => {
                 const isTied = entry.winner_team === null;
                 const isMyTeamWon = myTeam !== null && entry.winner_team === myTeam;
@@ -338,6 +338,9 @@ export function ScorePanel() {
                   entry.reason === "domino" ? "D" : entry.reason === "locked" ? "T" : "=";
                 const reasonTitle =
                   entry.reason === "domino" ? "dominó" : entry.reason === "locked" ? "trancado" : "empate";
+                const entryAriaLabel = `Ronda ${entry.round}: ${
+                  isTied ? "Empate" : `Equipo ${(entry.winner_team ?? 0) + 1} ganó`
+                }, ${entry.points} puntos, ${reasonTitle}`;
 
                 return (
                   <motion.div
@@ -345,9 +348,8 @@ export function ScorePanel() {
                     initial={{ opacity: 0, scale: 0.7 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ duration: 0.25 }}
-                    title={`Ronda ${entry.round}: ${
-                      isTied ? "Empate" : `Equipo ${(entry.winner_team ?? 0) + 1} ganó`
-                    } · ${entry.points} pts · ${reasonTitle}`}
+                    role="listitem"
+                    aria-label={entryAriaLabel}
                     className={`flex items-center gap-0.5 px-1 py-0.5 rounded border text-[8px] font-semibold tabular-nums ${bgColor}`}
                   >
                     <span className="text-[#f5f0e8]/30 tabular-nums leading-none">{entry.round}</span>

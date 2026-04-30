@@ -306,6 +306,7 @@ function RoundEndView({
             animate={{ scale: [0, 1.3, 0.9, 1], opacity: 1, rotate: [0, 10, -5, 0] }}
             transition={{ delay: 0.05, duration: 0.6, ease: "easeOut" }}
             className="text-6xl mb-3 leading-none"
+            aria-hidden="true"
           >
             {isDraw ? "🤝" : iWon ? "🏆" : "😔"}
           </motion.div>
