@@ -378,11 +378,22 @@ export function Board({ onPlaceEnd }: BoardProps) {
                           animate={{ opacity: 1, scale: 1 }}
                           exit={{ opacity: 0, scale: 0.6 }}
                           transition={{ type: "spring", stiffness: 420, damping: 22 }}
+                          role="button"
+                          tabIndex={0}
+                          aria-label={`Colocar ficha en el extremo ${end === "left" ? "izquierdo" : "derecho"}`}
                           style={{
                             transformOrigin: `${ghost.x}px ${ghost.y}px`,
                             cursor: "pointer",
+                            outline: "none",
                           }}
                           onClick={() => { onPlaceEnd?.(end); setHoveredEnd(null); }}
+                          onKeyDown={(e: React.KeyboardEvent) => {
+                            if (e.key === "Enter" || e.key === " ") {
+                              e.preventDefault();
+                              onPlaceEnd?.(end);
+                              setHoveredEnd(null);
+                            }
+                          }}
                           onMouseEnter={() => setHoveredEnd(end)}
                           onMouseLeave={() => setHoveredEnd(null)}
                           onTouchStart={() => setHoveredEnd(end)}

@@ -52,6 +52,8 @@ function PlayerDot({
         className={`w-1.5 h-1.5 rounded-full shrink-0 ${
           online ? "bg-green-400/80" : "bg-red-400/50"
         }`}
+        aria-label={online ? "conectado" : "desconectado"}
+        role="img"
       />
       <span className="text-[9px] sm:text-[10px] text-[#f5f0e8]/75 truncate leading-none">
         {name}
@@ -59,7 +61,7 @@ function PlayerDot({
       </span>
       {isFirst && (
         <span
-          title="Salió primero esta ronda"
+          aria-label="Salió primero esta ronda"
           className="text-[8px] leading-none text-[#c9a84c] shrink-0"
         >
           ★
