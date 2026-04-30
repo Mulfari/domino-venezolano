@@ -360,6 +360,8 @@ export default function GamePage() {
             points: event.points,
             reason: event.reason,
           });
+          // Start the board fade + overlay as soon as the round ends
+          setBoardTransitioning(true);
           break;
         }
 
