@@ -31,10 +31,12 @@ export function OpponentHand({
 
   return (
     <div
-      className={`flex items-center gap-2 ${
+      className={`relative flex items-center gap-2 ${
         isVertical ? "flex-col" : "flex-col-reverse"
       }`}
     >
+      <PassIndicator show={showPass} />
+
       {/* Player name + tile count */}
       <div className="flex items-center gap-1 sm:gap-2">
         <motion.div
@@ -81,7 +83,6 @@ export function OpponentHand({
 
       {/* Face-down tiles + floating count badge */}
       <div className="relative flex items-center justify-center">
-        <PassIndicator show={showPass} />
         <div
           className={`flex ${
             isVertical ? "flex-col gap-0.5" : "flex-row gap-0.5"
