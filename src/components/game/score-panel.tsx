@@ -189,10 +189,10 @@ function TeamCard({
   );
 }
 
-function RoundHistory({ history, myTeam }: { history: RoundHistoryEntry[]; myTeam: 0 | 1 | null }) {
+function RoundHistory({ history, myTeam, className = "mt-2 pt-2 border-t border-[#c9a84c]/12" }: { history: RoundHistoryEntry[]; myTeam: 0 | 1 | null; className?: string }) {
   if (history.length === 0) return null;
   return (
-    <div className="mt-2 pt-2 border-t border-[#c9a84c]/12">
+    <div className={className}>
       <div className="text-[8px] uppercase tracking-wider text-[#a8c4a0]/40 mb-1.5">Historial</div>
       <div className="flex flex-wrap gap-1" role="list" aria-label="Historial de rondas">
         {history.map((entry) => {
@@ -245,10 +245,9 @@ export function ScorePanel() {
   return (
     <>
       {/* ── Mobile compact ── */}
+      <div className="flex sm:hidden flex-col rounded-xl bg-[#3a2210]/85 border border-[#c9a84c]/25 backdrop-blur-sm shadow-lg shadow-black/30 shrink-0" role="region" aria-label="Marcador">
       <div
-        className="flex sm:hidden items-center gap-2 rounded-xl bg-[#3a2210]/85 border border-[#c9a84c]/25 backdrop-blur-sm px-2 py-1 shadow-lg shadow-black/30 shrink-0"
-        role="region"
-        aria-label="Marcador"
+        className="flex items-center gap-2 px-2 py-1"
       >
         <AnimatePresence mode="wait">
           <motion.span
@@ -304,6 +303,12 @@ export function ScorePanel() {
             </span>
           </div>
         )}
+      </div>
+      <RoundHistory
+        history={roundHistory}
+        myTeam={myTeam}
+        className="px-2 pb-1.5 pt-1.5 border-t border-[#c9a84c]/12"
+      />
       </div>
 
       {/* ── Desktop full panel ── */}
