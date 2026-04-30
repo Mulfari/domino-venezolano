@@ -92,7 +92,7 @@ export function ChatPanel({
 
   return (
     <>
-      {/* Toast preview — appears above the button */}
+      {/* Toast preview */}
       <AnimatePresence>
         {toastMsg && !open && (
           <motion.div
@@ -126,21 +126,21 @@ export function ChatPanel({
         className="fixed bottom-4 right-4 z-50 w-11 h-11 rounded-full flex items-center justify-center shadow-lg transition-colors border"
         style={{
           background: open
-            ? "rgba(201,168,76,0.18)"
+            ? "rgba(201,168,76,0.22)"
             : hasUnread
             ? "rgba(201,168,76,0.20)"
-            : "rgba(14, 40, 24, 0.80)",
-          backdropFilter: "blur(10px)",
-          WebkitBackdropFilter: "blur(10px)",
+            : "rgba(14, 40, 24, 0.85)",
+          backdropFilter: "blur(12px)",
+          WebkitBackdropFilter: "blur(12px)",
           borderColor:
             open || hasUnread
-              ? "rgba(201,168,76,0.60)"
+              ? "rgba(201,168,76,0.65)"
               : "rgba(201,168,76,0.22)",
           color: "#c9a84c",
           boxShadow: hasUnread
             ? "0 0 16px rgba(201,168,76,0.45), 0 4px 16px rgba(0,0,0,0.5)"
             : open
-            ? "0 0 10px rgba(201,168,76,0.2), 0 4px 14px rgba(0,0,0,0.4)"
+            ? "0 0 12px rgba(201,168,76,0.25), 0 4px 14px rgba(0,0,0,0.4)"
             : "0 4px 14px rgba(0,0,0,0.45)",
         }}
         aria-label={open ? "Cerrar chat" : "Abrir chat"}
@@ -206,16 +206,9 @@ export function ChatPanel({
         </AnimatePresence>
       </motion.button>
 
-      {/* Floating chat panel — slides in from the right */}
+      {/* Floating chat panel — no backdrop so the game stays interactive */}
       <AnimatePresence>
         {open && (
-          <>
-            {/* Invisible backdrop to close on outside click */}
-            <div
-              className="fixed inset-0 z-30"
-              onClick={handleClose}
-              aria-hidden="true"
-            />
           <motion.div
             initial={{ opacity: 0, x: 32, scale: 0.96 }}
             animate={{ opacity: 1, x: 0, scale: 1 }}
@@ -223,13 +216,14 @@ export function ChatPanel({
             transition={{ duration: 0.2, ease: [0.25, 0.46, 0.45, 0.94] }}
             className="fixed bottom-[72px] right-4 z-40 w-64 sm:w-72 max-w-[calc(100vw-2rem)] flex flex-col rounded-2xl overflow-hidden shadow-2xl"
             style={{
-              maxHeight: "min(340px, calc(100dvh - 200px))",
-              background: "rgba(6, 20, 12, 0.38)",
-              backdropFilter: "blur(32px) saturate(1.8)",
-              WebkitBackdropFilter: "blur(32px) saturate(1.8)",
-              border: "1px solid rgba(201,168,76,0.18)",
+              maxHeight: "min(380px, calc(100dvh - 180px))",
+              /* High transparency so the board shows through */
+              background: "rgba(5, 16, 10, 0.55)",
+              backdropFilter: "blur(40px) saturate(2)",
+              WebkitBackdropFilter: "blur(40px) saturate(2)",
+              border: "1px solid rgba(201,168,76,0.22)",
               boxShadow:
-                "0 8px 40px rgba(0,0,0,0.45), inset 0 1px 0 rgba(201,168,76,0.09), inset 0 -1px 0 rgba(0,0,0,0.15)",
+                "0 8px 48px rgba(0,0,0,0.55), inset 0 1px 0 rgba(201,168,76,0.12), inset 0 -1px 0 rgba(0,0,0,0.2)",
             }}
             role="dialog"
             aria-label="Chat de la partida"
@@ -242,7 +236,7 @@ export function ChatPanel({
               <div className="flex items-center gap-2">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  className="w-3.5 h-3.5 text-[#c9a84c]/55"
+                  className="w-3.5 h-3.5 text-[#c9a84c]/60"
                   viewBox="0 0 20 20"
                   fill="currentColor"
                   aria-hidden="true"
@@ -352,7 +346,7 @@ export function ChatPanel({
                   maxLength={280}
                   aria-label="Mensaje de chat"
                   className="flex-1 min-w-0 text-xs text-[#f5f0e8] placeholder-[#a8c4a0]/30 rounded-lg px-2.5 py-1.5 outline-none focus:ring-1 focus:ring-[#c9a84c]/30 transition-all"
-                  style={{ background: "rgba(30,92,58,0.20)" }}
+                  style={{ background: "rgba(30,92,58,0.25)" }}
                 />
                 <button
                   onClick={handleSend}
@@ -373,7 +367,6 @@ export function ChatPanel({
               </div>
             </div>
           </motion.div>
-          </>
         )}
       </AnimatePresence>
     </>
