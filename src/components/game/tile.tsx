@@ -155,35 +155,39 @@ export function DominoTile({
           <stop offset="45%" stopColor="#3a2210" />
           <stop offset="100%" stopColor="#1a0c04" />
         </linearGradient>
-        <pattern id={`grain-${uid}`} x="0" y="0" width="4" height="4" patternUnits="userSpaceOnUse" patternTransform="rotate(18)">
-          <line x1="0" y1="0" x2="0" y2="4" stroke="#8a5a30" strokeWidth="0.9" opacity="0.55"/>
+        <pattern id={`grain-${uid}`} x="0" y="0" width="3" height="3" patternUnits="userSpaceOnUse" patternTransform="rotate(15)">
+          <line x1="0" y1="0" x2="0" y2="3" stroke="#a06830" strokeWidth="1.1" opacity="0.75"/>
         </pattern>
-        <pattern id={`grain2-${uid}`} x="0" y="0" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(72)">
-          <line x1="0" y1="0" x2="0" y2="7" stroke="#4a2208" strokeWidth="0.6" opacity="0.35"/>
+        <pattern id={`grain2-${uid}`} x="0" y="0" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(75)">
+          <line x1="0" y1="0" x2="0" y2="6" stroke="#3a1a06" strokeWidth="0.8" opacity="0.55"/>
         </pattern>
-        <pattern id={`grain3-${uid}`} x="0" y="0" width="12" height="12" patternUnits="userSpaceOnUse" patternTransform="rotate(5)">
-          <line x1="0" y1="0" x2="0" y2="12" stroke="#6a3a18" strokeWidth="1.2" opacity="0.18"/>
+        <pattern id={`grain3-${uid}`} x="0" y="0" width="10" height="10" patternUnits="userSpaceOnUse" patternTransform="rotate(4)">
+          <line x1="0" y1="0" x2="0" y2="10" stroke="#7a4a20" strokeWidth="1.5" opacity="0.28"/>
         </pattern>
         <radialGradient id={`vignette-${uid}`} cx="50%" cy="50%" r="70%">
           <stop offset="0%" stopColor="transparent" />
-          <stop offset="100%" stopColor="#0a0400" stopOpacity="0.6" />
+          <stop offset="100%" stopColor="#0a0400" stopOpacity="0.72" />
         </radialGradient>
-        {/* 3D edge lighting: top/left bright, bottom/right dark */}
+        {/* 3D bevel: bright top/left, dark bottom/right */}
         <linearGradient id={`edge-top-${uid}`} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="white" stopOpacity="0.28" />
+          <stop offset="0%" stopColor="white" stopOpacity="0.52" />
+          <stop offset="30%" stopColor="white" stopOpacity="0.18" />
           <stop offset="100%" stopColor="white" stopOpacity="0" />
         </linearGradient>
         <linearGradient id={`edge-bottom-${uid}`} x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stopColor="black" stopOpacity="0" />
-          <stop offset="100%" stopColor="black" stopOpacity="0.45" />
+          <stop offset="65%" stopColor="black" stopOpacity="0.35" />
+          <stop offset="100%" stopColor="black" stopOpacity="0.65" />
         </linearGradient>
         <linearGradient id={`edge-left-${uid}`} x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0%" stopColor="white" stopOpacity="0.18" />
+          <stop offset="0%" stopColor="white" stopOpacity="0.32" />
+          <stop offset="40%" stopColor="white" stopOpacity="0.08" />
           <stop offset="100%" stopColor="white" stopOpacity="0" />
         </linearGradient>
         <linearGradient id={`edge-right-${uid}`} x1="0" y1="0" x2="1" y2="0">
           <stop offset="0%" stopColor="black" stopOpacity="0" />
-          <stop offset="100%" stopColor="black" stopOpacity="0.3" />
+          <stop offset="60%" stopColor="black" stopOpacity="0.22" />
+          <stop offset="100%" stopColor="black" stopOpacity="0.48" />
         </linearGradient>
         <clipPath id={`clip-${uid}`}>
           <rect x={0} y={0} width={w} height={h} rx={borderRadius}/>
