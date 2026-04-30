@@ -16,6 +16,8 @@ interface OpponentHandProps {
   showPass?: boolean;
 }
 
+const MAX_DISPLAY = 7;
+
 export function OpponentHand({
   tileCount,
   playerName,
@@ -26,19 +28,22 @@ export function OpponentHand({
 }: OpponentHandProps) {
   const isVertical = position === "left" || position === "right";
   const isMobile = useIsMobile();
-  // On mobile, lateral opponents show at most 2 tiles to avoid squeezing the board
-  const displayCount = isMobile && isVertical ? Math.min(tileCount, 2) : tileCount;
+  const maxDisplay = isMobile && isVertical ? 3 : MAX_DISPLAY;
+  const displayCount = Math.min(tileCount, maxDisplay);
+
+  // Overlap offset: tiles partially cover each other like a real hand
+  const overlapPx = isMobile ? 6 : 8;
 
   return (
     <div
-      className={`relative flex items-center gap-2 ${
+      className={`relative flex items-center gap-1.5 sm:gap-2 ${
         isVertical ? "flex-col" : "flex-col-reverse"
       }`}
     >
       <PassIndicator show={showPass} />
 
-      {/* Player name + tile count */}
-      <div className="flex items-center gap-1 sm:gap-2">
+      {/* Player name + connection dot + tile count */}
+      <div className="flex items-center gap-1 sm:gap-1.5">
         <motion.div
           className={`h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full flex-shrink-0 ${
             connected ? "bg-[#4ade80]" : "bg-red-400"
@@ -61,13 +66,14 @@ export function OpponentHand({
         >
           {playerName}
         </span>
-        {/* Tile count pill — always visible */}
+
+        {/* Tile count pill — always visible next to name */}
         <motion.div
           key={tileCount}
           initial={{ scale: 1.5, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ type: "spring", stiffness: 500, damping: 22 }}
-          className={`flex-shrink-0 flex items-center justify-center gap-0.5
+          className={`flex-shrink-0 flex items-center justify-center
             min-w-[20px] sm:min-w-[24px] h-5 sm:h-6 px-1.5
             rounded-full text-[10px] sm:text-xs font-bold leading-none
             border shadow-md
@@ -81,51 +87,70 @@ export function OpponentHand({
         </motion.div>
       </div>
 
-      {/* Face-down tiles — hidden on mobile for lateral positions to save space */}
-      <div className={`relative flex items-center justify-center ${isMobile && isVertical ? "hidden" : ""}`}>
-        <div
-          className={`flex ${
-            isVertical ? "flex-col gap-0.5" : "flex-row gap-0.5"
-          } items-center`}
-        >
-          {Array.from({ length: displayCount }).map((_, i) => (
-            <motion.div
-              key={i}
-              initial={{ opacity: 0, scale: 0.5 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: i * 0.03 }}
-            >
-              <DominoTile
-                faceDown
-                size="small"
-                responsive
-                orientation={isVertical ? "horizontal" : "vertical"}
-              />
-            </motion.div>
-          ))}
-        </div>
-        {/* Floating tile count badge overlaid on the stack */}
-        {tileCount > 0 && (
+      {/* Face-down tiles — overlapping fan arrangement */}
+      {!(isMobile && isVertical) && tileCount > 0 && (
+        <div className="relative">
+          {/* Tile stack with overlap */}
+          <div
+            className={`flex items-end justify-center ${
+              isVertical ? "flex-col" : "flex-row"
+            }`}
+          >
+            {Array.from({ length: displayCount }).map((_, i) => {
+              const offset = i - (displayCount - 1) / 2;
+              // Gentle fan rotation for horizontal (top) position
+              const rotation = !isVertical ? offset * 3.5 : 0;
+              // Arc lift: middle tiles slightly higher in the fan
+              const yLift = !isVertical ? -Math.abs(offset) * 1.5 : 0;
+
+              return (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, scale: 0.6, y: 8 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  transition={{ delay: i * 0.04, type: "spring", stiffness: 380, damping: 22 }}
+                  style={{
+                    // Overlap tiles
+                    marginTop: isVertical && i > 0 ? `-${overlapPx}px` : undefined,
+                    marginLeft: !isVertical && i > 0 ? `-${overlapPx}px` : undefined,
+                    // Fan rotation + arc
+                    transform: `rotate(${rotation}deg) translateY(${yLift}px)`,
+                    transformOrigin: "bottom center",
+                    zIndex: i,
+                  }}
+                >
+                  <DominoTile
+                    faceDown
+                    size="small"
+                    responsive
+                    orientation={isVertical ? "horizontal" : "vertical"}
+                  />
+                </motion.div>
+              );
+            })}
+          </div>
+
+          {/* Count badge overlaid on the tile stack */}
           <motion.div
-            key={tileCount}
+            key={`badge-${tileCount}`}
             initial={{ scale: 1.6, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ type: "spring", stiffness: 500, damping: 20 }}
-            className={`absolute -bottom-2 -right-2 z-10
+            className={`absolute -bottom-2.5 -right-2.5 z-20
               flex items-center justify-center
-              min-w-[18px] sm:min-w-[22px] h-[18px] sm:h-[22px] px-1
+              min-w-[20px] sm:min-w-[24px] h-5 sm:h-6 px-1.5
               rounded-full text-[10px] sm:text-[11px] font-black leading-none
               shadow-lg border
               ${isCurrentTurn
-                ? "bg-[#c9a84c] text-[#1a0800] border-[#f0d878] shadow-[0_0_8px_rgba(201,168,76,0.7)]"
+                ? "bg-[#c9a84c] text-[#1a0800] border-[#f0d878] shadow-[0_0_10px_rgba(201,168,76,0.8)]"
                 : "bg-[#1e0e04] text-[#d4a855] border-[#7a4a22]"
               }`}
             aria-hidden="true"
           >
             {tileCount}
           </motion.div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }
