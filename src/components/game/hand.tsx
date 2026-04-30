@@ -78,7 +78,7 @@ export function Hand({ onPlayTile, onPass, disabled = false }: HandProps) {
 
   return (
     <div
-      className="flex flex-col items-center gap-2 sm:gap-3 pb-2 sm:pb-4 px-1 sm:px-2"
+      className="flex flex-col items-center gap-2 sm:gap-3 pb-[max(8px,env(safe-area-inset-bottom))] sm:pb-4 px-1 sm:px-2"
       role="region"
       aria-label="Tu mano"
     >

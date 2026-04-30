@@ -541,7 +541,7 @@ export default function GamePage() {
       <LandscapePrompt />
 
       {/* Top bar: score + turn indicator */}
-      <div className="flex items-center justify-between p-1.5 sm:p-4 shrink-0 gap-1">
+      <div className="flex items-center justify-between px-1.5 py-1 sm:p-4 shrink-0 gap-1">
         <ScorePanel />
         <div className="flex items-center gap-1 sm:flex-col sm:gap-1 min-w-0">
           <TurnIndicator />
@@ -551,11 +551,11 @@ export default function GamePage() {
         <div className="min-w-0 sm:min-w-[160px] flex items-center justify-end gap-1 sm:gap-2">
           <SoundToggle />
           {roomCode && (
-            <div className="rounded-lg bg-[#3a2210]/80 border border-[#c9a84c]/20 px-2 sm:px-3 py-1 sm:py-1.5 text-center">
+            <div className="hidden sm:block rounded-lg bg-[#3a2210]/80 border border-[#c9a84c]/20 px-3 py-1.5 text-center">
               <span className="text-[10px] uppercase tracking-wider text-[#a8c4a0]/60 block leading-tight">
                 Sala
               </span>
-              <span className="text-[10px] sm:text-xs font-mono font-semibold text-[#c9a84c] tracking-widest">
+              <span className="text-xs font-mono font-semibold text-[#c9a84c] tracking-widest">
                 {roomCode}
               </span>
             </div>
