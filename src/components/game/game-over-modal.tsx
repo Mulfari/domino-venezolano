@@ -354,7 +354,7 @@ function RoundEndView({
     ? "Sin ganador"
     : winnerTeam === myTeam
     ? "¡Tu equipo ganó!"
-    : `Equipo ${winnerTeam === 0 ? "A" : "B"} gana`;
+    : `Equipo ${(winnerTeam ?? 0) + 1} gana`;
 
   const progress0 = Math.min((scores[0] / targetScore) * 100, 100);
   const progress1 = Math.min((scores[1] / targetScore) * 100, 100);
