@@ -841,10 +841,24 @@ export default function GamePage() {
       </div>
 
       {/* Player hand (bottom) */}
-      <div className="relative shrink-0 pt-0.5 sm:pt-2 border-t border-[#c9a84c]/15">
+      <motion.div
+        className="relative shrink-0 pt-0.5 sm:pt-2 border-t"
+        animate={currentTurn === mySeat && status === "playing" ? {
+          borderColor: ["rgba(201,168,76,0.15)", "rgba(201,168,76,0.65)", "rgba(201,168,76,0.15)"],
+          boxShadow: ["0 -2px 0px rgba(201,168,76,0)", "0 -6px 20px rgba(201,168,76,0.28)", "0 -2px 0px rgba(201,168,76,0)"],
+        } : {
+          borderColor: "rgba(201,168,76,0.15)",
+          boxShadow: "none",
+        }}
+        transition={currentTurn === mySeat && status === "playing" ? {
+          duration: 2.2,
+          repeat: Infinity,
+          ease: "easeInOut",
+        } : { duration: 0.5 }}
+      >
         <PassIndicator show={lastPassSeat === mySeat} />
         <Hand onPlayTile={handlePlayTile} onPass={handlePass} disabled={actionLoading} />
-      </div>
+      </motion.div>
       </motion.div>
 
       {/* ¡Una ficha! toast */}
