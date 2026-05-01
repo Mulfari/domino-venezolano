@@ -123,6 +123,8 @@ export default function GamePage() {
   const capicuaTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const prevCapicuaRef = useRef(false);
   const [boardTransitioning, setBoardTransitioning] = useState(false);
+  const [copiedCode, setCopiedCode] = useState(false);
+  const copiedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [transitionRound, setTransitionRound] = useState<number | null>(null);
   const [transitionScores, setTransitionScores] = useState<{ prev: { 0: number; 1: number }; next: { 0: number; 1: number } } | null>(null);
   const [transitionWinner, setTransitionWinner] = useState<{ team: 0 | 1 | null; points: number; reason: string } | null>(null);
@@ -603,6 +605,14 @@ export default function GamePage() {
     router.push("/");
   }
 
+  function handleCopyCode() {
+    if (!roomCode) return;
+    navigator.clipboard.writeText(roomCode).catch(() => {});
+    if (copiedTimerRef.current) clearTimeout(copiedTimerRef.current);
+    setCopiedCode(true);
+    copiedTimerRef.current = setTimeout(() => setCopiedCode(false), 1800);
+  }
+
   /* ---------------------------------------------------------------- */
   /*  Loading / error states                                          */
   /* ---------------------------------------------------------------- */
@@ -680,14 +690,44 @@ export default function GamePage() {
           <TileTracker />
           <SoundToggle />
           {roomCode && (
-            <div className="hidden sm:block rounded-lg bg-[#3a2210]/80 border border-[#c9a84c]/20 px-3 py-1.5 text-center">
-              <span className="text-[10px] uppercase tracking-wider text-[#a8c4a0]/60 block leading-tight">
-                Sala
-              </span>
-              <span className="text-xs font-mono font-semibold text-[#c9a84c] tracking-widest">
-                {roomCode}
-              </span>
-            </div>
+            <motion.button
+              onClick={handleCopyCode}
+              whileTap={{ scale: 0.93 }}
+              aria-label={`Código de sala: ${roomCode}. Toca para copiar`}
+              className="relative rounded-lg bg-[#3a2210]/80 border border-[#c9a84c]/20 px-2 sm:px-3 py-1 sm:py-1.5 text-center overflow-hidden min-h-[36px] flex flex-col items-center justify-center"
+              style={{ minWidth: 44 }}
+            >
+              <AnimatePresence mode="wait">
+                {copiedCode ? (
+                  <motion.span
+                    key="copied"
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -6 }}
+                    transition={{ duration: 0.18 }}
+                    className="text-[10px] font-bold text-green-400 uppercase tracking-wider leading-none whitespace-nowrap"
+                  >
+                    ¡Copiado!
+                  </motion.span>
+                ) : (
+                  <motion.span
+                    key="code"
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -6 }}
+                    transition={{ duration: 0.18 }}
+                    className="flex flex-col items-center leading-tight"
+                  >
+                    <span className="text-[9px] sm:text-[10px] uppercase tracking-wider text-[#a8c4a0]/60 leading-none">
+                      Sala
+                    </span>
+                    <span className="text-[11px] sm:text-xs font-mono font-semibold text-[#c9a84c] tracking-widest leading-none mt-0.5">
+                      {roomCode}
+                    </span>
+                  </motion.span>
+                )}
+              </AnimatePresence>
+            </motion.button>
           )}
         </div>
       </div>
