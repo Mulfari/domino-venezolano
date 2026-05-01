@@ -116,6 +116,8 @@ export default function GamePage() {
   const unaFichaTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const prevHandCountsRef = useRef<number[]>([7, 7, 7, 7]);
   const [dominoSplash, setDominoSplash] = useState<{ playerName: string; isMyTeam: boolean } | null>(null);
+  const [tilePlayedAlert, setTilePlayedAlert] = useState<{ name: string; tile: Tile; seat: Seat } | null>(null);
+  const tilePlayedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [boardTransitioning, setBoardTransitioning] = useState(false);
   const [transitionRound, setTransitionRound] = useState<number | null>(null);
   const [transitionScores, setTransitionScores] = useState<{ prev: { 0: number; 1: number }; next: { 0: number; 1: number } } | null>(null);
@@ -314,6 +316,11 @@ export default function GamePage() {
             if (next[event.seat] > 0) next[event.seat]--;
             return next;
           });
+          // Show a brief toast with the tile the opponent played
+          const playedName = useGameStore.getState().players.find((p) => p.seat === event.seat)?.displayName ?? `Jugador ${event.seat + 1}`;
+          if (tilePlayedTimerRef.current) clearTimeout(tilePlayedTimerRef.current);
+          setTilePlayedAlert({ name: playedName, tile: event.tile as Tile, seat: event.seat as Seat });
+          tilePlayedTimerRef.current = setTimeout(() => setTilePlayedAlert(null), 2200);
           fetchGameState();
           break;
         }
@@ -918,6 +925,62 @@ export default function GamePage() {
                 </span>
                 <span className="text-[10px] text-[#f5f0e8]/65 leading-none mt-0.5 truncate max-w-[120px]">
                   {unaFichaAlert.name}
+                </span>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Tile played toast — shows what tile an opponent just played */}
+      <AnimatePresence>
+        {tilePlayedAlert && (
+          <motion.div
+            key={`played-${tilePlayedAlert.seat}-${tilePlayedAlert.tile[0]}-${tilePlayedAlert.tile[1]}`}
+            initial={{ opacity: 0, y: 24, scale: 0.85 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -16, scale: 0.9 }}
+            transition={{ type: "spring", stiffness: 420, damping: 24 }}
+            className="fixed top-16 left-1/2 -translate-x-1/2 z-50 pointer-events-none"
+            role="status"
+            aria-live="polite"
+          >
+            <div
+              className="flex items-center gap-2.5 rounded-full px-4 py-2 backdrop-blur-sm"
+              style={{
+                background: "linear-gradient(135deg, #0e1e14 0%, #071408 100%)",
+                border: "1.5px solid rgba(168,196,160,0.35)",
+                boxShadow: "0 0 20px rgba(0,0,0,0.7), 0 6px 18px rgba(0,0,0,0.6)",
+              }}
+            >
+              {/* Mini domino icon showing the tile */}
+              <svg width="28" height="16" viewBox="0 0 28 16" fill="none" aria-hidden="true">
+                <rect x="0.75" y="0.75" width="26.5" height="14.5" rx="2.5" fill="#f5f0e8" stroke="#c9a84c" strokeWidth="1.5"/>
+                <line x1="14" y1="1.5" x2="14" y2="14.5" stroke="#c9a84c" strokeWidth="1"/>
+                {/* Left pip(s) */}
+                {tilePlayedAlert.tile[0] === 0 && null}
+                {tilePlayedAlert.tile[0] >= 1 && <circle cx="7" cy="8" r="1.5" fill="#1a1a1a"/>}
+                {tilePlayedAlert.tile[0] >= 2 && <circle cx="4" cy="5" r="1.2" fill="#1a1a1a"/>}
+                {tilePlayedAlert.tile[0] >= 2 && <circle cx="10" cy="11" r="1.2" fill="#1a1a1a"/>}
+                {tilePlayedAlert.tile[0] >= 4 && <circle cx="10" cy="5" r="1.2" fill="#1a1a1a"/>}
+                {tilePlayedAlert.tile[0] >= 4 && <circle cx="4" cy="11" r="1.2" fill="#1a1a1a"/>}
+                {tilePlayedAlert.tile[0] === 6 && <circle cx="4" cy="8" r="1.2" fill="#1a1a1a"/>}
+                {tilePlayedAlert.tile[0] === 6 && <circle cx="10" cy="8" r="1.2" fill="#1a1a1a"/>}
+                {/* Right pip(s) */}
+                {tilePlayedAlert.tile[1] >= 1 && <circle cx="21" cy="8" r="1.5" fill="#1a1a1a"/>}
+                {tilePlayedAlert.tile[1] >= 2 && <circle cx="18" cy="5" r="1.2" fill="#1a1a1a"/>}
+                {tilePlayedAlert.tile[1] >= 2 && <circle cx="24" cy="11" r="1.2" fill="#1a1a1a"/>}
+                {tilePlayedAlert.tile[1] >= 4 && <circle cx="24" cy="5" r="1.2" fill="#1a1a1a"/>}
+                {tilePlayedAlert.tile[1] >= 4 && <circle cx="18" cy="11" r="1.2" fill="#1a1a1a"/>}
+                {tilePlayedAlert.tile[1] === 6 && <circle cx="18" cy="8" r="1.2" fill="#1a1a1a"/>}
+                {tilePlayedAlert.tile[1] === 6 && <circle cx="24" cy="8" r="1.2" fill="#1a1a1a"/>}
+              </svg>
+              <div className="flex flex-col leading-tight">
+                <span className="text-[11px] font-black text-[#a8c4a0] uppercase tracking-widest leading-none">
+                  {tilePlayedAlert.name}
+                </span>
+                <span className="text-[9px] text-[#a8c4a0]/50 leading-none mt-0.5">
+                  jugó {tilePlayedAlert.tile[0]}·{tilePlayedAlert.tile[1]}
                 </span>
               </div>
             </div>
