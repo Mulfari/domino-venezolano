@@ -24,7 +24,7 @@ import { CapicuaSplash } from "@/components/game/capicua-splash";
 import { PassMeter } from "@/components/game/pass-meter";
 import { useGameChannel } from "@/hooks/use-game-channel";
 import { useGameStore } from "@/stores/game-store";
-import { playTilePlace, playPass, playYourTurn, playVictory, playDefeat, playCapicua, playUnaFicha, playDosFichas, playShuffle, playDouble, playStreak, playCochina } from "@/lib/sounds/sound-engine";
+import { playTilePlace, playPass, playYourTurn, playVictory, playDefeat, playCapicua, playUnaFicha, playDosFichas, playShuffle, playDouble, playStreak, playCochina, playTimeout } from "@/lib/sounds/sound-engine";
 import { requestNotificationPermission, notifyTurn } from "@/lib/notifications/turn-notification";
 import type { GameEvent } from "@/lib/realtime/events";
 import type { Tile, Seat } from "@/lib/game/types";
@@ -682,6 +682,7 @@ export default function GamePage() {
   }
 
   function handleTimeout() {
+    playTimeout();
     if (tiempoTimerRef.current) clearTimeout(tiempoTimerRef.current);
     setTiempoAlert(true);
     tiempoTimerRef.current = setTimeout(() => setTiempoAlert(false), 2500);
