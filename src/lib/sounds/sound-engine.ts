@@ -148,6 +148,36 @@ export function playCapicua() {
   osc2.stop(t2 + 0.5);
 }
 
+export function playUnaFicha() {
+  if (_muted) return;
+  const ctx = getCtx();
+  // Two sharp descending tones — urgent "watch out" signal
+  const notes = [1047, 784]; // C6, G5
+  notes.forEach((freq, i) => {
+    const g = gain(ctx, 0.32);
+    const osc = ctx.createOscillator();
+    osc.type = "sine";
+    osc.frequency.value = freq;
+    const t = ctx.currentTime + i * 0.14;
+    g.gain.setValueAtTime(0.32 * _volume, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.22);
+    osc.connect(g);
+    osc.start(t);
+    osc.stop(t + 0.22);
+  });
+  // Short noise accent for punch
+  const buf = ctx.createBuffer(1, ctx.sampleRate * 0.04, ctx.sampleRate);
+  const data = buf.getChannelData(0);
+  for (let i = 0; i < data.length; i++) data[i] = (Math.random() * 2 - 1) * 0.25;
+  const noise = ctx.createBufferSource();
+  noise.buffer = buf;
+  const ng = gain(ctx, 0.18);
+  ng.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.04);
+  noise.connect(ng);
+  noise.start(ctx.currentTime);
+  noise.stop(ctx.currentTime + 0.04);
+}
+
 export function playChatReceived() {
   if (_muted) return;
   const ctx = getCtx();

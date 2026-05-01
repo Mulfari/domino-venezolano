@@ -20,7 +20,7 @@ import { LandscapePrompt } from "@/components/game/landscape-prompt";
 import { DominoSplash } from "@/components/game/domino-splash";
 import { useGameChannel } from "@/hooks/use-game-channel";
 import { useGameStore } from "@/stores/game-store";
-import { playTilePlace, playPass, playYourTurn, playVictory, playDefeat, playCapicua } from "@/lib/sounds/sound-engine";
+import { playTilePlace, playPass, playYourTurn, playVictory, playDefeat, playCapicua, playUnaFicha } from "@/lib/sounds/sound-engine";
 import { requestNotificationPermission, notifyTurn } from "@/lib/notifications/turn-notification";
 import type { GameEvent } from "@/lib/realtime/events";
 import type { Tile, Seat } from "@/lib/game/types";
@@ -171,6 +171,7 @@ export default function GamePage() {
     handCounts.forEach((count, seat) => {
       if (count === 1 && prev[seat] > 1) {
         const name = players.find((p) => p.seat === seat)?.displayName ?? `Jugador ${seat + 1}`;
+        playUnaFicha();
         if (unaFichaTimerRef.current) clearTimeout(unaFichaTimerRef.current);
         setUnaFichaAlert({ name, seat: seat as Seat });
         unaFichaTimerRef.current = setTimeout(() => setUnaFichaAlert(null), 3000);
