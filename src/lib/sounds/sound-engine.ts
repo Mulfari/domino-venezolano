@@ -547,6 +547,26 @@ export function playTrancado() {
   tnoise.stop(thudT + 0.13);
 }
 
+export function playVaADominar() {
+  if (_muted) return;
+  const ctx = getCtx();
+  // Tense two-note warning: low then high, urgent triangle wave
+  const notes = [330, 523]; // E4, C5
+  notes.forEach((freq, i) => {
+    const t = ctx.currentTime + i * 0.19;
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0.3 * _volume, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.24);
+    const osc = ctx.createOscillator();
+    osc.type = "triangle";
+    osc.frequency.value = freq;
+    osc.connect(g);
+    g.connect(ctx.destination);
+    osc.start(t);
+    osc.stop(t + 0.25);
+  });
+}
+
 export function playChatReceived() {
   if (_muted) return;
   const ctx = getCtx();

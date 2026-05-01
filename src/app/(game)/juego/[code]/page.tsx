@@ -24,7 +24,7 @@ import { CapicuaSplash } from "@/components/game/capicua-splash";
 import { PassMeter } from "@/components/game/pass-meter";
 import { useGameChannel } from "@/hooks/use-game-channel";
 import { useGameStore } from "@/stores/game-store";
-import { playTilePlace, playPass, playYourTurn, playVictory, playDefeat, playGameOver, playGameOverDefeat, playCapicua, playUnaFicha, playDosFichas, playShuffle, playDouble, playStreak, playCochina, playTimeout, playTrancado } from "@/lib/sounds/sound-engine";
+import { playTilePlace, playPass, playYourTurn, playVictory, playDefeat, playGameOver, playGameOverDefeat, playCapicua, playUnaFicha, playDosFichas, playShuffle, playDouble, playStreak, playCochina, playTimeout, playTrancado, playVaADominar } from "@/lib/sounds/sound-engine";
 import { requestNotificationPermission, notifyTurn } from "@/lib/notifications/turn-notification";
 import type { GameEvent } from "@/lib/realtime/events";
 import type { Tile, Seat } from "@/lib/game/types";
@@ -136,6 +136,9 @@ export default function GamePage() {
   const copiedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [tiempoAlert, setTiempoAlert] = useState(false);
   const tiempoTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [vaADominarAlert, setVaADominarAlert] = useState<{ name: string; seat: Seat } | null>(null);
+  const vaADominarTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const prevTurnForDominarRef = useRef<number | null>(null);
   const [transitionRound, setTransitionRound] = useState<number | null>(null);
   const [transitionScores, setTransitionScores] = useState<{ prev: { 0: number; 1: number }; next: { 0: number; 1: number } } | null>(null);
   const [transitionWinner, setTransitionWinner] = useState<{ team: 0 | 1 | null; points: number; reason: string } | null>(null);
@@ -360,6 +363,22 @@ export default function GamePage() {
     }
     prevTurnRef.current = currentTurn;
   }, [currentTurn, mySeat, status]);
+
+  /* ---- ¡Va a dominar! — fires when turn switches to a player with 1 tile ---- */
+  useEffect(() => {
+    if (status !== "playing" || currentTurn === null) return;
+    if (currentTurn === prevTurnForDominarRef.current) return;
+    prevTurnForDominarRef.current = currentTurn;
+
+    const count = handCounts[currentTurn] ?? 0;
+    if (count === 1) {
+      const name = players.find((p) => p.seat === currentTurn)?.displayName ?? `Jugador ${currentTurn + 1}`;
+      playVaADominar();
+      if (vaADominarTimerRef.current) clearTimeout(vaADominarTimerRef.current);
+      setVaADominarAlert({ name, seat: currentTurn as Seat });
+      vaADominarTimerRef.current = setTimeout(() => setVaADominarAlert(null), 2800);
+    }
+  }, [currentTurn, status, handCounts, players]);
 
   /* ---------------------------------------------------------------- */
   /*  Handle realtime game events                                     */
@@ -1344,6 +1363,67 @@ export default function GamePage() {
         isMe={capicuaAlert?.isMe ?? false}
         pipValue={capicuaAlert?.pipValue ?? 0}
       />
+
+      {/* ¡Va a dominar! toast — fires when turn switches to a player with 1 tile */}
+      <AnimatePresence>
+        {vaADominarAlert && (() => {
+          const isMe = mySeat !== null && vaADominarAlert.seat === mySeat;
+          const isPartner = mySeat !== null && (vaADominarAlert.seat % 2) === (mySeat % 2) && !isMe;
+          const accentColor = isMe || isPartner ? "#c9a84c" : "#ef4444";
+          const accentRgb = isMe || isPartner ? "201,168,76" : "239,68,68";
+          const bgGradient = isMe || isPartner
+            ? "linear-gradient(135deg, #2a1600 0%, #1a0e00 100%)"
+            : "linear-gradient(135deg, #2a0808 0%, #1a0404 100%)";
+          const label = isMe
+            ? "¡Vas a dominar!"
+            : isPartner
+            ? "¡Tu compañero domina!"
+            : "¡Va a dominar!";
+          return (
+            <motion.div
+              key={`dominar-${vaADominarAlert.seat}`}
+              initial={{ opacity: 0, y: -28, scale: 0.82 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -18, scale: 0.9 }}
+              transition={{ type: "spring", stiffness: 440, damping: 24 }}
+              className="fixed top-16 left-1/2 -translate-x-1/2 z-50 pointer-events-none"
+              role="status"
+              aria-live="assertive"
+            >
+              <div
+                className="flex items-center gap-2.5 rounded-full px-5 py-2.5 backdrop-blur-sm"
+                style={{
+                  background: bgGradient,
+                  border: `1.5px solid rgba(${accentRgb},0.75)`,
+                  boxShadow: `0 0 32px 8px rgba(${accentRgb},0.3), 0 8px 24px rgba(0,0,0,0.8)`,
+                }}
+              >
+                {/* Single-pip domino icon */}
+                <svg width="20" height="36" viewBox="0 0 20 36" fill="none" aria-hidden="true">
+                  <rect x="0.75" y="0.75" width="18.5" height="34.5" rx="3" fill="#1a0e00" stroke={accentColor} strokeWidth="1.5"/>
+                  <line x1="1.5" y1="18" x2="18.5" y2="18" stroke={accentColor} strokeWidth="1"/>
+                  <circle cx="10" cy="9" r="2.5" fill={accentColor}/>
+                </svg>
+                <div className="flex flex-col leading-tight">
+                  <motion.span
+                    className="text-[13px] font-black uppercase tracking-widest leading-none"
+                    style={{ color: accentColor, textShadow: `0 0 12px rgba(${accentRgb},0.8)` }}
+                    animate={{ opacity: [1, 0.7, 1] }}
+                    transition={{ duration: 0.85, repeat: Infinity, ease: "easeInOut" }}
+                  >
+                    {label}
+                  </motion.span>
+                  {!isMe && (
+                    <span className="text-[10px] text-[#f5f0e8]/60 leading-none mt-0.5 truncate max-w-[140px]">
+                      {vaADominarAlert.name} · última ficha
+                    </span>
+                  )}
+                </div>
+              </div>
+            </motion.div>
+          );
+        })()}
+      </AnimatePresence>
 
       {/* ¡Cochina! toast — fires when 6-6 opens the game */}
       <AnimatePresence>
