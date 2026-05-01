@@ -122,6 +122,7 @@ export default function GamePage() {
   const [transitionRound, setTransitionRound] = useState<number | null>(null);
   const [transitionScores, setTransitionScores] = useState<{ prev: { 0: number; 1: number }; next: { 0: number; 1: number } } | null>(null);
   const [transitionWinner, setTransitionWinner] = useState<{ team: 0 | 1 | null; points: number; reason: string } | null>(null);
+  const [transitionStarter, setTransitionStarter] = useState<{ name: string; isMe: boolean } | null>(null);
   const passTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   /* ---- Zustand store ---- */
@@ -345,13 +346,20 @@ export default function GamePage() {
             setRoundResult(null);
             reset();
             await fetchGameState(event.game_id);
-            setTransitionRound(useGameStore.getState().round);
+            const state = useGameStore.getState();
+            setTransitionRound(state.round);
+            const starterSeat = state.currentTurn;
+            const starterPlayer = state.players.find((p) => p.seat === starterSeat);
+            const starterName = starterPlayer?.displayName ?? `Jugador ${starterSeat + 1}`;
+            const isMe = state.mySeat === starterSeat;
+            setTransitionStarter({ name: starterName, isMe });
           }, 700);
           setTimeout(() => {
             setBoardTransitioning(false);
             setTransitionRound(null);
             setTransitionScores(null);
             setTransitionWinner(null);
+            setTransitionStarter(null);
           }, 2800);
           break;
         }
@@ -811,6 +819,42 @@ export default function GamePage() {
                   </motion.span>
                 )}
               </div>
+
+              {/* Who starts the new round */}
+              <AnimatePresence>
+                {transitionStarter && (
+                  <motion.div
+                    key="starter"
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ delay: 0.45, duration: 0.3 }}
+                    className="flex items-center gap-2 rounded-full px-4 py-1.5"
+                    style={{
+                      background: "rgba(0,0,0,0.3)",
+                      border: "1px solid rgba(201,168,76,0.25)",
+                    }}
+                  >
+                    {/* Domino pip icon */}
+                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                      <rect x="1" y="1" width="12" height="12" rx="2.5" fill="none" stroke="#c9a84c" strokeWidth="1.2" opacity="0.7"/>
+                      <circle cx="7" cy="7" r="2" fill="#c9a84c" opacity="0.9"/>
+                    </svg>
+                    <span className="text-[10px] text-[#a8c4a0]/60 uppercase tracking-widest leading-none">
+                      Empieza
+                    </span>
+                    <span
+                      className="text-[11px] font-bold leading-none truncate max-w-[100px]"
+                      style={{
+                        color: transitionStarter.isMe ? "#c9a84c" : "#f5f0e8",
+                        textShadow: transitionStarter.isMe ? "0 0 12px rgba(201,168,76,0.6)" : undefined,
+                      }}
+                    >
+                      {transitionStarter.isMe ? "¡Tú!" : transitionStarter.name}
+                    </span>
+                  </motion.div>
+                )}
+              </AnimatePresence>
 
               <motion.div
                 initial={{ opacity: 0 }}
