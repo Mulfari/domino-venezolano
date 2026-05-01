@@ -334,6 +334,13 @@ function RoundEndView({
   countdown,
   onNextRound,
 }: RoundEndViewProps) {
+  const [showCard, setShowCard] = useState(false);
+
+  useEffect(() => {
+    const t = setTimeout(() => setShowCard(true), 2400);
+    return () => clearTimeout(t);
+  }, []);
+
   const iWon = myTeam !== null && roundResult.winner_team === myTeam;
   const isDraw = roundResult.winner_team === null;
   const meta = REASON_META[roundResult.reason] ?? { label: roundResult.reason, icon: "🁣", desc: "" };
@@ -383,6 +390,8 @@ function RoundEndView({
       <FlashOverlay color={flashColor} />
       <ReasonSplash reason={roundResult.reason} />
 
+      <AnimatePresence>
+      {showCard && (
       <motion.div
         initial={{ scale: 0.55, opacity: 0, y: 60 }}
         animate={{ scale: 1, opacity: 1, y: 0 }}
@@ -564,6 +573,8 @@ function RoundEndView({
           )}
         </motion.div>
       </motion.div>
+      )}
+      </AnimatePresence>
     </div>
   );
 }
@@ -583,6 +594,10 @@ function GameOverView({ scores, myTeam, team0Names, team1Names, roundHistory, on
   const winnerTeam: 0 | 1 = scores[0] >= scores[1] ? 0 : 1;
   const loserTeam: 0 | 1 = winnerTeam === 0 ? 1 : 0;
   const iWon = myTeam === winnerTeam;
+
+  const roundsWon0 = roundHistory.filter((e) => e.winner_team === 0).length;
+  const roundsWon1 = roundHistory.filter((e) => e.winner_team === 1).length;
+  const totalRounds = roundHistory.length;
 
   const teamLabel = (team: 0 | 1) => {
     const names = team === 0 ? team0Names : team1Names;
@@ -653,8 +668,8 @@ function GameOverView({ scores, myTeam, team0Names, team1Names, roundHistory, on
         {/* Podium */}
         <div className="mx-5 mt-3 mb-2" aria-label="Podio final">
           <motion.p
-            initial={{ opacity: 0, letterSpacing: "0.6em" }}
-            animate={{ opacity: 1, letterSpacing: "0.3em" }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
             transition={{ delay: 0.5, duration: 0.5 }}
             className="text-[10px] font-bold uppercase text-[#c9a84c]/55 text-center mb-4"
             style={{ letterSpacing: "0.3em" }}
@@ -664,14 +679,14 @@ function GameOverView({ scores, myTeam, team0Names, team1Names, roundHistory, on
 
           <div className="flex items-end justify-center gap-4">
 
-            {/* Winner — left, tallest */}
+            {/* Winner — tallest */}
             <motion.div
               initial={{ opacity: 0, y: 40 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.55, type: "spring", stiffness: 260, damping: 20 }}
               className="flex flex-col items-center w-[50%]"
             >
-              {/* ¡CAMPEONES! animated banner */}
+              {/* ¡CAMPEONES! banner */}
               <motion.div
                 initial={{ opacity: 0, scale: 0.4, y: -12 }}
                 animate={{ opacity: 1, scale: [0.4, 1.25, 0.92, 1], y: 0 }}
@@ -705,25 +720,34 @@ function GameOverView({ scores, myTeam, team0Names, team1Names, roundHistory, on
               >
                 {winnerTeam === myTeam ? "tu equipo" : `equipo ${winnerTeam === 0 ? "A" : "B"}`}
               </motion.p>
-              <p className="text-[11px] font-bold text-[#c9a84c] text-center px-1 mb-2 leading-tight line-clamp-2">
+              <p className="text-[11px] font-bold text-[#c9a84c] text-center px-1 mb-1 leading-tight line-clamp-2">
                 {teamLabel(winnerTeam)}
               </p>
+              {/* Rounds won badge */}
+              {totalRounds > 0 && (
+                <motion.p
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 1.2 }}
+                  className="text-[9px] text-[#c9a84c]/60 mb-2"
+                >
+                  {winnerTeam === 0 ? roundsWon0 : roundsWon1}/{totalRounds} rondas
+                </motion.p>
+              )}
               <motion.div
                 initial={{ scaleY: 0 }}
                 animate={{ scaleY: 1 }}
-                transition={{ delay: 0.68, duration: 0.6, ease: "easeOut" }}
-                style={{ originY: 1, height: 130 }}
+                transition={{ delay: 0.68, duration: 0.7, ease: [0.2, 0, 0.4, 1] }}
+                style={{ originY: 1, height: 150 }}
                 className="relative w-full rounded-t-xl bg-gradient-to-b from-[#c9a84c]/45 to-[#c9a84c]/12 border border-[#c9a84c]/60 flex flex-col items-center justify-center overflow-hidden"
                 aria-label={`Ganador: ${scores[winnerTeam]} puntos`}
               >
-                {/* Pulsing inner glow */}
                 <motion.div
                   animate={{ opacity: [0.3, 0.7, 0.3] }}
                   transition={{ duration: 2, repeat: Infinity, ease: "easeInOut", delay: 1.5 }}
                   className="absolute inset-0 pointer-events-none rounded-t-xl"
                   style={{ boxShadow: "inset 0 0 30px rgba(201,168,76,0.3)" }}
                 />
-                {/* Shimmer sweep */}
                 <motion.div
                   initial={{ x: "-120%" }}
                   animate={{ x: "220%" }}
@@ -743,7 +767,7 @@ function GameOverView({ scores, myTeam, team0Names, team1Names, roundHistory, on
               </motion.div>
             </motion.div>
 
-            {/* Loser — right, shorter */}
+            {/* Loser — shorter */}
             <motion.div
               initial={{ opacity: 0, y: 24 }}
               animate={{ opacity: 1, y: 0 }}
@@ -754,21 +778,31 @@ function GameOverView({ scores, myTeam, team0Names, team1Names, roundHistory, on
               <p className="text-[10px] text-[#a8c4a0]/50 uppercase tracking-wider mb-0.5 text-center leading-tight">
                 {loserTeam === myTeam ? "tu equipo" : `equipo ${loserTeam === 0 ? "A" : "B"}`}
               </p>
-              <p className="text-[11px] font-medium text-[#f5f0e8]/55 text-center px-1 mb-2 leading-tight line-clamp-2">
+              <p className="text-[11px] font-medium text-[#f5f0e8]/55 text-center px-1 mb-1 leading-tight line-clamp-2">
                 {teamLabel(loserTeam)}
               </p>
+              {totalRounds > 0 && (
+                <motion.p
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 1.35 }}
+                  className="text-[9px] text-[#a8c4a0]/40 mb-2"
+                >
+                  {loserTeam === 0 ? roundsWon0 : roundsWon1}/{totalRounds} rondas
+                </motion.p>
+              )}
               <motion.div
                 initial={{ scaleY: 0 }}
                 animate={{ scaleY: 1 }}
-                transition={{ delay: 1.1, duration: 0.45, ease: "easeOut" }}
-                style={{ originY: 1, height: 72 }}
+                transition={{ delay: 1.1, duration: 0.5, ease: [0.2, 0, 0.4, 1] }}
+                style={{ originY: 1, height: 84 }}
                 className="w-full rounded-t-lg bg-[#1e5c3a]/70 border border-[#f5f0e8]/10 flex flex-col items-center justify-center"
               >
                 <motion.p
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 1.3 }}
-                  className="text-xl font-bold text-[#f5f0e8]/60 tabular-nums leading-none"
+                  className="text-2xl font-bold text-[#f5f0e8]/60 tabular-nums leading-none"
                 >
                   {scores[loserTeam]}
                 </motion.p>
@@ -779,19 +813,25 @@ function GameOverView({ scores, myTeam, team0Names, team1Names, roundHistory, on
           </div>
         </div>
 
-        {/* Difference callout */}
+        {/* Stats row */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 1.3 }}
-          className="mx-5 mt-3 mb-3 text-center"
+          className="mx-5 mt-3 mb-3 flex justify-center gap-6 text-center"
         >
-          <p className="text-xs text-[#a8c4a0]/45">
-            Diferencia de{" "}
-            <span className="text-[#c9a84c] font-semibold">
-              {Math.abs(scores[winnerTeam] - scores[loserTeam])} puntos
-            </span>
-          </p>
+          <div>
+            <p className="text-[9px] uppercase tracking-wider text-[#a8c4a0]/40">Diferencia</p>
+            <p className="text-xs font-semibold text-[#c9a84c]">
+              {Math.abs(scores[winnerTeam] - scores[loserTeam])} pts
+            </p>
+          </div>
+          {totalRounds > 0 && (
+            <div>
+              <p className="text-[9px] uppercase tracking-wider text-[#a8c4a0]/40">Rondas jugadas</p>
+              <p className="text-xs font-semibold text-[#f5f0e8]/60">{totalRounds}</p>
+            </div>
+          )}
         </motion.div>
 
         {/* Round history */}
