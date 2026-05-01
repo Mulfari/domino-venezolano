@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useChat } from "@/hooks/use-chat";
 import { ChatMessage } from "./chat-message";
+import { playChatReceived } from "@/lib/sounds/sound-engine";
 
 interface ChatPanelProps {
   roomCode: string;
@@ -50,6 +51,7 @@ export function ChatPanel({
 
       const last = messages[messages.length - 1];
       if (last && last.player_id !== userId) {
+        playChatReceived();
         const preview = `${last.display_name}: ${last.message}`;
         setToastMsg(preview.length > 42 ? preview.slice(0, 42) + "…" : preview);
         if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
