@@ -259,6 +259,38 @@ export function playDouble() {
   });
 }
 
+export function playStreak() {
+  if (_muted) return;
+  const ctx = getCtx();
+  // Rising triplet — signals momentum building
+  const notes = [659, 784, 1047]; // E5, G5, C6
+  notes.forEach((freq, i) => {
+    const t = ctx.currentTime + i * 0.11;
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0.26 * _volume, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.28);
+    g.connect(ctx.destination);
+    const osc = ctx.createOscillator();
+    osc.type = "triangle";
+    osc.frequency.value = freq;
+    osc.connect(g);
+    osc.start(t);
+    osc.stop(t + 0.29);
+  });
+  // Accent shimmer on the last note
+  const t3 = ctx.currentTime + 0.22;
+  const g2 = ctx.createGain();
+  g2.gain.setValueAtTime(0.12 * _volume, t3);
+  g2.gain.exponentialRampToValueAtTime(0.001, t3 + 0.35);
+  g2.connect(ctx.destination);
+  const osc2 = ctx.createOscillator();
+  osc2.type = "sine";
+  osc2.frequency.value = 2093; // C7
+  osc2.connect(g2);
+  osc2.start(t3);
+  osc2.stop(t3 + 0.36);
+}
+
 export function playChatReceived() {
   if (_muted) return;
   const ctx = getCtx();

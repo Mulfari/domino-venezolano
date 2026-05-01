@@ -29,8 +29,17 @@ function useAnimatedCounter(target: number, duration = 700) {
   return display;
 }
 
+function getStreak(history: RoundHistoryEntry[], team: 0 | 1): number {
+  let streak = 0;
+  for (let i = history.length - 1; i >= 0; i--) {
+    if (history[i].winner_team === team) streak++;
+    else break;
+  }
+  return streak;
+}
+
 function TeamCard({
-  teamIdx, score, targetScore, isMyTeam, seats, players, firstSeat,
+  teamIdx, score, targetScore, isMyTeam, seats, players, firstSeat, streak,
 }: {
   teamIdx: 0 | 1;
   score: number;
@@ -39,6 +48,7 @@ function TeamCard({
   seats: Seat[];
   players: { seat: Seat; displayName: string; connected: boolean; isBot?: boolean }[];
   firstSeat: Seat | null;
+  streak: number;
 }) {
   const display = useAnimatedCounter(score);
   const pct = Math.min((score / targetScore) * 100, 100);
@@ -128,6 +138,37 @@ function TeamCard({
             })}
           </div>
         </div>
+
+        {/* Streak badge */}
+        {streak >= 2 && (
+          <motion.div
+            key={streak}
+            initial={{ scale: 0.5, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ type: "spring", stiffness: 500, damping: 22 }}
+            className="flex items-center gap-0.5 rounded-full px-1.5 py-0.5 shrink-0"
+            style={{
+              background: isMyTeam ? "rgba(201,168,76,0.15)" : "rgba(168,196,160,0.1)",
+              border: `1px solid ${isMyTeam ? "rgba(201,168,76,0.4)" : "rgba(168,196,160,0.25)"}`,
+            }}
+            aria-label={`Racha de ${streak} rondas`}
+          >
+            <motion.span
+              animate={{ scale: [1, 1.2, 1] }}
+              transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }}
+              className="text-[10px] leading-none"
+              aria-hidden="true"
+            >
+              🔥
+            </motion.span>
+            <span
+              className="text-[10px] font-black tabular-nums leading-none"
+              style={{ color: isMyTeam ? "#c9a84c" : "#a8c4a0" }}
+            >
+              {streak}
+            </span>
+          </motion.div>
+        )}
 
         {/* Right: score */}
         <div className="flex flex-col items-end shrink-0 relative">
@@ -386,6 +427,7 @@ export function ScorePanel() {
               seats={teamIdx === 0 ? [0, 2] : [1, 3]}
               players={players}
               firstSeat={firstSeat}
+              streak={getStreak(roundHistory, teamIdx)}
             />
           ))}
 

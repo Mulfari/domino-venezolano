@@ -21,7 +21,7 @@ import { DominoSplash } from "@/components/game/domino-splash";
 import { PassMeter } from "@/components/game/pass-meter";
 import { useGameChannel } from "@/hooks/use-game-channel";
 import { useGameStore } from "@/stores/game-store";
-import { playTilePlace, playPass, playYourTurn, playVictory, playDefeat, playCapicua, playUnaFicha, playShuffle, playDouble } from "@/lib/sounds/sound-engine";
+import { playTilePlace, playPass, playYourTurn, playVictory, playDefeat, playCapicua, playUnaFicha, playShuffle, playDouble, playStreak } from "@/lib/sounds/sound-engine";
 import { requestNotificationPermission, notifyTurn } from "@/lib/notifications/turn-notification";
 import type { GameEvent } from "@/lib/realtime/events";
 import type { Tile, Seat } from "@/lib/game/types";
@@ -418,6 +418,17 @@ export default function GamePage() {
             points: event.points,
             reason: event.reason,
           });
+
+          // Play streak sound when a team wins 3+ consecutive rounds
+          if (event.winner_team !== null) {
+            const updatedHistory = useGameStore.getState().roundHistory;
+            let streak = 0;
+            for (let i = updatedHistory.length - 1; i >= 0; i--) {
+              if (updatedHistory[i].winner_team === event.winner_team) streak++;
+              else break;
+            }
+            if (streak >= 3) playStreak();
+          }
 
           if (event.reason === "domino") {
             // Find who played the last tile — they dominoed
