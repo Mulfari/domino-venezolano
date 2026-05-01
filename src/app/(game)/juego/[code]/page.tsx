@@ -24,7 +24,7 @@ import { CapicuaSplash } from "@/components/game/capicua-splash";
 import { PassMeter } from "@/components/game/pass-meter";
 import { useGameChannel } from "@/hooks/use-game-channel";
 import { useGameStore } from "@/stores/game-store";
-import { playTilePlace, playPass, playYourTurn, playVictory, playDefeat, playCapicua, playUnaFicha, playShuffle, playDouble, playStreak, playCochina } from "@/lib/sounds/sound-engine";
+import { playTilePlace, playPass, playYourTurn, playVictory, playDefeat, playCapicua, playUnaFicha, playDosFichas, playShuffle, playDouble, playStreak, playCochina } from "@/lib/sounds/sound-engine";
 import { requestNotificationPermission, notifyTurn } from "@/lib/notifications/turn-notification";
 import type { GameEvent } from "@/lib/realtime/events";
 import type { Tile, Seat } from "@/lib/game/types";
@@ -119,6 +119,8 @@ export default function GamePage() {
   const [lastPassSeat, setLastPassSeat] = useState<Seat | null>(null);
   const [unaFichaAlert, setUnaFichaAlert] = useState<{ name: string; seat: Seat } | null>(null);
   const unaFichaTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [dosFichasAlert, setDosFichasAlert] = useState<{ name: string; seat: Seat } | null>(null);
+  const dosFichasTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const prevHandCountsRef = useRef<number[]>([7, 7, 7, 7]);
   const [dominoSplash, setDominoSplash] = useState<{ playerName: string; isMyTeam: boolean; reason: "domino" | "locked"; tile?: Tile } | null>(null);
   const [tilePlayedAlert, setTilePlayedAlert] = useState<{ name: string; tile: Tile; seat: Seat } | null>(null);
@@ -187,6 +189,13 @@ export default function GamePage() {
         if (unaFichaTimerRef.current) clearTimeout(unaFichaTimerRef.current);
         setUnaFichaAlert({ name, seat: seat as Seat });
         unaFichaTimerRef.current = setTimeout(() => setUnaFichaAlert(null), 3000);
+      }
+      if (count === 2 && prev[seat] > 2) {
+        const name = players.find((p) => p.seat === seat)?.displayName ?? `Jugador ${seat + 1}`;
+        playDosFichas();
+        if (dosFichasTimerRef.current) clearTimeout(dosFichasTimerRef.current);
+        setDosFichasAlert({ name, seat: seat as Seat });
+        dosFichasTimerRef.current = setTimeout(() => setDosFichasAlert(null), 2500);
       }
     });
     prevHandCountsRef.current = [...handCounts];
@@ -1202,6 +1211,47 @@ export default function GamePage() {
                 </span>
                 <span className="text-[10px] text-[#f5f0e8]/65 leading-none mt-0.5 truncate max-w-[120px]">
                   {unaFichaAlert.name}
+                </span>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ¡Dos fichas! toast */}
+      <AnimatePresence>
+        {dosFichasAlert && (
+          <motion.div
+            key={`dos-${dosFichasAlert.seat}`}
+            initial={{ opacity: 0, y: -24, scale: 0.85 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -16, scale: 0.9 }}
+            transition={{ type: "spring", stiffness: 420, damping: 24 }}
+            className="fixed top-16 left-1/2 -translate-x-1/2 z-50 pointer-events-none"
+            role="status"
+            aria-live="polite"
+          >
+            <div
+              className="flex items-center gap-2.5 rounded-full px-5 py-2.5 backdrop-blur-sm"
+              style={{
+                background: "linear-gradient(135deg, #1a1a2a 0%, #0e0e1a 100%)",
+                border: "1.5px solid rgba(168,196,160,0.6)",
+                boxShadow: "0 0 24px 6px rgba(168,196,160,0.2), 0 8px 24px rgba(0,0,0,0.8)",
+              }}
+            >
+              {/* Two-pip domino icon */}
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                <rect x="1" y="1" width="18" height="18" rx="3" fill="#0e0e1a" stroke="rgba(168,196,160,0.7)" strokeWidth="1.5"/>
+                <line x1="1" y1="10" x2="19" y2="10" stroke="rgba(168,196,160,0.5)" strokeWidth="1"/>
+                <circle cx="10" cy="5" r="1.8" fill="rgba(168,196,160,0.85)"/>
+                <circle cx="10" cy="15" r="1.8" fill="rgba(168,196,160,0.85)"/>
+              </svg>
+              <div className="flex flex-col leading-tight">
+                <span className="text-[13px] font-black text-[#a8c4a0] uppercase tracking-widest leading-none">
+                  ¡Dos fichas!
+                </span>
+                <span className="text-[10px] text-[#f5f0e8]/65 leading-none mt-0.5 truncate max-w-[120px]">
+                  {dosFichasAlert.name}
                 </span>
               </div>
             </div>

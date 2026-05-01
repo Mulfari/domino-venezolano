@@ -273,6 +273,29 @@ export function OpponentHand({
             {tileCount}
           </motion.div>
 
+          {/* ¡DOS! label — floats above the stack when 2 tiles left */}
+          <AnimatePresence>
+            {tileCount === 2 && (
+              <motion.div
+                key="dos-label"
+                initial={{ opacity: 0, y: 6, scale: 0.7 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.7 }}
+                transition={{ type: "spring", stiffness: 500, damping: 22 }}
+                className="absolute -top-5 left-1/2 -translate-x-1/2 z-30 pointer-events-none"
+              >
+                <motion.span
+                  animate={{ opacity: [0.65, 1, 0.65] }}
+                  transition={{ duration: 1.3, repeat: Infinity, ease: "easeInOut" }}
+                  className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest whitespace-nowrap"
+                  style={{ color: colors.name, textShadow: `0 0 6px ${colors.glow}, 0 1px 3px rgba(0,0,0,0.9)` }}
+                >
+                  ¡DOS!
+                </motion.span>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
           {/* ¡UNA! label — floats above the stack when 1 tile left */}
           <AnimatePresence>
             {tileCount === 1 && (

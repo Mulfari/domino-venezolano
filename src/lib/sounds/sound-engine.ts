@@ -148,6 +148,25 @@ export function playCapicua() {
   osc2.stop(t2 + 0.5);
 }
 
+export function playDosFichas() {
+  if (_muted) return;
+  const ctx = getCtx();
+  // Single mid-range tone — softer warning than ¡Una ficha!
+  const notes = [784, 659]; // G5, E5 — descending pair, less urgent than C6/G5
+  notes.forEach((freq, i) => {
+    const g = gain(ctx, 0.22);
+    const osc = ctx.createOscillator();
+    osc.type = "sine";
+    osc.frequency.value = freq;
+    const t = ctx.currentTime + i * 0.16;
+    g.gain.setValueAtTime(0.22 * _volume, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.2);
+    osc.connect(g);
+    osc.start(t);
+    osc.stop(t + 0.2);
+  });
+}
+
 export function playUnaFicha() {
   if (_muted) return;
   const ctx = getCtx();
