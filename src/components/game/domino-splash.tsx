@@ -1,16 +1,33 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
+import type { Tile } from "@/lib/game/types";
 
 interface DominoSplashProps {
   show: boolean;
   playerName: string;
   isMyTeam: boolean;
   reason?: "domino" | "locked";
+  tile?: Tile;
 }
 
-export function DominoSplash({ show, playerName, isMyTeam, reason = "domino" }: DominoSplashProps) {
+function halfPips(val: number, yBase: number): [number, number][] {
+  const y1 = yBase + 18, y2 = yBase + 32, y3 = yBase + 46;
+  switch (val) {
+    case 0: return [];
+    case 1: return [[36, y2]];
+    case 2: return [[20, y1], [52, y3]];
+    case 3: return [[20, y1], [36, y2], [52, y3]];
+    case 4: return [[20, y1], [52, y1], [20, y3], [52, y3]];
+    case 5: return [[20, y1], [52, y1], [36, y2], [20, y3], [52, y3]];
+    case 6: return [[20, yBase+22], [36, yBase+22], [52, yBase+22], [20, yBase+42], [36, yBase+42], [52, yBase+42]];
+    default: return [];
+  }
+}
+
+export function DominoSplash({ show, playerName, isMyTeam, reason = "domino", tile }: DominoSplashProps) {
   const isLocked = reason === "locked";
+  const displayTile: Tile = tile ?? [6, 6];
 
   return (
     <AnimatePresence>
@@ -70,35 +87,29 @@ export function DominoSplash({ show, playerName, isMyTeam, reason = "domino" }: 
                 <line x1="66" y1="22" x2="30" y2="50" stroke="#ef4444" strokeWidth="3.5" strokeLinecap="round" opacity="0.9"/>
               </motion.svg>
             ) : (
-              /* Dominó: spinning 6-6 tile */
+              /* Dominó: spinning tile showing the actual played tile */
               <motion.svg
                 width="72" height="128" viewBox="0 0 72 128" fill="none"
                 aria-hidden="true"
                 animate={{ rotateY: [0, 360] }}
                 transition={{ duration: 0.7, ease: "easeOut", delay: 0.1 }}
               >
-                <rect x="2" y="2" width="68" height="124" rx="8"
-                  fill="url(#splashFace)" stroke="#c9a84c" strokeWidth="2.5"
-                />
-                <line x1="8" y1="64" x2="64" y2="64" stroke="#c9a84c" strokeWidth="1.5" opacity="0.7" />
-                <circle cx="20" cy="22" r="5" fill="#1a1a1a" />
-                <circle cx="36" cy="22" r="5" fill="#1a1a1a" />
-                <circle cx="52" cy="22" r="5" fill="#1a1a1a" />
-                <circle cx="20" cy="42" r="5" fill="#1a1a1a" />
-                <circle cx="36" cy="42" r="5" fill="#1a1a1a" />
-                <circle cx="52" cy="42" r="5" fill="#1a1a1a" />
-                <circle cx="20" cy="86" r="5" fill="#1a1a1a" />
-                <circle cx="36" cy="86" r="5" fill="#1a1a1a" />
-                <circle cx="52" cy="86" r="5" fill="#1a1a1a" />
-                <circle cx="20" cy="106" r="5" fill="#1a1a1a" />
-                <circle cx="36" cy="106" r="5" fill="#1a1a1a" />
-                <circle cx="52" cy="106" r="5" fill="#1a1a1a" />
                 <defs>
                   <linearGradient id="splashFace" x1="0" y1="0" x2="72" y2="128" gradientUnits="userSpaceOnUse">
                     <stop offset="0%" stopColor="#f8f3ea" />
                     <stop offset="100%" stopColor="#e8e0d0" />
                   </linearGradient>
                 </defs>
+                <rect x="2" y="2" width="68" height="124" rx="8"
+                  fill="url(#splashFace)" stroke="#c9a84c" strokeWidth="2.5"
+                />
+                <line x1="8" y1="64" x2="64" y2="64" stroke="#c9a84c" strokeWidth="1.5" opacity="0.7" />
+                {halfPips(displayTile[0], 0).map(([cx, cy], i) => (
+                  <circle key={`t-${i}`} cx={cx} cy={cy} r="5" fill="#1a1a1a" />
+                ))}
+                {halfPips(displayTile[1], 64).map(([cx, cy], i) => (
+                  <circle key={`b-${i}`} cx={cx} cy={cy} r="5" fill="#1a1a1a" />
+                ))}
               </motion.svg>
             )}
 

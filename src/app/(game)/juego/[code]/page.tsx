@@ -120,7 +120,7 @@ export default function GamePage() {
   const [unaFichaAlert, setUnaFichaAlert] = useState<{ name: string; seat: Seat } | null>(null);
   const unaFichaTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const prevHandCountsRef = useRef<number[]>([7, 7, 7, 7]);
-  const [dominoSplash, setDominoSplash] = useState<{ playerName: string; isMyTeam: boolean; reason: "domino" | "locked" } | null>(null);
+  const [dominoSplash, setDominoSplash] = useState<{ playerName: string; isMyTeam: boolean; reason: "domino" | "locked"; tile?: Tile } | null>(null);
   const [tilePlayedAlert, setTilePlayedAlert] = useState<{ name: string; tile: Tile; seat: Seat } | null>(null);
   const tilePlayedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [capicuaAlert, setCapicuaAlert] = useState<{ playerName: string; isMe: boolean; pipValue: number } | null>(null);
@@ -475,7 +475,7 @@ export default function GamePage() {
             const isMyTeamDomino = dominoSeat !== null && currentSeat !== null
               ? (dominoSeat % 2) === (currentSeat % 2)
               : false;
-            setDominoSplash({ playerName: dominoPlayer, isMyTeam: isMyTeamDomino, reason: "domino" });
+            setDominoSplash({ playerName: dominoPlayer, isMyTeam: isMyTeamDomino, reason: "domino", tile: lastPlay?.tile });
             // Show splash for 1.6s, then start board transition
             setTimeout(() => {
               setDominoSplash(null);
@@ -1349,6 +1349,8 @@ export default function GamePage() {
           show={true}
           playerName={dominoSplash.playerName}
           isMyTeam={dominoSplash.isMyTeam}
+          reason={dominoSplash.reason}
+          tile={dominoSplash.tile}
         />
       )}
 
