@@ -115,7 +115,7 @@ export default function GamePage() {
   const [unaFichaAlert, setUnaFichaAlert] = useState<{ name: string; seat: Seat } | null>(null);
   const unaFichaTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const prevHandCountsRef = useRef<number[]>([7, 7, 7, 7]);
-  const [dominoSplash, setDominoSplash] = useState<{ playerName: string; isMyTeam: boolean } | null>(null);
+  const [dominoSplash, setDominoSplash] = useState<{ playerName: string; isMyTeam: boolean; reason: "domino" | "locked" } | null>(null);
   const [tilePlayedAlert, setTilePlayedAlert] = useState<{ name: string; tile: Tile; seat: Seat } | null>(null);
   const tilePlayedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [boardTransitioning, setBoardTransitioning] = useState(false);
@@ -397,8 +397,18 @@ export default function GamePage() {
             const isMyTeamDomino = dominoSeat !== null && currentSeat !== null
               ? (dominoSeat % 2) === (currentSeat % 2)
               : false;
-            setDominoSplash({ playerName: dominoPlayer, isMyTeam: isMyTeamDomino });
+            setDominoSplash({ playerName: dominoPlayer, isMyTeam: isMyTeamDomino, reason: "domino" });
             // Show splash for 1.6s, then start board transition
+            setTimeout(() => {
+              setDominoSplash(null);
+              setBoardTransitioning(true);
+            }, 1600);
+          } else if (event.reason === "locked") {
+            // Show trancado splash briefly before board transition
+            const isMyTeamLocked = currentSeat !== null && event.winner_team !== null
+              ? (currentSeat % 2) === event.winner_team
+              : false;
+            setDominoSplash({ playerName: "", isMyTeam: isMyTeamLocked, reason: "locked" });
             setTimeout(() => {
               setDominoSplash(null);
               setBoardTransitioning(true);
