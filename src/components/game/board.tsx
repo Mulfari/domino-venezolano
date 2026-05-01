@@ -21,6 +21,7 @@ export function Board({ onPlaceEnd, clearing = false }: BoardProps) {
   const validMovesFn = useGameStore((s) => s.validMoves);
   const consecutivePasses = useGameStore((s) => s.consecutivePasses);
   const status = useGameStore((s) => s.status);
+  const round = useGameStore((s) => s.round);
   const scores = useGameStore((s) => s.scores);
   const targetScore = useGameStore((s) => s.targetScore);
   const mySeat = useGameStore((s) => s.mySeat);
@@ -315,6 +316,98 @@ export function Board({ onPlaceEnd, clearing = false }: BoardProps) {
                 pointerEvents: "none",
               }}
             />
+
+            {/* Empty board placeholder — shown before the first tile is played */}
+            <AnimatePresence>
+              {board.plays.length === 0 && status === "playing" && (
+                <motion.div
+                  key="empty-board"
+                  initial={{ opacity: 0, scale: 0.88 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.92 }}
+                  transition={{ duration: 0.45, ease: "easeOut" }}
+                  className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-10"
+                  aria-hidden="true"
+                >
+                  {/* Faint radial glow behind the icon */}
+                  <div
+                    className="absolute"
+                    style={{
+                      width: isMobile ? 100 : 130,
+                      height: isMobile ? 100 : 130,
+                      borderRadius: "50%",
+                      background: "radial-gradient(ellipse, rgba(201,168,76,0.13) 0%, transparent 70%)",
+                    }}
+                  />
+
+                  {/* Double-6 domino icon on round 1, generic domino otherwise */}
+                  <motion.div
+                    animate={{ opacity: [0.55, 0.85, 0.55] }}
+                    transition={{ duration: 2.8, repeat: Infinity, ease: "easeInOut" }}
+                  >
+                    {round === 1 ? (
+                      /* 6-6 domino */
+                      <svg
+                        width={isMobile ? 52 : 64}
+                        height={isMobile ? 28 : 34}
+                        viewBox="0 0 64 34"
+                        fill="none"
+                      >
+                        <rect x="1" y="1" width="62" height="32" rx="5" fill="rgba(245,240,232,0.07)" stroke="rgba(201,168,76,0.45)" strokeWidth="1.5"/>
+                        <line x1="32" y1="2" x2="32" y2="32" stroke="rgba(201,168,76,0.35)" strokeWidth="1"/>
+                        {/* Left 6 */}
+                        {[[8,7],[14,7],[8,17],[14,17],[8,27],[14,27]].map(([cx,cy],i) => (
+                          <circle key={i} cx={cx} cy={cy} r="2.2" fill="rgba(201,168,76,0.55)"/>
+                        ))}
+                        {/* Right 6 */}
+                        {[[50,7],[56,7],[50,17],[56,17],[50,27],[56,27]].map(([cx,cy],i) => (
+                          <circle key={i} cx={cx} cy={cy} r="2.2" fill="rgba(201,168,76,0.55)"/>
+                        ))}
+                      </svg>
+                    ) : (
+                      /* Generic domino */
+                      <svg
+                        width={isMobile ? 52 : 64}
+                        height={isMobile ? 28 : 34}
+                        viewBox="0 0 64 34"
+                        fill="none"
+                      >
+                        <rect x="1" y="1" width="62" height="32" rx="5" fill="rgba(245,240,232,0.07)" stroke="rgba(201,168,76,0.35)" strokeWidth="1.5"/>
+                        <line x1="32" y1="2" x2="32" y2="32" stroke="rgba(201,168,76,0.25)" strokeWidth="1"/>
+                        <circle cx="16" cy="17" r="3" fill="rgba(201,168,76,0.45)"/>
+                        <circle cx="48" cy="17" r="3" fill="rgba(201,168,76,0.45)"/>
+                      </svg>
+                    )}
+                  </motion.div>
+
+                  {/* Label */}
+                  <motion.div
+                    className="mt-2 flex flex-col items-center gap-0.5"
+                    animate={{ opacity: [0.45, 0.75, 0.45] }}
+                    transition={{ duration: 2.8, repeat: Infinity, ease: "easeInOut", delay: 0.3 }}
+                  >
+                    <span
+                      className="text-center font-semibold uppercase tracking-widest leading-none"
+                      style={{
+                        fontSize: isMobile ? 8 : 9,
+                        color: "rgba(201,168,76,0.65)",
+                      }}
+                    >
+                      {round === 1 ? "¡Cochina para abrir!" : "Primera jugada"}
+                    </span>
+                    <span
+                      className="text-center uppercase tracking-wider leading-none"
+                      style={{
+                        fontSize: isMobile ? 7 : 8,
+                        color: "rgba(168,196,160,0.4)",
+                      }}
+                    >
+                      {isMyTurn ? "¡Es tu turno!" : `Turno de ${players.find(p => p.seat === currentTurn)?.displayName?.split(" ")[0] ?? "…"}`}
+                    </span>
+                  </motion.div>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
             {/* Capicúa indicator — both open ends show the same number */}
             <AnimatePresence>
