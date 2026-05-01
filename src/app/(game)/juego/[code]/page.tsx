@@ -435,14 +435,14 @@ export default function GamePage() {
         case "round_ended": {
           const myTeam = currentSeat !== null ? (currentSeat % 2) : null;
           const isGameOver = event.scores.team0 >= useGameStore.getState().targetScore || event.scores.team1 >= useGameStore.getState().targetScore;
-          if (event.reason === "locked") {
-            playTrancado();
-          } else if (isGameOver) {
+          if (isGameOver) {
             if (myTeam !== null && event.winner_team === myTeam) {
               playGameOver();
             } else if (event.winner_team !== null) {
               playGameOverDefeat();
             }
+          } else if (event.reason === "locked") {
+            playTrancado();
           } else if (myTeam !== null && event.winner_team === myTeam) {
             playVictory();
           } else if (event.winner_team !== null) {
