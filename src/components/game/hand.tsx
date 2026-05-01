@@ -28,6 +28,7 @@ export function Hand({ onPlayTile, onPass, disabled = false }: HandProps) {
   const selectTile = useGameStore((s) => s.selectTile);
   const board = useGameStore((s) => s.board);
   const round = useGameStore((s) => s.round);
+  const consecutivePasses = useGameStore((s) => s.consecutivePasses);
 
   const myHand = mySeat !== null ? hands[mySeat] : [];
   const isMyTurn = isMyTurnFn();
@@ -56,6 +57,10 @@ export function Hand({ onPlayTile, onPass, disabled = false }: HandProps) {
   const myTeam = mySeat !== null ? ((mySeat % 2) as 0 | 1) : 0;
   const myName = players.find((p) => p.seat === mySeat)?.displayName ?? "Tú";
   const teamColors = TEAM_COLORS[myTeam];
+
+  const totalPips = myHand.reduce((sum, [a, b]) => sum + a + b, 0);
+  // trancado is imminent when 2+ consecutive passes have happened
+  const trancadoImminent = consecutivePasses >= 2 && myHand.length > 0;
 
   function isTilePlayable(tile: Tile): boolean {
     return validMoves.some(
@@ -174,29 +179,90 @@ export function Hand({ onPlayTile, onPass, disabled = false }: HandProps) {
       role="region"
       aria-label="Tu mano"
     >
-      {/* Player identity badge */}
-      <div className="flex items-center gap-1.5">
-        <span
-          className="w-1.5 h-1.5 rounded-full shrink-0"
-          style={{ backgroundColor: teamColors.name }}
-          aria-hidden="true"
-        />
-        <span
-          className="text-[10px] sm:text-[11px] font-semibold truncate max-w-[100px] leading-none"
-          style={{ color: teamColors.name }}
-        >
-          {myName}
-        </span>
-        <span
-          className="text-[8px] uppercase tracking-widest leading-none px-1 py-0.5 rounded"
-          style={{
-            color: teamColors.name,
-            backgroundColor: teamColors.badgeBg,
-            border: `1px solid ${teamColors.badgeBorder}`,
-          }}
-        >
-          tú
-        </span>
+      {/* Player identity badge + pip count */}
+      <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5">
+          <span
+            className="w-1.5 h-1.5 rounded-full shrink-0"
+            style={{ backgroundColor: teamColors.name }}
+            aria-hidden="true"
+          />
+          <span
+            className="text-[10px] sm:text-[11px] font-semibold truncate max-w-[100px] leading-none"
+            style={{ color: teamColors.name }}
+          >
+            {myName}
+          </span>
+          <span
+            className="text-[8px] uppercase tracking-widest leading-none px-1 py-0.5 rounded"
+            style={{
+              color: teamColors.name,
+              backgroundColor: teamColors.badgeBg,
+              border: `1px solid ${teamColors.badgeBorder}`,
+            }}
+          >
+            tú
+          </span>
+        </div>
+
+        {/* Pip count badge — always visible, escalates when trancado is imminent */}
+        <AnimatePresence mode="wait">
+          {myHand.length > 0 && (
+            <motion.div
+              key={`pips-${trancadoImminent}`}
+              initial={{ opacity: 0, scale: 0.7 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.7 }}
+              transition={{ type: "spring", stiffness: 400, damping: 22 }}
+              className="flex items-center gap-1 rounded-full px-2 py-0.5"
+              style={{
+                background: trancadoImminent
+                  ? "linear-gradient(135deg, #3a1a08 0%, #2a1000 100%)"
+                  : "rgba(0,0,0,0.25)",
+                border: trancadoImminent
+                  ? "1px solid rgba(220,80,40,0.65)"
+                  : "1px solid rgba(245,240,232,0.12)",
+                boxShadow: trancadoImminent
+                  ? "0 0 10px rgba(220,80,40,0.3)"
+                  : "none",
+              }}
+              aria-label={`Total de puntos en mano: ${totalPips}`}
+            >
+              {/* Domino pip icon */}
+              <svg width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true">
+                <rect x="0.5" y="0.5" width="9" height="9" rx="2" fill="none"
+                  stroke={trancadoImminent ? "rgba(220,80,40,0.8)" : "rgba(245,240,232,0.3)"}
+                  strokeWidth="1"
+                />
+                <circle cx="5" cy="5" r="1.8"
+                  fill={trancadoImminent ? "rgba(220,80,40,0.9)" : "rgba(245,240,232,0.4)"}
+                />
+              </svg>
+              <motion.span
+                key={totalPips}
+                initial={{ scale: 1.4 }}
+                animate={{ scale: 1 }}
+                transition={{ type: "spring", stiffness: 500, damping: 20 }}
+                className="text-[10px] font-bold tabular-nums leading-none"
+                style={{
+                  color: trancadoImminent ? "rgba(220,80,40,1)" : "rgba(245,240,232,0.55)",
+                }}
+              >
+                {totalPips}
+              </motion.span>
+              {trancadoImminent && (
+                <motion.span
+                  className="text-[8px] font-bold uppercase tracking-wider leading-none"
+                  style={{ color: "rgba(220,80,40,0.85)" }}
+                  animate={{ opacity: [1, 0.5, 1] }}
+                  transition={{ duration: 1.2, repeat: Infinity, ease: "easeInOut" }}
+                >
+                  pts
+                </motion.span>
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       {/* End-selection buttons — shown when a tile is selected and both ends are valid */}
