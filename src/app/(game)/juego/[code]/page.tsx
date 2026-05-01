@@ -957,17 +957,16 @@ export default function GamePage() {
               <svg width="28" height="16" viewBox="0 0 28 16" fill="none" aria-hidden="true">
                 <rect x="0.75" y="0.75" width="26.5" height="14.5" rx="2.5" fill="#f5f0e8" stroke="#c9a84c" strokeWidth="1.5"/>
                 <line x1="14" y1="1.5" x2="14" y2="14.5" stroke="#c9a84c" strokeWidth="1"/>
-                {/* Left pip(s) */}
-                {tilePlayedAlert.tile[0] === 0 && null}
-                {tilePlayedAlert.tile[0] >= 1 && <circle cx="7" cy="8" r="1.5" fill="#1a1a1a"/>}
+                {/* Left pip(s) — center only for odd values */}
+                {tilePlayedAlert.tile[0] % 2 === 1 && <circle cx="7" cy="8" r="1.5" fill="#1a1a1a"/>}
                 {tilePlayedAlert.tile[0] >= 2 && <circle cx="4" cy="5" r="1.2" fill="#1a1a1a"/>}
                 {tilePlayedAlert.tile[0] >= 2 && <circle cx="10" cy="11" r="1.2" fill="#1a1a1a"/>}
                 {tilePlayedAlert.tile[0] >= 4 && <circle cx="10" cy="5" r="1.2" fill="#1a1a1a"/>}
                 {tilePlayedAlert.tile[0] >= 4 && <circle cx="4" cy="11" r="1.2" fill="#1a1a1a"/>}
                 {tilePlayedAlert.tile[0] === 6 && <circle cx="4" cy="8" r="1.2" fill="#1a1a1a"/>}
                 {tilePlayedAlert.tile[0] === 6 && <circle cx="10" cy="8" r="1.2" fill="#1a1a1a"/>}
-                {/* Right pip(s) */}
-                {tilePlayedAlert.tile[1] >= 1 && <circle cx="21" cy="8" r="1.5" fill="#1a1a1a"/>}
+                {/* Right pip(s) — center only for odd values */}
+                {tilePlayedAlert.tile[1] % 2 === 1 && <circle cx="21" cy="8" r="1.5" fill="#1a1a1a"/>}
                 {tilePlayedAlert.tile[1] >= 2 && <circle cx="18" cy="5" r="1.2" fill="#1a1a1a"/>}
                 {tilePlayedAlert.tile[1] >= 2 && <circle cx="24" cy="11" r="1.2" fill="#1a1a1a"/>}
                 {tilePlayedAlert.tile[1] >= 4 && <circle cx="24" cy="5" r="1.2" fill="#1a1a1a"/>}
