@@ -20,6 +20,12 @@ interface OpponentHandProps {
 
 const MAX_DISPLAY = 7;
 
+function getInitials(name: string): string {
+  const parts = name.trim().split(/\s+/);
+  if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
+  return name.slice(0, 2).toUpperCase();
+}
+
 const TEAM_COLORS = {
   0: { name: "#c9a84c", badge: "#c9a84c", badgeBg: "#2a1a08", badgeBorder: "#5c3a1e", activeBg: "#c9a84c", activeText: "#1a0e00", activeBorder: "#e8c96a", activeShadow: "rgba(201,168,76,0.5)", glow: "rgba(201,168,76,0.45)" },
   1: { name: "#4ca8c9", badge: "#4ca8c9", badgeBg: "#081a2a", badgeBorder: "#1e5c7a", activeBg: "#4ca8c9", activeText: "#0a1e2a", activeBorder: "#6ac8e8", activeShadow: "rgba(76,168,201,0.5)", glow: "rgba(76,168,201,0.45)" },
@@ -90,25 +96,50 @@ export function OpponentHand({
         )}
       </AnimatePresence>
 
-      {/* Player name + connection dot */}
+      {/* Player name + avatar */}
       <div className="flex items-center gap-1 sm:gap-1.5">
+        {/* Avatar circle with initials */}
         <motion.div
-          className={`h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full flex-shrink-0 ${
-            connected ? "bg-[#4ade80]" : "bg-red-400"
-          }`}
+          className="relative flex-shrink-0 flex items-center justify-center rounded-full font-black leading-none select-none"
+          style={{
+            width: isMobile ? 26 : 30,
+            height: isMobile ? 26 : 30,
+            fontSize: isMobile ? 9 : 10,
+            background: isCurrentTurn
+              ? `linear-gradient(135deg, ${colors.activeBg} 0%, ${colors.name} 100%)`
+              : `linear-gradient(135deg, ${colors.badgeBg} 0%, rgba(0,0,0,0.6) 100%)`,
+            color: isCurrentTurn ? colors.activeText : colors.name,
+            border: `1.5px solid ${isCurrentTurn ? colors.activeBorder : colors.badgeBorder}`,
+            boxShadow: isCurrentTurn ? `0 0 10px ${colors.activeShadow}` : "0 2px 6px rgba(0,0,0,0.5)",
+          }}
+          animate={isCurrentTurn ? { scale: [1, 1.08, 1] } : { scale: 1 }}
+          transition={isCurrentTurn ? { duration: 1.4, repeat: Infinity, ease: "easeInOut" } : {}}
           role="img"
           aria-label={connected ? `${playerName} conectado` : `${playerName} desconectado`}
-          animate={
-            isCurrentTurn
-              ? { scale: [1, 1.4, 1], opacity: [1, 0.6, 1] }
-              : {}
-          }
-          transition={
-            isCurrentTurn
-              ? { duration: 1.2, repeat: Infinity, ease: "easeInOut" }
-              : {}
-          }
-        />
+        >
+          {isBot ? (
+            /* Robot icon for bots */
+            <svg width={isMobile ? 12 : 14} height={isMobile ? 12 : 14} viewBox="0 0 14 14" fill="none" aria-hidden="true">
+              <rect x="2" y="4" width="10" height="7" rx="2" stroke="currentColor" strokeWidth="1.2" fill="none"/>
+              <rect x="4.5" y="6" width="2" height="2" rx="0.5" fill="currentColor"/>
+              <rect x="7.5" y="6" width="2" height="2" rx="0.5" fill="currentColor"/>
+              <line x1="7" y1="2" x2="7" y2="4" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
+              <circle cx="7" cy="1.5" r="0.8" fill="currentColor"/>
+              <line x1="2" y1="8.5" x2="0.5" y2="8.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
+              <line x1="12" y1="8.5" x2="13.5" y2="8.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
+            </svg>
+          ) : (
+            getInitials(playerName)
+          )}
+          {/* Connection dot overlay */}
+          <span
+            className={`absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full border border-[#163d28] ${
+              connected ? "bg-[#4ade80]" : "bg-red-400"
+            }`}
+            aria-hidden="true"
+          />
+        </motion.div>
+
         <span
           className={`text-[10px] sm:text-xs font-medium truncate max-w-[60px] sm:max-w-[100px] ${
             isVertical ? "hidden sm:inline" : ""
