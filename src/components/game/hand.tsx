@@ -41,6 +41,38 @@ export function Hand({ onPlayTile, onPass, disabled = false }: HandProps) {
   const [isDealing, setIsDealing] = useState(false);
   const dealingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // Auto-select the only valid tile when there's exactly one move available
+  const prevIsMyTurnRef = useRef(false);
+  const [soloJugadaHint, setSoloJugadaHint] = useState(false);
+  const soloJugadaTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const autoSelectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    const justBecameMyTurn = isMyTurn && !prevIsMyTurnRef.current;
+    prevIsMyTurnRef.current = isMyTurn;
+
+    if (!isMyTurn) return;
+    if (!justBecameMyTurn || selectedTile !== null) return;
+    if (validMoves.length !== 1) return;
+
+    if (autoSelectTimerRef.current) clearTimeout(autoSelectTimerRef.current);
+    autoSelectTimerRef.current = setTimeout(() => {
+      const state = useGameStore.getState();
+      if (!state.isMyTurn()) return;
+      const moves = state.validMoves();
+      if (moves.length !== 1) return;
+      selectTile(moves[0].tile);
+      setSoloJugadaHint(true);
+      if (soloJugadaTimerRef.current) clearTimeout(soloJugadaTimerRef.current);
+      soloJugadaTimerRef.current = setTimeout(() => setSoloJugadaHint(false), 2200);
+    }, 450);
+
+    return () => {
+      if (autoSelectTimerRef.current) clearTimeout(autoSelectTimerRef.current);
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isMyTurn, validMoves.length]);
+
   useEffect(() => {
     if (round !== prevRoundRef.current && myHand.length > 0) {
       prevRoundRef.current = round;
@@ -179,6 +211,35 @@ export function Hand({ onPlayTile, onPass, disabled = false }: HandProps) {
       role="region"
       aria-label="Tu mano"
     >
+      {/* ¡Solo una jugada! hint — auto-selected tile */}
+      <AnimatePresence>
+        {soloJugadaHint && (
+          <motion.div
+            key="solo-jugada"
+            initial={{ opacity: 0, y: 8, scale: 0.88 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 4, scale: 0.92 }}
+            transition={{ type: "spring", stiffness: 420, damping: 24 }}
+            className="flex items-center gap-1.5 rounded-full px-3 py-1 pointer-events-none"
+            style={{
+              background: "linear-gradient(135deg, #1a2a10 0%, #0e1a08 100%)",
+              border: "1px solid rgba(168,196,160,0.45)",
+              boxShadow: "0 0 12px rgba(168,196,160,0.2), 0 2px 8px rgba(0,0,0,0.5)",
+            }}
+            role="status"
+            aria-live="polite"
+          >
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+              <circle cx="6" cy="6" r="5" stroke="rgba(168,196,160,0.7)" strokeWidth="1.2"/>
+              <circle cx="6" cy="6" r="2" fill="rgba(168,196,160,0.8)"/>
+            </svg>
+            <span className="text-[10px] font-semibold uppercase tracking-widest leading-none" style={{ color: "rgba(168,196,160,0.85)" }}>
+              ¡Solo una jugada!
+            </span>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Player identity badge + pip count */}
       <div className="flex items-center gap-2">
         <div className="flex items-center gap-1.5">
