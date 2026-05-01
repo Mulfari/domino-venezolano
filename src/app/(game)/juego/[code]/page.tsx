@@ -17,6 +17,7 @@ import { ChatPanel } from "@/components/chat/chat-panel";
 import { SoundToggle } from "@/components/game/sound-toggle";
 import { TileTracker } from "@/components/game/tile-tracker";
 import { MoveLog } from "@/components/game/move-log";
+import { BoardEnds } from "@/components/game/board-ends";
 import { LandscapePrompt } from "@/components/game/landscape-prompt";
 import { DominoSplash } from "@/components/game/domino-splash";
 import { PassMeter } from "@/components/game/pass-meter";
@@ -1012,6 +1013,9 @@ export default function GamePage() {
             <PassMeter />
           </div>
           <Board onPlaceEnd={handlePlaceEnd} clearing={boardTransitioning} />
+          <div className="absolute bottom-1 left-1/2 -translate-x-1/2 z-20">
+            <BoardEnds />
+          </div>
         </div>
 
         {/* Right opponent — absolute overlay on mobile, in-flow on desktop */}
