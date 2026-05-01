@@ -508,39 +508,31 @@ export function Board({ onPlaceEnd, clearing = false }: BoardProps) {
                               orientation={ghost.orientation}
                             />
                           </foreignObject>
-                          {/* "Place here" dot indicator */}
+                          {/* Direction label badge */}
                           <motion.g style={{ pointerEvents: "none" }}>
-                            <motion.circle
-                              cx={ghost.x}
-                              cy={ghost.y + th / 2 + (isMobile ? 9 : 11)}
-                              r={isMobile ? 4 : 5}
-                              fill="#c9a84c"
-                              animate={{ opacity: isHovered ? [0.8, 1, 0.8] : [0.4, 0.85, 0.4], scale: isHovered ? [1, 1.25, 1] : [0.9, 1.1, 0.9] }}
+                            <motion.rect
+                              x={ghost.x - (isMobile ? 17 : 21)}
+                              y={ghost.y - th / 2 - (isMobile ? 17 : 21)}
+                              width={isMobile ? 34 : 42}
+                              height={isMobile ? 13 : 15}
+                              rx={isMobile ? 4 : 5}
+                              fill={isHovered ? "rgba(201,168,76,0.95)" : "rgba(201,168,76,0.72)"}
+                              animate={{ opacity: isHovered ? [0.88, 1, 0.88] : [0.55, 0.82, 0.55] }}
                               transition={{ duration: 1.0, repeat: Infinity, ease: "easeInOut" }}
-                              style={{ filter: isHovered ? "drop-shadow(0 0 5px #c9a84c)" : undefined }}
+                              style={{ filter: isHovered ? "drop-shadow(0 0 7px rgba(201,168,76,0.9))" : "drop-shadow(0 0 3px rgba(201,168,76,0.5))" }}
                             />
-                            <motion.line
-                              x1={ghost.x - (isMobile ? 2.5 : 3)}
-                              y1={ghost.y + th / 2 + (isMobile ? 9 : 11)}
-                              x2={ghost.x + (isMobile ? 2.5 : 3)}
-                              y2={ghost.y + th / 2 + (isMobile ? 9 : 11)}
-                              stroke="#2a1a0a"
-                              strokeWidth={1.5}
-                              strokeLinecap="round"
-                              animate={{ opacity: isHovered ? [0.8, 1, 0.8] : [0.4, 0.85, 0.4] }}
-                              transition={{ duration: 1.0, repeat: Infinity, ease: "easeInOut" }}
-                            />
-                            <motion.line
-                              x1={ghost.x}
-                              y1={ghost.y + th / 2 + (isMobile ? 6 : 8)}
-                              x2={ghost.x}
-                              y2={ghost.y + th / 2 + (isMobile ? 12 : 14)}
-                              stroke="#2a1a0a"
-                              strokeWidth={1.5}
-                              strokeLinecap="round"
-                              animate={{ opacity: isHovered ? [0.8, 1, 0.8] : [0.4, 0.85, 0.4] }}
-                              transition={{ duration: 1.0, repeat: Infinity, ease: "easeInOut" }}
-                            />
+                            <text
+                              x={ghost.x}
+                              y={ghost.y - th / 2 - (isMobile ? 7 : 9)}
+                              textAnchor="middle"
+                              fontSize={isMobile ? 7 : 8}
+                              fontWeight="bold"
+                              fill="#2a1a0a"
+                              fontFamily="system-ui, -apple-system, sans-serif"
+                              style={{ userSelect: "none" }}
+                            >
+                              {end === "left" ? "← Izq" : "Der →"}
+                            </text>
                           </motion.g>
                         </motion.g>
                       );
