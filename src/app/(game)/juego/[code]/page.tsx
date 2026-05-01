@@ -23,7 +23,7 @@ import { DominoSplash } from "@/components/game/domino-splash";
 import { PassMeter } from "@/components/game/pass-meter";
 import { useGameChannel } from "@/hooks/use-game-channel";
 import { useGameStore } from "@/stores/game-store";
-import { playTilePlace, playPass, playYourTurn, playVictory, playDefeat, playCapicua, playUnaFicha, playShuffle, playDouble, playStreak } from "@/lib/sounds/sound-engine";
+import { playTilePlace, playPass, playYourTurn, playVictory, playDefeat, playCapicua, playUnaFicha, playShuffle, playDouble, playStreak, playCochina } from "@/lib/sounds/sound-engine";
 import { requestNotificationPermission, notifyTurn } from "@/lib/notifications/turn-notification";
 import type { GameEvent } from "@/lib/realtime/events";
 import type { Tile, Seat } from "@/lib/game/types";
@@ -125,6 +125,9 @@ export default function GamePage() {
   const [capicuaAlert, setCapicuaAlert] = useState(false);
   const capicuaTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const prevCapicuaRef = useRef(false);
+  const [cochinaAlert, setCochinaAlert] = useState<{ name: string } | null>(null);
+  const cochinaTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const prevFirstPlayRef = useRef<string | null>(null);
   const [boardTransitioning, setBoardTransitioning] = useState(false);
   const [copiedCode, setCopiedCode] = useState(false);
   const copiedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -306,6 +309,22 @@ export default function GamePage() {
     }
     prevCapicuaRef.current = isCapicua;
   }, [board]);
+
+  /* ---- Cochina detection — 6-6 opens the game ---- */
+  useEffect(() => {
+    const firstPlay = board.plays[0];
+    if (!firstPlay) { prevFirstPlayRef.current = null; return; }
+    const key = `${firstPlay.tile[0]}-${firstPlay.tile[1]}-${firstPlay.seat}`;
+    if (key === prevFirstPlayRef.current) return;
+    prevFirstPlayRef.current = key;
+    if (firstPlay.tile[0] === 6 && firstPlay.tile[1] === 6) {
+      playCochina();
+      const name = players.find((p) => p.seat === firstPlay.seat)?.displayName ?? `Jugador ${firstPlay.seat + 1}`;
+      if (cochinaTimerRef.current) clearTimeout(cochinaTimerRef.current);
+      setCochinaAlert({ name });
+      cochinaTimerRef.current = setTimeout(() => setCochinaAlert(null), 3500);
+    }
+  }, [board.plays, players]);
 
   /* ---- "Your turn" sound + browser notification ---- */
   const prevTurnRef = useRef<number | null>(null);
@@ -1188,6 +1207,64 @@ export default function GamePage() {
                 </motion.span>
                 <span className="text-[10px] text-[#f5f0e8]/55 leading-none mt-0.5 uppercase tracking-wider">
                   ambos extremos iguales
+                </span>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ¡Cochina! toast — fires when 6-6 opens the game */}
+      <AnimatePresence>
+        {cochinaAlert && (
+          <motion.div
+            key="cochina-toast"
+            initial={{ opacity: 0, y: -28, scale: 0.82 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -18, scale: 0.9 }}
+            transition={{ type: "spring", stiffness: 440, damping: 24 }}
+            className="fixed top-16 left-1/2 -translate-x-1/2 z-50 pointer-events-none"
+            role="status"
+            aria-live="polite"
+          >
+            <div
+              className="flex items-center gap-3 rounded-full px-5 py-2.5 backdrop-blur-sm"
+              style={{
+                background: "linear-gradient(135deg, #1a0e00 0%, #2a1800 100%)",
+                border: "1.5px solid rgba(201,168,76,0.85)",
+                boxShadow: "0 0 40px 12px rgba(201,168,76,0.4), 0 8px 28px rgba(0,0,0,0.85)",
+              }}
+            >
+              {/* Double-six domino icon */}
+              <svg width="40" height="22" viewBox="0 0 40 22" fill="none" aria-hidden="true">
+                <rect x="0.75" y="0.75" width="38.5" height="20.5" rx="3.5" fill="#1a0e00" stroke="#c9a84c" strokeWidth="1.5"/>
+                <line x1="20" y1="1.5" x2="20" y2="20.5" stroke="#c9a84c" strokeWidth="1"/>
+                {/* Left 6 pips */}
+                <circle cx="6" cy="5" r="1.5" fill="#c9a84c"/>
+                <circle cx="10" cy="5" r="1.5" fill="#c9a84c"/>
+                <circle cx="6" cy="11" r="1.5" fill="#c9a84c"/>
+                <circle cx="10" cy="11" r="1.5" fill="#c9a84c"/>
+                <circle cx="6" cy="17" r="1.5" fill="#c9a84c"/>
+                <circle cx="10" cy="17" r="1.5" fill="#c9a84c"/>
+                {/* Right 6 pips */}
+                <circle cx="26" cy="5" r="1.5" fill="#c9a84c"/>
+                <circle cx="30" cy="5" r="1.5" fill="#c9a84c"/>
+                <circle cx="26" cy="11" r="1.5" fill="#c9a84c"/>
+                <circle cx="30" cy="11" r="1.5" fill="#c9a84c"/>
+                <circle cx="26" cy="17" r="1.5" fill="#c9a84c"/>
+                <circle cx="30" cy="17" r="1.5" fill="#c9a84c"/>
+              </svg>
+              <div className="flex flex-col leading-tight">
+                <motion.span
+                  className="text-[14px] font-black uppercase tracking-widest leading-none"
+                  style={{ color: "#c9a84c", textShadow: "0 0 18px rgba(201,168,76,0.9)" }}
+                  animate={{ opacity: [1, 0.7, 1] }}
+                  transition={{ duration: 0.9, repeat: Infinity, ease: "easeInOut" }}
+                >
+                  ¡Cochina!
+                </motion.span>
+                <span className="text-[10px] text-[#f5f0e8]/60 leading-none mt-0.5 truncate max-w-[130px]">
+                  {cochinaAlert.name} abre con doble seis
                 </span>
               </div>
             </div>

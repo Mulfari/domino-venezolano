@@ -291,6 +291,60 @@ export function playStreak() {
   osc2.stop(t3 + 0.36);
 }
 
+export function playCochina() {
+  if (_muted) return;
+  const ctx = getCtx();
+  // Bold 4-note fanfare — G4 C5 E5 G5 — with a deep bass thud underneath
+  const notes = [392, 523, 659, 784]; // G4 C5 E5 G5
+  notes.forEach((freq, i) => {
+    const t = ctx.currentTime + i * 0.13;
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0.32 * _volume, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.38);
+    g.connect(ctx.destination);
+    const osc = ctx.createOscillator();
+    osc.type = "triangle";
+    osc.frequency.value = freq;
+    osc.connect(g);
+    osc.start(t);
+    osc.stop(t + 0.39);
+    // Harmonic shimmer
+    const g2 = ctx.createGain();
+    g2.gain.setValueAtTime(0.1 * _volume, t);
+    g2.gain.exponentialRampToValueAtTime(0.001, t + 0.22);
+    g2.connect(ctx.destination);
+    const osc2 = ctx.createOscillator();
+    osc2.type = "sine";
+    osc2.frequency.value = freq * 2;
+    osc2.connect(g2);
+    osc2.start(t);
+    osc2.stop(t + 0.23);
+  });
+  // Deep bass thud on beat 1
+  const bassG = ctx.createGain();
+  bassG.gain.setValueAtTime(0.45 * _volume, ctx.currentTime);
+  bassG.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.28);
+  bassG.connect(ctx.destination);
+  const bassOsc = ctx.createOscillator();
+  bassOsc.type = "sine";
+  bassOsc.frequency.setValueAtTime(98, ctx.currentTime);
+  bassOsc.frequency.exponentialRampToValueAtTime(55, ctx.currentTime + 0.18);
+  bassOsc.connect(bassG);
+  bassOsc.start(ctx.currentTime);
+  bassOsc.stop(ctx.currentTime + 0.29);
+  // Noise accent
+  const buf = ctx.createBuffer(1, ctx.sampleRate * 0.06, ctx.sampleRate);
+  const data = buf.getChannelData(0);
+  for (let i = 0; i < data.length; i++) data[i] = (Math.random() * 2 - 1) * 0.5;
+  const noise = ctx.createBufferSource();
+  noise.buffer = buf;
+  const ng = gain(ctx, 0.22);
+  ng.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.06);
+  noise.connect(ng);
+  noise.start(ctx.currentTime);
+  noise.stop(ctx.currentTime + 0.07);
+}
+
 export function playChatReceived() {
   if (_muted) return;
   const ctx = getCtx();
