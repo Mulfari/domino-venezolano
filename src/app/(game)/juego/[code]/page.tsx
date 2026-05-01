@@ -20,6 +20,7 @@ import { MoveLog } from "@/components/game/move-log";
 import { BoardEnds } from "@/components/game/board-ends";
 import { LandscapePrompt } from "@/components/game/landscape-prompt";
 import { DominoSplash } from "@/components/game/domino-splash";
+import { CapicuaSplash } from "@/components/game/capicua-splash";
 import { PassMeter } from "@/components/game/pass-meter";
 import { useGameChannel } from "@/hooks/use-game-channel";
 import { useGameStore } from "@/stores/game-store";
@@ -122,7 +123,7 @@ export default function GamePage() {
   const [dominoSplash, setDominoSplash] = useState<{ playerName: string; isMyTeam: boolean; reason: "domino" | "locked" } | null>(null);
   const [tilePlayedAlert, setTilePlayedAlert] = useState<{ name: string; tile: Tile; seat: Seat } | null>(null);
   const tilePlayedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [capicuaAlert, setCapicuaAlert] = useState(false);
+  const [capicuaAlert, setCapicuaAlert] = useState<{ playerName: string; isMe: boolean; pipValue: number } | null>(null);
   const capicuaTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const prevCapicuaRef = useRef(false);
   const [cochinaAlert, setCochinaAlert] = useState<{ name: string } | null>(null);
@@ -303,12 +304,19 @@ export default function GamePage() {
     const isCapicua = board.left !== null && board.left === board.right && board.plays.length > 1;
     if (isCapicua && !prevCapicuaRef.current) {
       playCapicua();
-      setCapicuaAlert(true);
+      // Find who played the last tile (the capicúa maker)
+      const lastPlay = board.plays[board.plays.length - 1];
+      const capicuaPlayer = lastPlay
+        ? (players.find((p) => p.seat === lastPlay.seat) ?? null)
+        : null;
+      const capicuaName = capicuaPlayer?.displayName ?? `Jugador ${(lastPlay?.seat ?? 0) + 1}`;
+      const isMe = mySeat !== null && lastPlay?.seat === mySeat;
+      setCapicuaAlert({ playerName: capicuaName, isMe, pipValue: board.left! });
       if (capicuaTimerRef.current) clearTimeout(capicuaTimerRef.current);
-      capicuaTimerRef.current = setTimeout(() => setCapicuaAlert(false), 3200);
+      capicuaTimerRef.current = setTimeout(() => setCapicuaAlert(null), 3500);
     }
     prevCapicuaRef.current = isCapicua;
-  }, [board]);
+  }, [board, players, mySeat]);
 
   /* ---- Cochina detection — 6-6 opens the game ---- */
   useEffect(() => {
@@ -1168,51 +1176,13 @@ export default function GamePage() {
         )}
       </AnimatePresence>
 
-      {/* ¡Capicúa! toast — fires when both open ends match */}
-      <AnimatePresence>
-        {capicuaAlert && (
-          <motion.div
-            key="capicua-toast"
-            initial={{ opacity: 0, y: -28, scale: 0.82 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -18, scale: 0.9 }}
-            transition={{ type: "spring", stiffness: 440, damping: 24 }}
-            className="fixed top-16 left-1/2 -translate-x-1/2 z-50 pointer-events-none"
-            role="status"
-            aria-live="polite"
-          >
-            <div
-              className="flex items-center gap-3 rounded-full px-5 py-2.5 backdrop-blur-sm"
-              style={{
-                background: "linear-gradient(135deg, #1a0e2a 0%, #0e0818 100%)",
-                border: "1.5px solid rgba(201,168,76,0.75)",
-                boxShadow: "0 0 36px 10px rgba(201,168,76,0.3), 0 8px 28px rgba(0,0,0,0.85)",
-              }}
-            >
-              {/* Double-pip domino icon */}
-              <svg width="36" height="20" viewBox="0 0 36 20" fill="none" aria-hidden="true">
-                <rect x="0.75" y="0.75" width="34.5" height="18.5" rx="3" fill="#1a0e2a" stroke="#c9a84c" strokeWidth="1.5"/>
-                <line x1="18" y1="1.5" x2="18" y2="18.5" stroke="#c9a84c" strokeWidth="1"/>
-                <circle cx="9" cy="10" r="3" fill="#c9a84c"/>
-                <circle cx="27" cy="10" r="3" fill="#c9a84c"/>
-              </svg>
-              <div className="flex flex-col leading-tight">
-                <motion.span
-                  className="text-[14px] font-black uppercase tracking-widest leading-none"
-                  style={{ color: "#c9a84c", textShadow: "0 0 16px rgba(201,168,76,0.8)" }}
-                  animate={{ opacity: [1, 0.7, 1] }}
-                  transition={{ duration: 0.9, repeat: Infinity, ease: "easeInOut" }}
-                >
-                  ¡Capicúa!
-                </motion.span>
-                <span className="text-[10px] text-[#f5f0e8]/55 leading-none mt-0.5 uppercase tracking-wider">
-                  ambos extremos iguales
-                </span>
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* ¡Capicúa! splash — fires when both open ends match */}
+      <CapicuaSplash
+        show={capicuaAlert !== null}
+        playerName={capicuaAlert?.playerName ?? ""}
+        isMe={capicuaAlert?.isMe ?? false}
+        pipValue={capicuaAlert?.pipValue ?? 0}
+      />
 
       {/* ¡Cochina! toast — fires when 6-6 opens the game */}
       <AnimatePresence>
