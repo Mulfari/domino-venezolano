@@ -260,6 +260,7 @@ export function Hand({ onPlayTile, onPass, disabled = false }: HandProps) {
             const playable = isMyTurn && isTilePlayable(tile);
             const selected = isTileSelected(tile);
             const cochina = isCochina(tile);
+            const isDouble = tile[0] === tile[1] && !cochina;
 
             return (
               <motion.div
@@ -331,6 +332,20 @@ export function Hand({ onPlayTile, onPass, disabled = false }: HandProps) {
                       transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
                     />
                   </>
+                )}
+
+                {/* Double tile badge */}
+                {isDouble && (
+                  <div
+                    className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-widest whitespace-nowrap pointer-events-none z-10"
+                    style={{
+                      color: playable ? "#c9a84c" : "rgba(168,196,160,0.55)",
+                      backgroundColor: "rgba(10,20,12,0.82)",
+                      border: `1px solid ${playable ? "rgba(201,168,76,0.4)" : "rgba(168,196,160,0.2)"}`,
+                    }}
+                  >
+                    doble
+                  </div>
                 )}
 
                 <DominoTile
