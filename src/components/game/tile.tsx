@@ -102,7 +102,7 @@ export function DominoTile({
   const isMobile = useIsMobile();
   const config = responsive && isMobile ? mobileSizeConfig : sizeConfig;
   const { w: baseW, h: baseH, pip, gap } = config[size];
-  const borderRadius = size === "small" ? 6 : size === "medium" ? 9 : 13;
+  const borderRadius = size === "small" ? 8 : size === "medium" ? 12 : 17;
   const uid = useId().replace(/:/g, "");
 
   const isHorizontal = orientation === "horizontal";
@@ -125,16 +125,16 @@ export function DominoTile({
       style={highlight
         ? { filter: "drop-shadow(0 0 12px rgba(201,168,76,0.98)) drop-shadow(0 0 4px rgba(201,168,76,0.6))" }
         : !faceDown
-          ? { filter: "drop-shadow(0 1px 1px rgba(0,0,0,0.5)) drop-shadow(0 4px 8px rgba(0,0,0,0.35)) drop-shadow(0 8px 20px rgba(0,0,0,0.15))" }
-          : { filter: "drop-shadow(0 2px 2px rgba(0,0,0,0.6)) drop-shadow(0 5px 12px rgba(0,0,0,0.45)) drop-shadow(0 10px 24px rgba(0,0,0,0.2))" }}
+          ? { filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.55)) drop-shadow(0 3px 6px rgba(0,0,0,0.28)) drop-shadow(0 7px 18px rgba(0,0,0,0.14))" }
+          : { filter: "drop-shadow(0 2px 3px rgba(0,0,0,0.65)) drop-shadow(0 5px 10px rgba(0,0,0,0.4)) drop-shadow(0 10px 22px rgba(0,0,0,0.18))" }}
     >
       <defs>
-        <linearGradient id={`face-${uid}`} x1="0.15" y1="0" x2="0.85" y2="1">
-          <stop offset="0%" stopColor="#fffef8" />
-          <stop offset="12%" stopColor="#fdf8ee" />
-          <stop offset="40%" stopColor="#f2e8d8" />
-          <stop offset="72%" stopColor="#d8c9b2" />
-          <stop offset="100%" stopColor="#b8a080" />
+        <linearGradient id={`face-${uid}`} x1="0.2" y1="0" x2="0.8" y2="1">
+          <stop offset="0%" stopColor="#fffef9" />
+          <stop offset="18%" stopColor="#fdf9f0" />
+          <stop offset="50%" stopColor="#f5ede0" />
+          <stop offset="80%" stopColor="#ede3d2" />
+          <stop offset="100%" stopColor="#e0d4c0" />
         </linearGradient>
         <radialGradient id={`face-inner-${uid}`} cx="30%" cy="22%" r="68%">
           <stop offset="0%" stopColor="white" stopOpacity="0.45" />
@@ -196,23 +196,24 @@ export function DominoTile({
         <clipPath id={`clip-${uid}`}>
           <rect x={0} y={0} width={w} height={h} rx={borderRadius}/>
         </clipPath>
-        <radialGradient id={`pip-${uid}`} cx="38%" cy="32%" r="72%">
-          <stop offset="0%" stopColor="#3a3a3a" />
-          <stop offset="25%" stopColor="#111111" />
-          <stop offset="60%" stopColor="#050505" />
+        <radialGradient id={`pip-${uid}`} cx="35%" cy="28%" r="75%">
+          <stop offset="0%" stopColor="#2a2a2a" />
+          <stop offset="30%" stopColor="#0d0d0d" />
+          <stop offset="65%" stopColor="#030303" />
           <stop offset="100%" stopColor="#000000" />
         </radialGradient>
         {/* Specular highlight — top-left catch of light on carved edge */}
-        <radialGradient id={`pip-shine-${uid}`} cx="22%" cy="18%" r="42%">
-          <stop offset="0%" stopColor="white" stopOpacity="0.65" />
-          <stop offset="45%" stopColor="white" stopOpacity="0.18" />
+        <radialGradient id={`pip-shine-${uid}`} cx="25%" cy="20%" r="45%">
+          <stop offset="0%" stopColor="white" stopOpacity="0.78" />
+          <stop offset="35%" stopColor="white" stopOpacity="0.28" />
+          <stop offset="70%" stopColor="white" stopOpacity="0.06" />
           <stop offset="100%" stopColor="white" stopOpacity="0" />
         </radialGradient>
         {/* Deep inset rim — stronger shadow at bottom-right */}
-        <radialGradient id={`pip-rim-${uid}`} cx="62%" cy="68%" r="52%">
-          <stop offset="50%" stopColor="transparent" />
-          <stop offset="80%" stopColor="rgba(0,0,0,0.5)" />
-          <stop offset="100%" stopColor="rgba(0,0,0,0.85)" />
+        <radialGradient id={`pip-rim-${uid}`} cx="65%" cy="70%" r="55%">
+          <stop offset="40%" stopColor="transparent" />
+          <stop offset="75%" stopColor="rgba(0,0,0,0.55)" />
+          <stop offset="100%" stopColor="rgba(0,0,0,0.9)" />
         </radialGradient>
       </defs>
       <rect
