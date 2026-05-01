@@ -24,6 +24,8 @@ export function Board({ onPlaceEnd, clearing = false }: BoardProps) {
   const scores = useGameStore((s) => s.scores);
   const targetScore = useGameStore((s) => s.targetScore);
   const mySeat = useGameStore((s) => s.mySeat);
+  const currentTurn = useGameStore((s) => s.currentTurn);
+  const players = useGameStore((s) => s.players);
   const containerRef = useRef<HTMLDivElement>(null);
   const [size, setSize] = useState({ w: 400, h: 400 });
   const [hoveredEnd, setHoveredEnd] = useState<"left" | "right" | null>(null);
@@ -53,6 +55,7 @@ export function Board({ onPlaceEnd, clearing = false }: BoardProps) {
 
   const prevLastKeyRef = useRef<string | null>(null);
   const [animatingKey, setAnimatingKey] = useState<string | null>(null);
+  const [lastPlayedSeat, setLastPlayedSeat] = useState<Seat | null>(null);
   const [showDoubleBadge, setShowDoubleBadge] = useState(false);
   const doubleBadgeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const prevPlaysLengthRef = useRef(0);
@@ -61,6 +64,7 @@ export function Board({ onPlaceEnd, clearing = false }: BoardProps) {
     if (board.plays.length === 0) {
       prevLastKeyRef.current = null;
       prevPlaysLengthRef.current = 0;
+      setLastPlayedSeat(null);
       return;
     }
     const idx = board.plays.length - 1;
@@ -69,6 +73,7 @@ export function Board({ onPlaceEnd, clearing = false }: BoardProps) {
     if (lastKey !== prevLastKeyRef.current) {
       prevLastKeyRef.current = lastKey;
       setAnimatingKey(lastKey);
+      setLastPlayedSeat(lastPlay.seat);
       // Show ¡Doble! badge when a new double tile is placed
       if (board.plays.length > prevPlaysLengthRef.current && lastPlay.tile[0] === lastPlay.tile[1]) {
         setShowDoubleBadge(true);
@@ -658,9 +663,21 @@ export function Board({ onPlaceEnd, clearing = false }: BoardProps) {
                         <span className="text-[12px] sm:text-[13px] font-semibold text-[#a8c4a0]/60 uppercase tracking-widest">
                           Esperando...
                         </span>
-                        <span className="text-[10px] sm:text-[11px] text-[#a8c4a0]/35 uppercase tracking-wider">
-                          Primera jugada
-                        </span>
+                        {(() => {
+                          const starter = players.find((p) => p.seat === currentTurn);
+                          const starterName = starter?.displayName ?? `Jugador ${currentTurn + 1}`;
+                          const teamColor = (currentTurn % 2) === 0 ? "#c9a84c" : "#4ca8c9";
+                          return (
+                            <motion.span
+                              className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-wider"
+                              style={{ color: teamColor }}
+                              animate={{ opacity: [0.55, 1, 0.55] }}
+                              transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
+                            >
+                              {starterName}
+                            </motion.span>
+                          );
+                        })()}
                       </>
                     )}
                   </div>
@@ -738,6 +755,27 @@ export function Board({ onPlaceEnd, clearing = false }: BoardProps) {
                             />
                           </>
                         )}
+                        {/* Persistent "last played" ring — stays until next tile is placed */}
+                        {pt.key === animatingKey && !isNew && !isEndTile && (() => {
+                          const team = lastPlayedSeat !== null ? (lastPlayedSeat % 2) as 0 | 1 : 0;
+                          const ringColor = team === 0 ? "rgba(201,168,76,0.55)" : "rgba(76,168,201,0.55)";
+                          const glowColor = team === 0 ? "rgba(201,168,76,0.7)" : "rgba(76,168,201,0.7)";
+                          return (
+                            <motion.rect
+                              x={pt.x - tw / 2 - 3}
+                              y={pt.y - th / 2 - 3}
+                              width={tw + 6}
+                              height={th + 6}
+                              rx={5}
+                              fill="none"
+                              stroke={ringColor}
+                              strokeWidth={1.5}
+                              animate={{ opacity: [0.35, 0.75, 0.35] }}
+                              transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }}
+                              style={{ filter: `drop-shadow(0 0 3px ${glowColor})` }}
+                            />
+                          );
+                        })()}
                         {isEndTile && (
                           <>
                             {/* Outer glow */}
