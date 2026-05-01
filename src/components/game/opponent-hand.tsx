@@ -264,6 +264,38 @@ export function OpponentHand({
               </motion.div>
             )}
           </AnimatePresence>
+
+          {/* ▼ Turno label — floats above the stack when it's this player's turn (human only) */}
+          <AnimatePresence>
+            {isCurrentTurn && !isBot && tileCount > 1 && (
+              <motion.div
+                key="turno-label"
+                initial={{ opacity: 0, y: 8, scale: 0.7 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 4, scale: 0.8 }}
+                transition={{ type: "spring", stiffness: 480, damping: 24 }}
+                className="absolute -top-6 left-1/2 -translate-x-1/2 z-30 pointer-events-none"
+              >
+                <div
+                  className="flex items-center gap-1 rounded-full px-2 py-0.5"
+                  style={{
+                    background: colors.badgeBg,
+                    border: `1px solid ${colors.activeBorder}`,
+                    boxShadow: `0 0 10px ${colors.activeShadow}`,
+                  }}
+                >
+                  <motion.span
+                    animate={{ opacity: [0.7, 1, 0.7] }}
+                    transition={{ duration: 1.1, repeat: Infinity, ease: "easeInOut" }}
+                    className="text-[8px] sm:text-[9px] font-black uppercase tracking-widest whitespace-nowrap leading-none"
+                    style={{ color: colors.name, textShadow: `0 0 8px ${colors.glow}` }}
+                  >
+                    ▼ Turno
+                  </motion.span>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       )}
 
