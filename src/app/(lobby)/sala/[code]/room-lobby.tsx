@@ -25,11 +25,12 @@ interface Props {
 }
 
 const seatLabels = ["Sur", "Oeste", "Norte", "Este"];
+// Seats 0+2 = team 1 (gold), seats 1+3 = team 2 (blue) — matches in-game color coding
 const teamColors = [
-  { bg: "bg-[#f5f0e8]/10", border: "border-[#f5f0e8]/30", text: "text-[#f5f0e8]", label: "Equipo A", dot: "bg-[#f5f0e8]" },
-  { bg: "bg-[#c9a84c]/10", border: "border-[#c9a84c]/30", text: "text-[#c9a84c]", label: "Equipo B", dot: "bg-[#c9a84c]" },
-  { bg: "bg-[#f5f0e8]/10", border: "border-[#f5f0e8]/30", text: "text-[#f5f0e8]", label: "Equipo A", dot: "bg-[#f5f0e8]" },
-  { bg: "bg-[#c9a84c]/10", border: "border-[#c9a84c]/30", text: "text-[#c9a84c]", label: "Equipo B", dot: "bg-[#c9a84c]" },
+  { bg: "bg-[#c9a84c]/10", border: "border-[#c9a84c]/30", text: "text-[#c9a84c]", label: "Equipo 1", dot: "bg-[#c9a84c]" },
+  { bg: "bg-[#4ca8c9]/10", border: "border-[#4ca8c9]/30", text: "text-[#4ca8c9]", label: "Equipo 2", dot: "bg-[#4ca8c9]" },
+  { bg: "bg-[#c9a84c]/10", border: "border-[#c9a84c]/30", text: "text-[#c9a84c]", label: "Equipo 1", dot: "bg-[#c9a84c]" },
+  { bg: "bg-[#4ca8c9]/10", border: "border-[#4ca8c9]/30", text: "text-[#4ca8c9]", label: "Equipo 2", dot: "bg-[#4ca8c9]" },
 ];
 
 /* ── Spinner ──────────────────────────────────── */
