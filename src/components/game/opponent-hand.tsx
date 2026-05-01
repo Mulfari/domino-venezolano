@@ -18,7 +18,13 @@ interface OpponentHandProps {
 
 const MAX_DISPLAY = 7;
 
+const TEAM_COLORS = {
+  0: { name: "#c9a84c", badge: "#c9a84c", badgeBg: "#2a1a08", badgeBorder: "#5c3a1e", activeBg: "#c9a84c", activeText: "#1a0e00", activeBorder: "#e8c96a", activeShadow: "rgba(201,168,76,0.5)", glow: "rgba(201,168,76,0.45)" },
+  1: { name: "#4ca8c9", badge: "#4ca8c9", badgeBg: "#081a2a", badgeBorder: "#1e5c7a", activeBg: "#4ca8c9", activeText: "#0a1e2a", activeBorder: "#6ac8e8", activeShadow: "rgba(76,168,201,0.5)", glow: "rgba(76,168,201,0.45)" },
+} as const;
+
 export function OpponentHand({
+  seat,
   tileCount,
   playerName,
   connected = true,
@@ -26,6 +32,8 @@ export function OpponentHand({
   position,
   showPass = false,
 }: OpponentHandProps) {
+  const team = (seat % 2) as 0 | 1;
+  const colors = TEAM_COLORS[team];
   const isVertical = position === "left" || position === "right";
   const isMobile = useIsMobile();
   const maxDisplay = isMobile ? (isVertical ? 3 : 5) : MAX_DISPLAY;
@@ -66,7 +74,8 @@ export function OpponentHand({
         <span
           className={`text-[10px] sm:text-xs font-medium truncate max-w-[60px] sm:max-w-[100px] ${
             isVertical ? "hidden sm:inline" : ""
-          } ${isCurrentTurn ? "text-[#c9a84c]" : "text-[#a8c4a0]"}`}
+          }`}
+          style={{ color: isCurrentTurn ? colors.name : "#a8c4a0" }}
         >
           {playerName}
         </span>
@@ -77,14 +86,17 @@ export function OpponentHand({
           initial={{ scale: 1.5, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ type: "spring", stiffness: 500, damping: 22 }}
-          className={`flex-shrink-0 flex items-center justify-center
-            min-w-[20px] sm:min-w-[24px] h-5 sm:h-6 px-1.5
-            rounded-full text-[10px] sm:text-xs font-bold leading-none
-            border shadow-md
-            ${isCurrentTurn
-              ? "bg-[#c9a84c] text-[#1a0e00] border-[#e8c96a] shadow-[0_0_6px_rgba(201,168,76,0.5)]"
-              : "bg-[#2a1a08] text-[#c9a84c] border-[#5c3a1e]"
-            }`}
+          className="flex-shrink-0 flex items-center justify-center min-w-[20px] sm:min-w-[24px] h-5 sm:h-6 px-1.5 rounded-full text-[10px] sm:text-xs font-bold leading-none border shadow-md"
+          style={isCurrentTurn ? {
+            backgroundColor: colors.activeBg,
+            color: colors.activeText,
+            borderColor: colors.activeBorder,
+            boxShadow: `0 0 6px ${colors.activeShadow}`,
+          } : {
+            backgroundColor: colors.badgeBg,
+            color: colors.badge,
+            borderColor: colors.badgeBorder,
+          }}
           aria-label={`${tileCount} fichas`}
         >
           {tileCount}
@@ -98,7 +110,7 @@ export function OpponentHand({
           {tileCount === 1 && (
             <motion.div
               className="absolute -inset-4 rounded-2xl pointer-events-none z-0"
-              style={{ background: "radial-gradient(ellipse, rgba(201,168,76,0.45) 0%, transparent 70%)" }}
+              style={{ background: `radial-gradient(ellipse, ${colors.glow} 0%, transparent 70%)` }}
               animate={{ opacity: [0.4, 1, 0.4], scale: [0.9, 1.08, 0.9] }}
               transition={{ duration: 1.1, repeat: Infinity, ease: "easeInOut" }}
             />
@@ -157,17 +169,18 @@ export function OpponentHand({
             initial={{ scale: 1.6, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ type: "spring", stiffness: 500, damping: 20 }}
-            className={`absolute -bottom-3 -right-3 z-20
-              flex items-center justify-center
-              min-w-[22px] sm:min-w-[26px] h-[22px] sm:h-[26px] px-1.5
-              rounded-full text-[11px] sm:text-[12px] font-black leading-none
-              shadow-lg border-2
-              ${tileCount === 1
-                ? "bg-[#c9a84c] text-[#1a0800] border-[#f0d878] shadow-[0_0_16px_rgba(201,168,76,1)]"
-                : isCurrentTurn
-                ? "bg-[#c9a84c] text-[#1a0800] border-[#f0d878] shadow-[0_0_12px_rgba(201,168,76,0.9)]"
-                : "bg-[#1e0e04] text-[#d4a855] border-[#7a4a22] shadow-[0_2px_8px_rgba(0,0,0,0.7)]"
-              }`}
+            className="absolute -bottom-3 -right-3 z-20 flex items-center justify-center min-w-[22px] sm:min-w-[26px] h-[22px] sm:h-[26px] px-1.5 rounded-full text-[11px] sm:text-[12px] font-black leading-none shadow-lg border-2"
+            style={tileCount === 1 || isCurrentTurn ? {
+              backgroundColor: colors.activeBg,
+              color: colors.activeText,
+              borderColor: colors.activeBorder,
+              boxShadow: `0 0 ${tileCount === 1 ? "16px" : "12px"} ${colors.activeShadow}`,
+            } : {
+              backgroundColor: "#1e0e04",
+              color: colors.badge,
+              borderColor: "#7a4a22",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.7)",
+            }}
             aria-hidden="true"
           >
             {tileCount}
@@ -187,8 +200,8 @@ export function OpponentHand({
                 <motion.span
                   animate={{ opacity: [0.75, 1, 0.75] }}
                   transition={{ duration: 1.0, repeat: Infinity, ease: "easeInOut" }}
-                  className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-[#c9a84c] whitespace-nowrap"
-                  style={{ textShadow: "0 0 8px rgba(201,168,76,0.9), 0 1px 3px rgba(0,0,0,0.9)" }}
+                  className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest whitespace-nowrap"
+                  style={{ color: colors.name, textShadow: `0 0 8px ${colors.glow}, 0 1px 3px rgba(0,0,0,0.9)` }}
                 >
                   ¡UNA!
                 </motion.span>
