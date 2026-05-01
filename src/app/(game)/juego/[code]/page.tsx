@@ -803,6 +803,7 @@ export default function GamePage() {
           playerName={getPlayerName(seats.top)}
           connected={getPlayerConnected(seats.top)}
           isCurrentTurn={currentTurn === seats.top}
+          isBot={players.find((p) => p.seat === seats.top)?.isBot ?? false}
           position="top"
           showPass={lastPassSeat === seats.top}
         />
@@ -818,6 +819,7 @@ export default function GamePage() {
             playerName={getPlayerName(seats.left)}
             connected={getPlayerConnected(seats.left)}
             isCurrentTurn={currentTurn === seats.left}
+            isBot={players.find((p) => p.seat === seats.left)?.isBot ?? false}
             position="left"
             showPass={lastPassSeat === seats.left}
           />
@@ -834,6 +836,7 @@ export default function GamePage() {
             playerName={getPlayerName(seats.right)}
             connected={getPlayerConnected(seats.right)}
             isCurrentTurn={currentTurn === seats.right}
+            isBot={players.find((p) => p.seat === seats.right)?.isBot ?? false}
             position="right"
             showPass={lastPassSeat === seats.right}
           />

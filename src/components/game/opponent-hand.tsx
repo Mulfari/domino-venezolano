@@ -12,6 +12,7 @@ interface OpponentHandProps {
   playerName: string;
   connected?: boolean;
   isCurrentTurn?: boolean;
+  isBot?: boolean;
   position: "top" | "left" | "right";
   showPass?: boolean;
 }
@@ -29,6 +30,7 @@ export function OpponentHand({
   playerName,
   connected = true,
   isCurrentTurn = false,
+  isBot = false,
   position,
   showPass = false,
 }: OpponentHandProps) {
@@ -51,6 +53,40 @@ export function OpponentHand({
       aria-label={`Mano de ${playerName}: ${tileCount} fichas${isCurrentTurn ? ", turno activo" : ""}`}
     >
       <PassIndicator show={showPass} playerName={playerName} />
+
+      {/* "Pensando..." indicator for bots on their turn */}
+      <AnimatePresence>
+        {isBot && isCurrentTurn && (
+          <motion.div
+            key="thinking"
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.8 }}
+            transition={{ duration: 0.2 }}
+            className="flex items-center gap-1.5 rounded-full px-2.5 py-1 pointer-events-none"
+            style={{
+              background: "rgba(10,20,12,0.85)",
+              border: `1px solid ${colors.activeBorder}`,
+              boxShadow: `0 0 10px ${colors.activeShadow}`,
+            }}
+          >
+            <span className="text-[9px] sm:text-[10px] font-semibold uppercase tracking-widest" style={{ color: colors.name }}>
+              pensando
+            </span>
+            <div className="flex items-center gap-0.5">
+              {[0, 1, 2].map((i) => (
+                <motion.span
+                  key={i}
+                  className="block w-1 h-1 rounded-full"
+                  style={{ backgroundColor: colors.name }}
+                  animate={{ opacity: [0.2, 1, 0.2], y: [0, -2, 0] }}
+                  transition={{ duration: 0.9, repeat: Infinity, delay: i * 0.18, ease: "easeInOut" }}
+                />
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Player name + connection dot */}
       <div className="flex items-center gap-1 sm:gap-1.5">
