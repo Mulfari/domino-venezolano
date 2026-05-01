@@ -23,6 +23,7 @@ import { DominoSplash } from "@/components/game/domino-splash";
 import { CapicuaSplash } from "@/components/game/capicua-splash";
 import { TurnFlash } from "@/components/game/turn-flash";
 import { PassMeter } from "@/components/game/pass-meter";
+import { ToastStack } from "@/components/game/toast-stack";
 import { useGameChannel } from "@/hooks/use-game-channel";
 import { useGameStore } from "@/stores/game-store";
 import { playTilePlace, playPass, playYourTurn, playVictory, playDefeat, playGameOver, playGameOverDefeat, playCapicua, playUnaFicha, playDosFichas, playShuffle, playDouble, playStreak, playCochina, playTimeout, playTrancado, playVaADominar } from "@/lib/sounds/sound-engine";
@@ -1170,6 +1171,9 @@ export default function GamePage() {
       </motion.div>
       </motion.div>
 
+      {/* Stacked toasts — rendered in a shared column so they never overlap */}
+      <ToastStack>
+
       {/* ¡Tiempo! toast — fires when the turn timer expires and auto-passes/plays */}
       <AnimatePresence>
         {tiempoAlert && (
@@ -1179,7 +1183,7 @@ export default function GamePage() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -18, scale: 0.9 }}
             transition={{ type: "spring", stiffness: 440, damping: 24 }}
-            className="fixed top-16 left-1/2 -translate-x-1/2 z-50 pointer-events-none"
+            className="pointer-events-none"
             role="status"
             aria-live="assertive"
           >
@@ -1217,7 +1221,7 @@ export default function GamePage() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -16, scale: 0.9 }}
             transition={{ type: "spring", stiffness: 420, damping: 24 }}
-            className="fixed top-16 left-1/2 -translate-x-1/2 z-50 pointer-events-none"
+            className="pointer-events-none"
             role="status"
             aria-live="polite"
           >
@@ -1257,7 +1261,7 @@ export default function GamePage() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -16, scale: 0.9 }}
             transition={{ type: "spring", stiffness: 420, damping: 24 }}
-            className="fixed top-16 left-1/2 -translate-x-1/2 z-50 pointer-events-none"
+            className="pointer-events-none"
             role="status"
             aria-live="polite"
           >
@@ -1387,7 +1391,7 @@ export default function GamePage() {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -18, scale: 0.9 }}
               transition={{ type: "spring", stiffness: 440, damping: 24 }}
-              className="fixed top-16 left-1/2 -translate-x-1/2 z-50 pointer-events-none"
+              className="pointer-events-none"
               role="status"
               aria-live="assertive"
             >
@@ -1435,7 +1439,7 @@ export default function GamePage() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -18, scale: 0.9 }}
             transition={{ type: "spring", stiffness: 440, damping: 24 }}
-            className="fixed top-16 left-1/2 -translate-x-1/2 z-50 pointer-events-none"
+            className="pointer-events-none"
             role="status"
             aria-live="polite"
           >
@@ -1483,6 +1487,8 @@ export default function GamePage() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      </ToastStack>
 
       {/* ¡Tu turno! center flash */}
       <TurnFlash />
