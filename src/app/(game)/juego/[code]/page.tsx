@@ -18,6 +18,7 @@ import { SoundToggle } from "@/components/game/sound-toggle";
 import { TileTracker } from "@/components/game/tile-tracker";
 import { LandscapePrompt } from "@/components/game/landscape-prompt";
 import { DominoSplash } from "@/components/game/domino-splash";
+import { PassMeter } from "@/components/game/pass-meter";
 import { useGameChannel } from "@/hooks/use-game-channel";
 import { useGameStore } from "@/stores/game-store";
 import { playTilePlace, playPass, playYourTurn, playVictory, playDefeat, playCapicua, playUnaFicha, playShuffle } from "@/lib/sounds/sound-engine";
@@ -969,7 +970,12 @@ export default function GamePage() {
         </div>
 
         {/* Board — takes full width on mobile */}
-        <Board onPlaceEnd={handlePlaceEnd} clearing={boardTransitioning} />
+        <div className="relative flex flex-col items-center flex-1 min-h-0">
+          <div className="absolute top-2 left-1/2 -translate-x-1/2 z-20">
+            <PassMeter />
+          </div>
+          <Board onPlaceEnd={handlePlaceEnd} clearing={boardTransitioning} />
+        </div>
 
         {/* Right opponent — absolute overlay on mobile, in-flow on desktop */}
         <div className="absolute right-0 top-1/2 -translate-y-1/2 z-10 sm:relative sm:right-auto sm:top-auto sm:translate-y-0 sm:shrink-0 sm:px-4">
