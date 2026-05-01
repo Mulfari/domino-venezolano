@@ -220,9 +220,10 @@ function FlashOverlay({ color = "white" }: { color?: string }) {
 interface GameOverModalProps {
   onNextRound?: () => void;
   onBackToLobby?: () => void;
+  onRevancha?: () => void;
 }
 
-export function GameOverModal({ onNextRound, onBackToLobby }: GameOverModalProps) {
+export function GameOverModal({ onNextRound, onBackToLobby, onRevancha }: GameOverModalProps) {
   const roundResult = useGameStore((s) => s.roundResult);
   const scores = useGameStore((s) => s.scores);
   const targetScore = useGameStore((s) => s.targetScore);
@@ -284,6 +285,7 @@ export function GameOverModal({ onNextRound, onBackToLobby }: GameOverModalProps
         team1Names={team1Names}
         roundHistory={roundHistory}
         onBackToLobby={onBackToLobby}
+        onRevancha={onRevancha}
       />
     );
   }
@@ -588,9 +590,10 @@ interface GameOverViewProps {
   team1Names: string[];
   roundHistory: import("@/stores/game-store").RoundHistoryEntry[];
   onBackToLobby?: () => void;
+  onRevancha?: () => void;
 }
 
-function GameOverView({ scores, myTeam, team0Names, team1Names, roundHistory, onBackToLobby }: GameOverViewProps) {
+function GameOverView({ scores, myTeam, team0Names, team1Names, roundHistory, onBackToLobby, onRevancha }: GameOverViewProps) {
   const winnerTeam: 0 | 1 = scores[0] >= scores[1] ? 0 : 1;
   const loserTeam: 0 | 1 = winnerTeam === 0 ? 1 : 0;
   const iWon = myTeam === winnerTeam;
@@ -895,13 +898,28 @@ function GameOverView({ scores, myTeam, team0Names, team1Names, roundHistory, on
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 1.4 }}
-          className="mx-5 mb-7"
+          className="mx-5 mb-7 flex flex-col gap-2"
         >
+          {onRevancha && (
+            <button
+              onClick={onRevancha}
+              autoFocus
+              aria-label="Jugar revancha"
+              className="w-full rounded-xl bg-[#c9a84c] hover:bg-[#dfc06a] active:bg-[#b8943e] px-6 py-3 text-sm font-bold text-[#2a1a0a] transition-colors shadow-lg flex items-center justify-center gap-2"
+            >
+              <span>🔄</span>
+              <span>¡Revancha!</span>
+            </button>
+          )}
           <button
             onClick={onBackToLobby}
-            autoFocus
+            autoFocus={!onRevancha}
             aria-label="Volver al inicio"
-            className="w-full rounded-xl bg-[#c9a84c] hover:bg-[#dfc06a] active:bg-[#b8943e] px-6 py-3 text-sm font-bold text-[#2a1a0a] transition-colors shadow-lg"
+            className={`w-full rounded-xl px-6 py-3 text-sm font-bold transition-colors shadow-lg ${
+              onRevancha
+                ? "bg-[#3a2210]/80 hover:bg-[#4a2c14] active:bg-[#2a1a08] text-[#f5f0e8]/80 border border-[#c9a84c]/20"
+                : "bg-[#c9a84c] hover:bg-[#dfc06a] active:bg-[#b8943e] text-[#2a1a0a]"
+            }`}
           >
             Volver al inicio
           </button>

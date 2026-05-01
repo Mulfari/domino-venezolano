@@ -606,6 +606,11 @@ export default function GamePage() {
     router.push("/");
   }
 
+  function handleRevancha() {
+    if (roomCode) router.push(`/sala/${roomCode}`);
+    else router.push("/");
+  }
+
   function handleCopyCode() {
     if (!roomCode) return;
     navigator.clipboard.writeText(roomCode).catch(() => {});
@@ -1170,6 +1175,7 @@ export default function GamePage() {
       <GameOverModal
         onNextRound={isHost ? handleNextRound : undefined}
         onBackToLobby={handleBackToLobby}
+        onRevancha={isHost ? handleRevancha : undefined}
       />
 
       {/* Chat panel */}
