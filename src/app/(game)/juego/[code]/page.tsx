@@ -21,6 +21,7 @@ import { BoardEnds } from "@/components/game/board-ends";
 import { LandscapePrompt } from "@/components/game/landscape-prompt";
 import { DominoSplash } from "@/components/game/domino-splash";
 import { CapicuaSplash } from "@/components/game/capicua-splash";
+import { TurnFlash } from "@/components/game/turn-flash";
 import { PassMeter } from "@/components/game/pass-meter";
 import { useGameChannel } from "@/hooks/use-game-channel";
 import { useGameStore } from "@/stores/game-store";
@@ -1482,6 +1483,9 @@ export default function GamePage() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* ¡Tu turno! center flash */}
+      <TurnFlash />
 
       {/* ¡Dominó! splash */}
       {dominoSplash && (
