@@ -21,6 +21,9 @@ export function Board({ onPlaceEnd, clearing = false }: BoardProps) {
   const validMovesFn = useGameStore((s) => s.validMoves);
   const consecutivePasses = useGameStore((s) => s.consecutivePasses);
   const status = useGameStore((s) => s.status);
+  const scores = useGameStore((s) => s.scores);
+  const targetScore = useGameStore((s) => s.targetScore);
+  const mySeat = useGameStore((s) => s.mySeat);
   const containerRef = useRef<HTMLDivElement>(null);
   const [size, setSize] = useState({ w: 400, h: 400 });
   const [hoveredEnd, setHoveredEnd] = useState<"left" | "right" | null>(null);
@@ -432,6 +435,97 @@ export function Board({ onPlaceEnd, clearing = false }: BoardProps) {
                 </motion.div>
               )}
             </AnimatePresence>
+
+            {/* ¡Cerca! tension badge — appears when any team is within 20 pts of winning */}
+            {(() => {
+              if (status !== "playing") return null;
+              const myTeam = mySeat !== null ? (mySeat % 2) as 0 | 1 : null;
+              const remaining0 = targetScore - scores[0];
+              const remaining1 = targetScore - scores[1];
+              const close0 = remaining0 <= 20 && remaining0 > 0;
+              const close1 = remaining1 <= 20 && remaining1 > 0;
+              if (!close0 && !close1) return null;
+
+              // Pick the team that's closest; prefer my team on tie
+              let alertTeam: 0 | 1;
+              if (close0 && close1) {
+                alertTeam = remaining0 <= remaining1 ? 0 : 1;
+              } else {
+                alertTeam = close0 ? 0 : 1;
+              }
+              const isMyTeam = myTeam === alertTeam;
+              const remaining = alertTeam === 0 ? remaining0 : remaining1;
+              const borderColor = isMyTeam ? "rgba(201,168,76,0.8)" : "rgba(239,68,68,0.75)";
+              const textColor = isMyTeam ? "#c9a84c" : "#ef4444";
+              const bgColor = isMyTeam
+                ? "linear-gradient(135deg, #2a1a00 0%, #1a0e00 100%)"
+                : "linear-gradient(135deg, #4a0a0a 0%, #2a0505 100%)";
+              const glowColor = isMyTeam ? "rgba(201,168,76,0.4)" : "rgba(239,68,68,0.4)";
+
+              return (
+                <AnimatePresence>
+                  <motion.div
+                    key={`cerca-${alertTeam}`}
+                    initial={{ opacity: 0, scale: 0.7, y: 6 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.8 }}
+                    transition={{ type: "spring", stiffness: 380, damping: 22 }}
+                    className="absolute bottom-2 left-2 z-20 pointer-events-none"
+                    role="status"
+                    aria-live="polite"
+                    aria-label={`${isMyTeam ? "Tu equipo" : "El equipo rival"} está a ${remaining} puntos de ganar`}
+                  >
+                    <div
+                      style={{
+                        background: bgColor,
+                        border: `1.5px solid ${borderColor}`,
+                        borderRadius: "8px",
+                        padding: isMobile ? "3px 6px" : "4px 8px",
+                        boxShadow: `0 0 16px ${glowColor}, 0 2px 8px rgba(0,0,0,0.7)`,
+                      }}
+                    >
+                      <div className="flex items-center gap-1">
+                        {/* Flame / trophy icon */}
+                        <motion.span
+                          animate={{ scale: [1, 1.25, 1], opacity: [0.8, 1, 0.8] }}
+                          transition={{ duration: 0.85, repeat: Infinity, ease: "easeInOut" }}
+                          style={{ fontSize: isMobile ? 9 : 10, lineHeight: 1 }}
+                          aria-hidden="true"
+                        >
+                          {isMyTeam ? "🏆" : "⚠️"}
+                        </motion.span>
+                        <div className="flex flex-col leading-none gap-0.5">
+                          <motion.span
+                            animate={{ opacity: [0.75, 1, 0.75] }}
+                            transition={{ duration: 0.85, repeat: Infinity, ease: "easeInOut" }}
+                            style={{
+                              fontSize: isMobile ? 8 : 9,
+                              fontWeight: 700,
+                              letterSpacing: "0.08em",
+                              textTransform: "uppercase",
+                              color: textColor,
+                              lineHeight: 1,
+                            }}
+                          >
+                            ¡Cerca!
+                          </motion.span>
+                          <span
+                            style={{
+                              fontSize: isMobile ? 7 : 8,
+                              color: isMyTeam ? "rgba(201,168,76,0.6)" : "rgba(239,68,68,0.6)",
+                              lineHeight: 1,
+                              letterSpacing: "0.04em",
+                            }}
+                          >
+                            faltan {remaining} pts
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </motion.div>
+                </AnimatePresence>
+              );
+            })()}
 
             {board.plays.length === 0 ? (
               <div className="absolute inset-0 flex items-center justify-center" aria-live="polite">
