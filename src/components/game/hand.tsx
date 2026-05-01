@@ -104,6 +104,8 @@ export function Hand({ onPlayTile, onPass, disabled = false }: HandProps) {
   const [hintTile, setHintTile] = useState<Tile | null>(null);
   const [hintEnd, setHintEnd] = useState<"left" | "right" | null>(null);
   const hintTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [rejectedTile, setRejectedTile] = useState<Tile | null>(null);
+  const rejectedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Close shortcuts popover when clicking outside
   useEffect(() => {
@@ -121,11 +123,13 @@ export function Hand({ onPlayTile, onPass, disabled = false }: HandProps) {
   // trancado is imminent when 2+ consecutive passes have happened
   const trancadoImminent = consecutivePasses >= 2 && myHand.length > 0;
 
-  // Clear hint when turn changes or tile is played
+  // Clear hint and rejection state when turn changes or tile is played
   useEffect(() => {
     setHintTile(null);
     setHintEnd(null);
+    setRejectedTile(null);
     if (hintTimerRef.current) clearTimeout(hintTimerRef.current);
+    if (rejectedTimerRef.current) clearTimeout(rejectedTimerRef.current);
   }, [isMyTurn, myHand.length]);
 
   function handleHint() {
@@ -242,8 +246,26 @@ export function Hand({ onPlayTile, onPass, disabled = false }: HandProps) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isMyTurn, disabled, canPass, awaitingEndChoice, selectedTile, myHand]);
 
+  function handleRejectedClick(tile: Tile) {
+    if (rejectedTimerRef.current) clearTimeout(rejectedTimerRef.current);
+    setRejectedTile(tile);
+    rejectedTimerRef.current = setTimeout(() => setRejectedTile(null), 500);
+  }
+
+  function isTileRejected(tile: Tile): boolean {
+    if (!rejectedTile) return false;
+    return (
+      (rejectedTile[0] === tile[0] && rejectedTile[1] === tile[1]) ||
+      (rejectedTile[0] === tile[1] && rejectedTile[1] === tile[0])
+    );
+  }
+
   function handleTileClick(tile: Tile) {
-    if (disabled || !isMyTurn || !isTilePlayable(tile)) return;
+    if (disabled) return;
+    if (!isMyTurn || !isTilePlayable(tile)) {
+      if (isMyTurn && !isTilePlayable(tile)) handleRejectedClick(tile);
+      return;
+    }
 
     if (isTileSelected(tile)) {
       selectTile(null);
@@ -515,7 +537,13 @@ export function Hand({ onPlayTile, onPass, disabled = false }: HandProps) {
                 key={`${tile[0]}-${tile[1]}-${i}`}
                 layout
                 initial={dealInitial}
-                animate={{
+                animate={isTileRejected(tile) ? {
+                  x: [0, -7, 7, -5, 5, -3, 3, 0],
+                  opacity: 0.38,
+                  y: 0,
+                  scale: 1,
+                  filter: "grayscale(0.7) brightness(0.5) saturate(0.2)",
+                } : {
                   opacity: isMyTurn && !playable && !cochina ? 0.38 : 1,
                   y: cochina ? -8 : selected ? -16 : 0,
                   scale: cochina ? 1.1 : selected ? 1.08 : 1,
@@ -537,7 +565,9 @@ export function Hand({ onPlayTile, onPass, disabled = false }: HandProps) {
                     : undefined
                 }
                 exit={{ opacity: 0, y: -20, scale: 0.8 }}
-                transition={dealTransition}
+                transition={isTileRejected(tile)
+                  ? { duration: 0.4, ease: "easeInOut" }
+                  : dealTransition}
                 className="relative"
                 style={{ cursor: playable ? "pointer" : "default", minWidth: 44, minHeight: 44, display: "flex", alignItems: "center", justifyContent: "center" }}
               >
