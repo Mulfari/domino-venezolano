@@ -738,6 +738,12 @@ export default function GamePage() {
 
   const isHost = userId === hostId;
 
+  function teamGlow(seat: Seat, alpha: number): string {
+    return (seat % 2) === 0
+      ? `rgba(201,168,76,${alpha})`
+      : `rgba(76,168,201,${alpha})`;
+  }
+
   return (
     <div className="h-[100dvh] flex flex-col bg-felt overflow-hidden select-none">
       {/* Landscape prompt for mobile portrait */}
@@ -1004,7 +1010,19 @@ export default function GamePage() {
         className="flex flex-col flex-1 min-h-0"
       >
       {/* Partner (top) */}
-      <div className="flex justify-center shrink-0 pb-0.5 sm:pb-2">
+      <motion.div
+        className="flex justify-center shrink-0 pb-0.5 sm:pb-2 rounded-xl"
+        animate={currentTurn === seats.top && status === "playing" ? {
+          boxShadow: [
+            `0 0 0px ${teamGlow(seats.top, 0)}`,
+            `0 8px 28px ${teamGlow(seats.top, 0.32)}`,
+            `0 0 0px ${teamGlow(seats.top, 0)}`,
+          ],
+        } : { boxShadow: "none" }}
+        transition={currentTurn === seats.top && status === "playing" ? {
+          duration: 2.2, repeat: Infinity, ease: "easeInOut",
+        } : { duration: 0.5 }}
+      >
         <OpponentHand
           seat={seats.top}
           tileCount={handCounts[seats.top] ?? 0}
@@ -1016,12 +1034,24 @@ export default function GamePage() {
           position="top"
           showPass={lastPassSeat === seats.top}
         />
-      </div>
+      </motion.div>
 
       {/* Middle row: left opponent, board, right opponent */}
       <div className="relative flex flex-1 min-h-0 items-center">
         {/* Left opponent — absolute overlay on mobile, in-flow on desktop */}
-        <div className="absolute left-0 top-1/2 -translate-y-1/2 z-10 sm:relative sm:left-auto sm:top-auto sm:translate-y-0 sm:shrink-0 sm:px-4">
+        <motion.div
+          className="absolute left-0 top-1/2 -translate-y-1/2 z-10 sm:relative sm:left-auto sm:top-auto sm:translate-y-0 sm:shrink-0 sm:px-4 rounded-xl"
+          animate={currentTurn === seats.left && status === "playing" ? {
+            boxShadow: [
+              `0 0 0px ${teamGlow(seats.left, 0)}`,
+              `8px 0 28px ${teamGlow(seats.left, 0.32)}`,
+              `0 0 0px ${teamGlow(seats.left, 0)}`,
+            ],
+          } : { boxShadow: "none" }}
+          transition={currentTurn === seats.left && status === "playing" ? {
+            duration: 2.2, repeat: Infinity, ease: "easeInOut",
+          } : { duration: 0.5 }}
+        >
           <OpponentHand
             seat={seats.left}
             tileCount={handCounts[seats.left] ?? 0}
@@ -1032,7 +1062,7 @@ export default function GamePage() {
             position="left"
             showPass={lastPassSeat === seats.left}
           />
-        </div>
+        </motion.div>
 
         {/* Board — takes full width on mobile */}
         <div className="relative flex flex-col items-center flex-1 min-h-0">
@@ -1046,7 +1076,19 @@ export default function GamePage() {
         </div>
 
         {/* Right opponent — absolute overlay on mobile, in-flow on desktop */}
-        <div className="absolute right-0 top-1/2 -translate-y-1/2 z-10 sm:relative sm:right-auto sm:top-auto sm:translate-y-0 sm:shrink-0 sm:px-4">
+        <motion.div
+          className="absolute right-0 top-1/2 -translate-y-1/2 z-10 sm:relative sm:right-auto sm:top-auto sm:translate-y-0 sm:shrink-0 sm:px-4 rounded-xl"
+          animate={currentTurn === seats.right && status === "playing" ? {
+            boxShadow: [
+              `0 0 0px ${teamGlow(seats.right, 0)}`,
+              `-8px 0 28px ${teamGlow(seats.right, 0.32)}`,
+              `0 0 0px ${teamGlow(seats.right, 0)}`,
+            ],
+          } : { boxShadow: "none" }}
+          transition={currentTurn === seats.right && status === "playing" ? {
+            duration: 2.2, repeat: Infinity, ease: "easeInOut",
+          } : { duration: 0.5 }}
+        >
           <OpponentHand
             seat={seats.right}
             tileCount={handCounts[seats.right] ?? 0}
@@ -1057,7 +1099,7 @@ export default function GamePage() {
             position="right"
             showPass={lastPassSeat === seats.right}
           />
-        </div>
+        </motion.div>
       </div>
 
       {/* Player hand (bottom) */}
