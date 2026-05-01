@@ -120,38 +120,74 @@ export function Hand({ onPlayTile, onPass, disabled = false }: HandProps) {
         </span>
       </div>
 
-      {/* "Choose an end" hint — shown when a tile is selected and needs end selection */}
+      {/* End-selection buttons — shown when a tile is selected and both ends are valid */}
       <AnimatePresence>
-        {awaitingEndChoice && (
+        {awaitingEndChoice && selectedTile && (
           <motion.div
-            key="choose-end-hint"
+            key="choose-end-buttons"
             initial={{ opacity: 0, y: 10, scale: 0.9 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 6, scale: 0.93 }}
             transition={{ type: "spring", stiffness: 400, damping: 24 }}
-            className="flex items-center gap-2 rounded-full px-4 py-2 pointer-events-none"
-            role="status"
-            aria-live="polite"
-            style={{
-              background: "linear-gradient(135deg, rgba(42,26,8,0.97) 0%, rgba(26,14,0,0.97) 100%)",
-              border: "1.5px solid rgba(201,168,76,0.6)",
-              boxShadow: "0 0 20px rgba(201,168,76,0.25), 0 4px 16px rgba(0,0,0,0.6)",
-            }}
+            className="flex flex-col items-center gap-2"
+            role="group"
+            aria-label="Elige un extremo para colocar la ficha"
           >
-            {/* Up arrow */}
-            <motion.svg
-              width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"
-              animate={{ y: [0, -3, 0] }}
-              transition={{ duration: 1.2, repeat: Infinity, ease: "easeInOut" }}
-            >
-              <path d="M7 2L12 9H2L7 2Z" fill="#c9a84c" />
-            </motion.svg>
-            <span className="text-[12px] sm:text-[13px] font-bold text-[#c9a84c] tracking-wide leading-none">
-              Elige un extremo en el tablero
+            <span className="text-[10px] uppercase tracking-widest text-[#c9a84c]/60 font-semibold leading-none">
+              ¿En qué extremo?
             </span>
-            {/* Tap to deselect hint */}
-            <span className="text-[9px] text-[#c9a84c]/45 uppercase tracking-widest leading-none hidden sm:inline">
-              · toca la ficha para cancelar
+            <div className="flex items-center gap-3">
+              {(["left", "right"] as const)
+                .filter((end) => getEndsForTile(selectedTile).includes(end))
+                .map((end) => {
+                  const pipValue = end === "left" ? board.left : board.right;
+                  const label = end === "left" ? "Izquierda" : "Derecha";
+                  const arrow = end === "left" ? "←" : "→";
+                  return (
+                    <motion.button
+                      key={end}
+                      whileTap={{ scale: 0.92 }}
+                      whileHover={{ scale: 1.06 }}
+                      onClick={() => {
+                        onPlayTile?.(selectedTile, end);
+                        selectTile(null);
+                      }}
+                      aria-label={`Colocar en extremo ${label} — ${pipValue}`}
+                      className="relative flex items-center gap-2 rounded-2xl min-h-[44px] px-4 py-2.5 overflow-hidden"
+                      style={{
+                        background: "linear-gradient(135deg, #3a2210 0%, #2a1808 100%)",
+                        border: "1.5px solid rgba(201,168,76,0.55)",
+                        boxShadow: "0 0 14px rgba(201,168,76,0.18), 0 4px 12px rgba(0,0,0,0.55), inset 0 1px 0 rgba(201,168,76,0.12)",
+                      }}
+                    >
+                      {/* Pulsing ring */}
+                      <motion.span
+                        className="absolute inset-0 rounded-2xl pointer-events-none"
+                        style={{ border: "1.5px solid rgba(201,168,76,0.5)" }}
+                        animate={{ opacity: [0.4, 0.9, 0.4], scale: [1, 1.03, 1] }}
+                        transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
+                      />
+                      {end === "left" && (
+                        <span className="text-[#c9a84c]/70 text-sm font-bold leading-none">{arrow}</span>
+                      )}
+                      {/* Pip value badge */}
+                      <div className="flex flex-col items-center leading-tight">
+                        <span className="text-[13px] font-black text-[#c9a84c] leading-none tabular-nums">
+                          {pipValue ?? 0}
+                        </span>
+                        <span className="text-[8px] uppercase tracking-widest text-[#c9a84c]/50 leading-none mt-0.5">
+                          {label}
+                        </span>
+                      </div>
+                      {end === "right" && (
+                        <span className="text-[#c9a84c]/70 text-sm font-bold leading-none">{arrow}</span>
+                      )}
+                    </motion.button>
+                  );
+                })}
+            </div>
+            <span className="text-[9px] text-[#c9a84c]/35 uppercase tracking-widest leading-none">
+              toca la ficha para cancelar
             </span>
           </motion.div>
         )}
