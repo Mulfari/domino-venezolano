@@ -178,6 +178,56 @@ export function playUnaFicha() {
   noise.stop(ctx.currentTime + 0.04);
 }
 
+export function playShuffle() {
+  if (_muted) return;
+  const ctx = getCtx();
+  // Rapid tile-clicking bursts that simulate shuffling dominoes on a table
+  const burstCount = 18;
+  for (let i = 0; i < burstCount; i++) {
+    const t = ctx.currentTime + i * 0.055 + Math.random() * 0.025;
+    // Short noise click
+    const buf = ctx.createBuffer(1, Math.floor(ctx.sampleRate * 0.022), ctx.sampleRate);
+    const data = buf.getChannelData(0);
+    for (let j = 0; j < data.length; j++) data[j] = (Math.random() * 2 - 1) * 0.6;
+    const noise = ctx.createBufferSource();
+    noise.buffer = buf;
+    const ng = ctx.createGain();
+    // Fade in slightly then out — envelope for each click
+    ng.gain.setValueAtTime(0, t);
+    ng.gain.linearRampToValueAtTime(0.28 * _volume, t + 0.003);
+    ng.gain.exponentialRampToValueAtTime(0.001, t + 0.022);
+    noise.connect(ng);
+    ng.connect(ctx.destination);
+    noise.start(t);
+    noise.stop(t + 0.025);
+    // Tonal click component — short pitched tap
+    const osc = ctx.createOscillator();
+    osc.type = "sine";
+    osc.frequency.value = 180 + Math.random() * 120;
+    const og = ctx.createGain();
+    og.gain.setValueAtTime(0.18 * _volume, t);
+    og.gain.exponentialRampToValueAtTime(0.001, t + 0.018);
+    osc.connect(og);
+    og.connect(ctx.destination);
+    osc.start(t);
+    osc.stop(t + 0.02);
+  }
+  // Final "settle" thud
+  const settleT = ctx.currentTime + burstCount * 0.055 + 0.05;
+  const sbuf = ctx.createBuffer(1, Math.floor(ctx.sampleRate * 0.06), ctx.sampleRate);
+  const sdata = sbuf.getChannelData(0);
+  for (let j = 0; j < sdata.length; j++) sdata[j] = (Math.random() * 2 - 1) * 0.4;
+  const snoise = ctx.createBufferSource();
+  snoise.buffer = sbuf;
+  const sng = ctx.createGain();
+  sng.gain.setValueAtTime(0.35 * _volume, settleT);
+  sng.gain.exponentialRampToValueAtTime(0.001, settleT + 0.06);
+  snoise.connect(sng);
+  sng.connect(ctx.destination);
+  snoise.start(settleT);
+  snoise.stop(settleT + 0.07);
+}
+
 export function playChatReceived() {
   if (_muted) return;
   const ctx = getCtx();
