@@ -19,6 +19,8 @@ export function Board({ onPlaceEnd, clearing = false }: BoardProps) {
   const selectedTile = useGameStore((s) => s.selectedTile);
   const isMyTurnFn = useGameStore((s) => s.isMyTurn);
   const validMovesFn = useGameStore((s) => s.validMoves);
+  const consecutivePasses = useGameStore((s) => s.consecutivePasses);
+  const status = useGameStore((s) => s.status);
   const containerRef = useRef<HTMLDivElement>(null);
   const [size, setSize] = useState({ w: 400, h: 400 });
   const [hoveredEnd, setHoveredEnd] = useState<"left" | "right" | null>(null);
@@ -294,6 +296,82 @@ export function Board({ onPlaceEnd, clearing = false }: BoardProps) {
                 pointerEvents: "none",
               }}
             />
+
+            {/* Trancado warning — shows when consecutive passes accumulate */}
+            <AnimatePresence>
+              {consecutivePasses >= 1 && status === "playing" && (
+                <motion.div
+                  key={consecutivePasses}
+                  initial={{ opacity: 0, scale: 0.7, y: -6 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.8 }}
+                  transition={{ type: "spring", stiffness: 380, damping: 22 }}
+                  className="absolute top-2 right-2 z-20 pointer-events-none"
+                  role="status"
+                  aria-live="polite"
+                  aria-label={`${consecutivePasses} pases consecutivos de 4`}
+                >
+                  <div
+                    style={{
+                      background: consecutivePasses >= 3
+                        ? "linear-gradient(135deg, #4a0a0a 0%, #2a0505 100%)"
+                        : consecutivePasses === 2
+                        ? "linear-gradient(135deg, #3a1a00 0%, #1e0e00 100%)"
+                        : "linear-gradient(135deg, #1a2a10 0%, #0e1a08 100%)",
+                      border: `1.5px solid ${consecutivePasses >= 3 ? "rgba(239,68,68,0.75)" : consecutivePasses === 2 ? "rgba(251,146,60,0.65)" : "rgba(168,196,160,0.35)"}`,
+                      borderRadius: "8px",
+                      padding: isMobile ? "3px 6px" : "4px 8px",
+                      boxShadow: consecutivePasses >= 3
+                        ? "0 0 16px rgba(239,68,68,0.4), 0 2px 8px rgba(0,0,0,0.7)"
+                        : "0 2px 8px rgba(0,0,0,0.6)",
+                    }}
+                  >
+                    <div className="flex items-center gap-1">
+                      {/* Pip dots showing pass count */}
+                      <div className="flex gap-0.5" aria-hidden="true">
+                        {[0, 1, 2, 3].map((i) => (
+                          <motion.div
+                            key={i}
+                            animate={i < consecutivePasses && consecutivePasses >= 3
+                              ? { scale: [1, 1.3, 1], opacity: [1, 0.6, 1] }
+                              : {}}
+                            transition={{ duration: 0.8, repeat: Infinity, delay: i * 0.15 }}
+                            style={{
+                              width: isMobile ? 5 : 6,
+                              height: isMobile ? 5 : 6,
+                              borderRadius: "50%",
+                              backgroundColor: i < consecutivePasses
+                                ? consecutivePasses >= 3 ? "#ef4444"
+                                  : consecutivePasses === 2 ? "#fb923c"
+                                  : "#a8c4a0"
+                                : "rgba(255,255,255,0.12)",
+                              boxShadow: i < consecutivePasses && consecutivePasses >= 3
+                                ? "0 0 6px rgba(239,68,68,0.8)"
+                                : "none",
+                            }}
+                          />
+                        ))}
+                      </div>
+                      <span
+                        style={{
+                          fontSize: isMobile ? 8 : 9,
+                          fontWeight: 700,
+                          letterSpacing: "0.08em",
+                          textTransform: "uppercase",
+                          color: consecutivePasses >= 3 ? "#ef4444"
+                            : consecutivePasses === 2 ? "#fb923c"
+                            : "rgba(168,196,160,0.75)",
+                          lineHeight: 1,
+                        }}
+                      >
+                        {consecutivePasses >= 3 ? "¡Trancado!" : "Pasos"}
+                      </span>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
             {board.plays.length === 0 ? (
               <div className="absolute inset-0 flex items-center justify-center">
                 <p className="text-emerald-200/70 text-sm font-medium" aria-live="polite">
