@@ -585,6 +585,23 @@ export function Hand({ onPlayTile, onPass, disabled = false }: HandProps) {
                   disableHover
                   onClick={() => handleTileClick(tile)}
                 />
+
+                {/* Keyboard shortcut badge — desktop only */}
+                {isMyTurn && i < 7 && (
+                  <div
+                    className="absolute bottom-0.5 left-1/2 -translate-x-1/2 hidden sm:flex items-center justify-center w-4 h-4 rounded pointer-events-none z-20"
+                    style={{
+                      background: playable ? "rgba(201,168,76,0.18)" : "rgba(0,0,0,0.22)",
+                      border: `1px solid ${playable ? "rgba(201,168,76,0.45)" : "rgba(245,240,232,0.1)"}`,
+                      color: playable ? "#c9a84c" : "rgba(245,240,232,0.2)",
+                      fontSize: "9px",
+                      fontWeight: "bold",
+                    }}
+                    aria-hidden="true"
+                  >
+                    {i + 1}
+                  </div>
+                )}
               </motion.div>
             );
           })}
