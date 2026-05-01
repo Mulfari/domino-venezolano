@@ -489,6 +489,64 @@ export function playGameOverDefeat() {
   noise.stop(thudT + 0.16);
 }
 
+export function playTrancado() {
+  if (_muted) return;
+  const ctx = getCtx();
+  // Heavy "lock" clunk — noise burst + two descending dissonant tones
+  const buf = ctx.createBuffer(1, Math.floor(ctx.sampleRate * 0.09), ctx.sampleRate);
+  const data = buf.getChannelData(0);
+  for (let i = 0; i < data.length; i++) data[i] = (Math.random() * 2 - 1) * 0.55;
+  const noise = ctx.createBufferSource();
+  noise.buffer = buf;
+  const ng = ctx.createGain();
+  ng.gain.setValueAtTime(0.45 * _volume, ctx.currentTime);
+  ng.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.09);
+  noise.connect(ng);
+  ng.connect(ctx.destination);
+  noise.start(ctx.currentTime);
+  noise.stop(ctx.currentTime + 0.1);
+  // Descending dissonant pair — Bb3 then F#3 — feels "stuck"
+  const notes = [233, 185]; // Bb3, F#3
+  notes.forEach((freq, i) => {
+    const t = ctx.currentTime + 0.06 + i * 0.22;
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0.3 * _volume, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.55);
+    g.connect(ctx.destination);
+    const osc = ctx.createOscillator();
+    osc.type = "sawtooth";
+    osc.frequency.value = freq;
+    osc.connect(g);
+    osc.start(t);
+    osc.stop(t + 0.56);
+    // Sub-octave weight
+    const g2 = ctx.createGain();
+    g2.gain.setValueAtTime(0.12 * _volume, t);
+    g2.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
+    g2.connect(ctx.destination);
+    const osc2 = ctx.createOscillator();
+    osc2.type = "sine";
+    osc2.frequency.value = freq * 0.5;
+    osc2.connect(g2);
+    osc2.start(t);
+    osc2.stop(t + 0.36);
+  });
+  // Final low thud
+  const thudT = ctx.currentTime + 0.55;
+  const tbuf = ctx.createBuffer(1, Math.floor(ctx.sampleRate * 0.12), ctx.sampleRate);
+  const tdata = tbuf.getChannelData(0);
+  for (let i = 0; i < tdata.length; i++) tdata[i] = (Math.random() * 2 - 1) * 0.4;
+  const tnoise = ctx.createBufferSource();
+  tnoise.buffer = tbuf;
+  const tng = ctx.createGain();
+  tng.gain.setValueAtTime(0.35 * _volume, thudT);
+  tng.gain.exponentialRampToValueAtTime(0.001, thudT + 0.12);
+  tnoise.connect(tng);
+  tng.connect(ctx.destination);
+  tnoise.start(thudT);
+  tnoise.stop(thudT + 0.13);
+}
+
 export function playChatReceived() {
   if (_muted) return;
   const ctx = getCtx();
