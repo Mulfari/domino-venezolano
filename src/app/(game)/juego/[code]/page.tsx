@@ -21,7 +21,7 @@ import { DominoSplash } from "@/components/game/domino-splash";
 import { PassMeter } from "@/components/game/pass-meter";
 import { useGameChannel } from "@/hooks/use-game-channel";
 import { useGameStore } from "@/stores/game-store";
-import { playTilePlace, playPass, playYourTurn, playVictory, playDefeat, playCapicua, playUnaFicha, playShuffle } from "@/lib/sounds/sound-engine";
+import { playTilePlace, playPass, playYourTurn, playVictory, playDefeat, playCapicua, playUnaFicha, playShuffle, playDouble } from "@/lib/sounds/sound-engine";
 import { requestNotificationPermission, notifyTurn } from "@/lib/notifications/turn-notification";
 import type { GameEvent } from "@/lib/realtime/events";
 import type { Tile, Seat } from "@/lib/game/types";
@@ -329,7 +329,9 @@ export default function GamePage() {
 
       switch (event.type) {
         case "tile_played": {
-          playTilePlace();
+          const playedTile = event.tile as Tile;
+          if (playedTile[0] === playedTile[1]) playDouble();
+          else playTilePlace();
           if (currentSeat !== null && event.seat === currentSeat) {
             break;
           }
@@ -507,6 +509,9 @@ export default function GamePage() {
   async function handlePlayTile(tile: Tile, end: "left" | "right") {
     if (actionLoading) return;
     setActionLoading(true);
+
+    if (tile[0] === tile[1]) playDouble();
+    else playTilePlace();
 
     // Optimistic update
     playTile(tile, end);

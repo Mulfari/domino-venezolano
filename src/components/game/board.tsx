@@ -53,10 +53,14 @@ export function Board({ onPlaceEnd, clearing = false }: BoardProps) {
 
   const prevLastKeyRef = useRef<string | null>(null);
   const [animatingKey, setAnimatingKey] = useState<string | null>(null);
+  const [showDoubleBadge, setShowDoubleBadge] = useState(false);
+  const doubleBadgeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const prevPlaysLengthRef = useRef(0);
 
   useEffect(() => {
     if (board.plays.length === 0) {
       prevLastKeyRef.current = null;
+      prevPlaysLengthRef.current = 0;
       return;
     }
     const idx = board.plays.length - 1;
@@ -65,7 +69,14 @@ export function Board({ onPlaceEnd, clearing = false }: BoardProps) {
     if (lastKey !== prevLastKeyRef.current) {
       prevLastKeyRef.current = lastKey;
       setAnimatingKey(lastKey);
+      // Show ¡Doble! badge when a new double tile is placed
+      if (board.plays.length > prevPlaysLengthRef.current && lastPlay.tile[0] === lastPlay.tile[1]) {
+        setShowDoubleBadge(true);
+        if (doubleBadgeTimerRef.current) clearTimeout(doubleBadgeTimerRef.current);
+        doubleBadgeTimerRef.current = setTimeout(() => setShowDoubleBadge(false), 1800);
+      }
     }
+    prevPlaysLengthRef.current = board.plays.length;
   }, [board.plays]);
 
   const placedTiles = useMemo(
@@ -355,6 +366,84 @@ export function Board({ onPlaceEnd, clearing = false }: BoardProps) {
                       >
                         ¡Capicúa!
                       </motion.span>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* ¡Doble! badge — flashes briefly when a double tile is placed */}
+            <AnimatePresence>
+              {showDoubleBadge && (
+                <motion.div
+                  key="doble-badge"
+                  initial={{ opacity: 0, scale: 0.6, y: 8 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.75, y: -6 }}
+                  transition={{ type: "spring", stiffness: 420, damping: 22 }}
+                  className="absolute bottom-2 left-1/2 -translate-x-1/2 z-20 pointer-events-none"
+                  role="status"
+                  aria-live="polite"
+                  aria-label="¡Doble!"
+                >
+                  <div
+                    style={{
+                      background: "linear-gradient(135deg, #1a0e2a 0%, #0e0818 100%)",
+                      border: "1.5px solid rgba(201,168,76,0.8)",
+                      borderRadius: "10px",
+                      padding: isMobile ? "3px 8px" : "4px 10px",
+                      boxShadow: "0 0 18px rgba(201,168,76,0.45), 0 2px 8px rgba(0,0,0,0.7)",
+                    }}
+                  >
+                    <div className="flex items-center gap-1.5">
+                      {/* Two matching pips */}
+                      <div className="flex gap-0.5" aria-hidden="true">
+                        {[0, 1].map((i) => (
+                          <motion.div
+                            key={i}
+                            animate={{ scale: [1, 1.4, 1] }}
+                            transition={{ duration: 0.5, delay: i * 0.12, ease: "easeInOut" }}
+                            style={{
+                              width: isMobile ? 5 : 6,
+                              height: isMobile ? 5 : 6,
+                              borderRadius: "50%",
+                              backgroundColor: "#c9a84c",
+                              boxShadow: "0 0 6px rgba(201,168,76,0.9)",
+                            }}
+                          />
+                        ))}
+                      </div>
+                      <motion.span
+                        animate={{ opacity: [0.8, 1, 0.8] }}
+                        transition={{ duration: 0.7, repeat: 2, ease: "easeInOut" }}
+                        style={{
+                          fontSize: isMobile ? 9 : 10,
+                          fontWeight: 800,
+                          letterSpacing: "0.1em",
+                          textTransform: "uppercase",
+                          color: "#c9a84c",
+                          lineHeight: 1,
+                          textShadow: "0 0 8px rgba(201,168,76,0.7)",
+                        }}
+                      >
+                        ¡Doble!
+                      </motion.span>
+                      <div className="flex gap-0.5" aria-hidden="true">
+                        {[0, 1].map((i) => (
+                          <motion.div
+                            key={i}
+                            animate={{ scale: [1, 1.4, 1] }}
+                            transition={{ duration: 0.5, delay: 0.24 + i * 0.12, ease: "easeInOut" }}
+                            style={{
+                              width: isMobile ? 5 : 6,
+                              height: isMobile ? 5 : 6,
+                              borderRadius: "50%",
+                              backgroundColor: "#c9a84c",
+                              boxShadow: "0 0 6px rgba(201,168,76,0.9)",
+                            }}
+                          />
+                        ))}
+                      </div>
                     </div>
                   </div>
                 </motion.div>

@@ -228,6 +228,37 @@ export function playShuffle() {
   snoise.stop(settleT + 0.07);
 }
 
+export function playDouble() {
+  if (_muted) return;
+  const ctx = getCtx();
+  // Two bright "ding" tones — a minor third apart — to signal a double
+  const notes = [880, 1047]; // A5, C6
+  notes.forEach((freq, i) => {
+    const t = ctx.currentTime + i * 0.13;
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0.28 * _volume, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.32);
+    g.connect(ctx.destination);
+    const osc = ctx.createOscillator();
+    osc.type = "triangle";
+    osc.frequency.value = freq;
+    osc.connect(g);
+    osc.start(t);
+    osc.stop(t + 0.33);
+    // Subtle harmonic overtone
+    const g2 = ctx.createGain();
+    g2.gain.setValueAtTime(0.09 * _volume, t);
+    g2.gain.exponentialRampToValueAtTime(0.001, t + 0.18);
+    g2.connect(ctx.destination);
+    const osc2 = ctx.createOscillator();
+    osc2.type = "sine";
+    osc2.frequency.value = freq * 2;
+    osc2.connect(g2);
+    osc2.start(t);
+    osc2.stop(t + 0.19);
+  });
+}
+
 export function playChatReceived() {
   if (_muted) return;
   const ctx = getCtx();
