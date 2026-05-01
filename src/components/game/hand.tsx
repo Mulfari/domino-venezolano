@@ -102,6 +102,7 @@ export function Hand({ onPlayTile, onPass, disabled = false }: HandProps) {
   const [showShortcuts, setShowShortcuts] = useState(false);
   const shortcutsRef = useRef<HTMLDivElement>(null);
   const [hintTile, setHintTile] = useState<Tile | null>(null);
+  const [hintEnd, setHintEnd] = useState<"left" | "right" | null>(null);
   const hintTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Close shortcuts popover when clicking outside
@@ -123,19 +124,21 @@ export function Hand({ onPlayTile, onPass, disabled = false }: HandProps) {
   // Clear hint when turn changes or tile is played
   useEffect(() => {
     setHintTile(null);
+    setHintEnd(null);
     if (hintTimerRef.current) clearTimeout(hintTimerRef.current);
   }, [isMyTurn, myHand.length]);
 
   function handleHint() {
     if (!isMyTurn || validMoves.length < 2) return;
-    // Pick the playable tile with the highest pip sum (best to shed)
-    const best = validMoves.reduce<Tile | null>((acc, m) => {
-      if (!acc) return m.tile;
-      return m.tile[0] + m.tile[1] > acc[0] + acc[1] ? m.tile : acc;
+    // Pick the move with the highest pip sum (best to shed)
+    const bestMove = validMoves.reduce<{ tile: Tile; end: "left" | "right" } | null>((acc, m) => {
+      if (!acc) return m;
+      return m.tile[0] + m.tile[1] > acc.tile[0] + acc.tile[1] ? m : acc;
     }, null);
-    setHintTile(best);
+    setHintTile(bestMove?.tile ?? null);
+    setHintEnd(bestMove?.end ?? null);
     if (hintTimerRef.current) clearTimeout(hintTimerRef.current);
-    hintTimerRef.current = setTimeout(() => setHintTile(null), 3500);
+    hintTimerRef.current = setTimeout(() => { setHintTile(null); setHintEnd(null); }, 3500);
   }
 
   function isHintTile(tile: Tile): boolean {
@@ -251,6 +254,14 @@ export function Hand({ onPlayTile, onPass, disabled = false }: HandProps) {
 
     if (ends.length === 1 || board.left === null || board.left === board.right) {
       onPlayTile?.(tile, ends[0]);
+      return;
+    }
+
+    // If this is the hint tile and we already know the best end, auto-play there
+    if (isHintTile(tile) && hintEnd && ends.includes(hintEnd)) {
+      onPlayTile?.(tile, hintEnd);
+      setHintTile(null);
+      setHintEnd(null);
       return;
     }
 
@@ -579,7 +590,7 @@ export function Hand({ onPlayTile, onPass, disabled = false }: HandProps) {
                       animate={{ opacity: [0.8, 1, 0.8] }}
                       transition={{ duration: 1.1, repeat: Infinity, ease: "easeInOut" }}
                     >
-                      sugerida
+                      {hintEnd === "left" ? "← izq" : hintEnd === "right" ? "der →" : "sugerida"}
                     </motion.div>
                   </>
                 )}
