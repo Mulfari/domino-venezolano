@@ -38,6 +38,8 @@ function getStreak(history: RoundHistoryEntry[], team: 0 | 1): number {
   return streak;
 }
 
+const CERCA_THRESHOLD = 20;
+
 function TeamCard({
   teamIdx, score, targetScore, isMyTeam, seats, players, firstSeat, streak,
 }: {
@@ -53,6 +55,7 @@ function TeamCard({
   const display = useAnimatedCounter(score);
   const pct = Math.min((score / targetScore) * 100, 100);
   const remaining = Math.max(targetScore - score, 0);
+  const isCerca = remaining > 0 && remaining <= CERCA_THRESHOLD;
 
   const prevRef = useRef(score);
   const [delta, setDelta] = useState<number | null>(null);
@@ -79,15 +82,25 @@ function TeamCard({
   });
   const teamLabel = teamNames.join(" & ");
 
+  // Cerca border color: amber for opponent, gold-red for my team
+  const cercaBorderColor = isMyTeam ? "rgba(220,80,40,0.7)" : "rgba(201,168,76,0.55)";
+
   return (
     <motion.div
-      animate={flash ? { boxShadow: ["0 0 0px rgba(201,168,76,0)", "0 0 18px rgba(201,168,76,0.45)", "0 0 0px rgba(201,168,76,0)"] } : {}}
-      transition={{ duration: 0.9 }}
+      animate={
+        isCerca
+          ? { boxShadow: [`0 0 0px ${cercaBorderColor}`, `0 0 22px ${cercaBorderColor}`, `0 0 0px ${cercaBorderColor}`] }
+          : flash
+          ? { boxShadow: ["0 0 0px rgba(201,168,76,0)", "0 0 18px rgba(201,168,76,0.45)", "0 0 0px rgba(201,168,76,0)"] }
+          : {}
+      }
+      transition={isCerca ? { duration: 1.4, repeat: Infinity, ease: "easeInOut" } : { duration: 0.9 }}
       className={`rounded-xl border px-3 py-2.5 ${
         isMyTeam
           ? "border-[#c9a84c]/45 bg-[#c9a84c]/8"
           : "border-[#f5f0e8]/10 bg-[#0f3520]/30 opacity-80"
       }`}
+      style={isCerca ? { borderColor: cercaBorderColor } : undefined}
     >
       {/* Top row: team label + score */}
       <div className="flex items-start justify-between gap-2 mb-2">
@@ -220,20 +233,56 @@ function TeamCard({
         <motion.div
           className="h-full rounded-full"
           initial={false}
-          animate={{ width: `${pct}%` }}
-          transition={{ duration: 0.65, ease: "easeOut" }}
+          animate={isCerca ? {
+            width: `${pct}%`,
+            opacity: [1, 0.65, 1],
+          } : { width: `${pct}%`, opacity: 1 }}
+          transition={isCerca ? {
+            width: { duration: 0.65, ease: "easeOut" },
+            opacity: { duration: 0.9, repeat: Infinity, ease: "easeInOut" },
+          } : { duration: 0.65, ease: "easeOut" }}
           style={{
-            background: isMyTeam
+            background: isCerca
+              ? "linear-gradient(90deg, #c0392b 0%, #e84a3a 60%, #ff6b5a 100%)"
+              : isMyTeam
               ? "linear-gradient(90deg, #a07830 0%, #c9a84c 60%, #e8c96a 100%)"
               : "linear-gradient(90deg, #6a8f6a 0%, #a8c4a0 100%)",
           }}
         />
       </div>
-      <div className="flex justify-between mt-1">
+      <div className="flex justify-between items-center mt-1">
         <span className="text-[8px] text-[#a8c4a0]/40 tabular-nums">{pct.toFixed(0)}%</span>
-        <span className="text-[8px] text-[#a8c4a0]/45 tabular-nums">
-          {remaining > 0 ? `faltan ${remaining} pts` : "¡meta!"}
-        </span>
+        <AnimatePresence mode="wait">
+          {isCerca ? (
+            <motion.span
+              key="cerca"
+              initial={{ opacity: 0, scale: 0.7 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.7 }}
+              transition={{ type: "spring", stiffness: 500, damping: 22 }}
+              className="flex items-center gap-1"
+            >
+              <motion.span
+                className="text-[8px] font-black uppercase tracking-widest tabular-nums"
+                style={{ color: "#e84a3a", textShadow: "0 0 8px rgba(232,74,58,0.7)" }}
+                animate={{ opacity: [1, 0.55, 1] }}
+                transition={{ duration: 0.85, repeat: Infinity, ease: "easeInOut" }}
+              >
+                ¡Cerca! {remaining} pts
+              </motion.span>
+            </motion.span>
+          ) : (
+            <motion.span
+              key="normal"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="text-[8px] text-[#a8c4a0]/45 tabular-nums"
+            >
+              {remaining > 0 ? `faltan ${remaining} pts` : "¡meta!"}
+            </motion.span>
+          )}
+        </AnimatePresence>
       </div>
     </motion.div>
   );
