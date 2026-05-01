@@ -345,6 +345,40 @@ export function playCochina() {
   noise.stop(ctx.currentTime + 0.07);
 }
 
+export function playTimeout() {
+  if (_muted) return;
+  const ctx = getCtx();
+  // Three descending tones — "time's up" signal
+  const notes = [523, 392, 262]; // C5, G4, C4
+  notes.forEach((freq, i) => {
+    const t = ctx.currentTime + i * 0.18;
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0.3 * _volume, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.28);
+    g.connect(ctx.destination);
+    const osc = ctx.createOscillator();
+    osc.type = "sawtooth";
+    osc.frequency.value = freq;
+    osc.connect(g);
+    osc.start(t);
+    osc.stop(t + 0.29);
+  });
+  // Low thud at the end
+  const t3 = ctx.currentTime + 0.54;
+  const buf = ctx.createBuffer(1, Math.floor(ctx.sampleRate * 0.1), ctx.sampleRate);
+  const data = buf.getChannelData(0);
+  for (let i = 0; i < data.length; i++) data[i] = (Math.random() * 2 - 1) * 0.4;
+  const noise = ctx.createBufferSource();
+  noise.buffer = buf;
+  const ng = ctx.createGain();
+  ng.gain.setValueAtTime(0.25 * _volume, t3);
+  ng.gain.exponentialRampToValueAtTime(0.001, t3 + 0.1);
+  noise.connect(ng);
+  ng.connect(ctx.destination);
+  noise.start(t3);
+  noise.stop(t3 + 0.11);
+}
+
 export function playChatReceived() {
   if (_muted) return;
   const ctx = getCtx();

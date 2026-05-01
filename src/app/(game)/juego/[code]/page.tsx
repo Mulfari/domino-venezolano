@@ -132,6 +132,8 @@ export default function GamePage() {
   const [boardTransitioning, setBoardTransitioning] = useState(false);
   const [copiedCode, setCopiedCode] = useState(false);
   const copiedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [tiempoAlert, setTiempoAlert] = useState(false);
+  const tiempoTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [transitionRound, setTransitionRound] = useState<number | null>(null);
   const [transitionScores, setTransitionScores] = useState<{ prev: { 0: number; 1: number }; next: { 0: number; 1: number } } | null>(null);
   const [transitionWinner, setTransitionWinner] = useState<{ team: 0 | 1 | null; points: number; reason: string } | null>(null);
@@ -670,6 +672,12 @@ export default function GamePage() {
     else router.push("/");
   }
 
+  function handleTimeout() {
+    if (tiempoTimerRef.current) clearTimeout(tiempoTimerRef.current);
+    setTiempoAlert(true);
+    tiempoTimerRef.current = setTimeout(() => setTiempoAlert(false), 2500);
+  }
+
   function handleCopyCode() {
     if (!roomCode) return;
     navigator.clipboard.writeText(roomCode).catch(() => {});
@@ -754,7 +762,7 @@ export default function GamePage() {
         <ScorePanel />
         <div className="flex items-center gap-1 sm:flex-col sm:gap-1 min-w-0">
           <TurnIndicator />
-          <TurnTimer onAutoPass={handlePass} onAutoPlay={handleAutoPlay} />
+          <TurnTimer onAutoPass={handlePass} onAutoPlay={handleAutoPlay} onTimeout={handleTimeout} />
         </div>
         {/* Room code badge + sound */}
         <div className="min-w-0 sm:min-w-[160px] flex items-center justify-end gap-1 sm:gap-2">
@@ -1122,6 +1130,44 @@ export default function GamePage() {
         <Hand onPlayTile={handlePlayTile} onPass={handlePass} disabled={actionLoading} />
       </motion.div>
       </motion.div>
+
+      {/* ¡Tiempo! toast — fires when the turn timer expires and auto-passes/plays */}
+      <AnimatePresence>
+        {tiempoAlert && (
+          <motion.div
+            key="tiempo-toast"
+            initial={{ opacity: 0, y: -28, scale: 0.82 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -18, scale: 0.9 }}
+            transition={{ type: "spring", stiffness: 440, damping: 24 }}
+            className="fixed top-16 left-1/2 -translate-x-1/2 z-50 pointer-events-none"
+            role="status"
+            aria-live="assertive"
+          >
+            <div
+              className="flex items-center gap-2.5 rounded-full px-5 py-2.5 backdrop-blur-sm"
+              style={{
+                background: "linear-gradient(135deg, #2a0808 0%, #1a0404 100%)",
+                border: "1.5px solid rgba(239,68,68,0.75)",
+                boxShadow: "0 0 32px 8px rgba(239,68,68,0.3), 0 8px 24px rgba(0,0,0,0.8)",
+              }}
+            >
+              {/* Hourglass icon */}
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+                <path d="M4 2h10M4 16h10M5 2v3l4 4-4 4v3M13 2v3l-4 4 4 4v3" stroke="#ef4444" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              <div className="flex flex-col leading-tight">
+                <span className="text-[13px] font-black text-red-400 uppercase tracking-widest leading-none">
+                  ¡Tiempo!
+                </span>
+                <span className="text-[10px] text-[#f5f0e8]/55 leading-none mt-0.5">
+                  turno pasado automáticamente
+                </span>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* ¡Una ficha! toast */}
       <AnimatePresence>

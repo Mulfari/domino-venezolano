@@ -4,12 +4,14 @@ import { useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { createPortal } from "react-dom";
 import { useGameStore } from "@/stores/game-store";
+import { playTimeout } from "@/lib/sounds/sound-engine";
 
 const TURN_DURATION = 30;
 
 interface TurnTimerProps {
   onAutoPass?: () => void;
   onAutoPlay?: () => void;
+  onTimeout?: () => void;
 }
 
 // Vignette rendered as a portal so it covers the full viewport regardless of stacking context
@@ -40,7 +42,7 @@ function UrgentVignette({ seconds }: { seconds: number }) {
   );
 }
 
-export function TurnTimer({ onAutoPass, onAutoPlay }: TurnTimerProps) {
+export function TurnTimer({ onAutoPass, onAutoPlay, onTimeout }: TurnTimerProps) {
   const currentTurn = useGameStore((s) => s.currentTurn);
   const status = useGameStore((s) => s.status);
   const mySeat = useGameStore((s) => s.mySeat);
@@ -72,13 +74,15 @@ export function TurnTimer({ onAutoPass, onAutoPlay }: TurnTimerProps) {
   useEffect(() => {
     if (seconds === 0 && isMyTurn && !autoPassedRef.current) {
       autoPassedRef.current = true;
+      playTimeout();
+      onTimeout?.();
       if (canPass && onAutoPass) {
         onAutoPass();
       } else if (!canPass && onAutoPlay) {
         onAutoPlay();
       }
     }
-  }, [seconds, isMyTurn, canPass, onAutoPass, onAutoPlay]);
+  }, [seconds, isMyTurn, canPass, onAutoPass, onAutoPlay, onTimeout]);
 
   if (status !== "playing") return null;
   if (isBot) return null;
