@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { DominoTile } from "./tile";
 import { useGameStore } from "@/stores/game-store";
@@ -34,6 +34,24 @@ export function Hand({ onPlayTile, onPass, disabled = false }: HandProps) {
   const validMoves = validMovesFn();
   const canPass = canPassFn();
   const isFirstPlay = round === 1 && board.plays.length === 0;
+
+  // Track dealing animation: fires once when a new round starts and hand is populated
+  const prevRoundRef = useRef(round);
+  const [isDealing, setIsDealing] = useState(false);
+  const dealingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    if (round !== prevRoundRef.current && myHand.length > 0) {
+      prevRoundRef.current = round;
+      setIsDealing(true);
+      if (dealingTimerRef.current) clearTimeout(dealingTimerRef.current);
+      // Keep dealing state active long enough for all tiles to animate in
+      dealingTimerRef.current = setTimeout(() => setIsDealing(false), myHand.length * 110 + 400);
+    }
+    return () => {
+      if (dealingTimerRef.current) clearTimeout(dealingTimerRef.current);
+    };
+  }, [round, myHand.length]);
 
   const myTeam = mySeat !== null ? ((mySeat % 2) as 0 | 1) : 0;
   const myName = players.find((p) => p.seat === mySeat)?.displayName ?? "Tú";
@@ -262,11 +280,20 @@ export function Hand({ onPlayTile, onPass, disabled = false }: HandProps) {
             const cochina = isCochina(tile);
             const isDouble = tile[0] === tile[1] && !cochina;
 
+            // Dealing animation: tiles fly in from above with stagger, like being dealt from a deck
+            const dealDelay = isDealing ? i * 0.11 : i * 0.03;
+            const dealInitial = isDealing
+              ? { opacity: 0, y: -80, x: (i - (myHand.length - 1) / 2) * -12, scale: 0.6, rotate: (i % 2 === 0 ? -18 : 18) }
+              : { opacity: 0, y: 30, scale: 0.8 };
+            const dealTransition = isDealing
+              ? { type: "spring" as const, stiffness: 320, damping: 22, delay: dealDelay }
+              : { type: "spring" as const, stiffness: 350, damping: 22, delay: dealDelay };
+
             return (
               <motion.div
                 key={`${tile[0]}-${tile[1]}-${i}`}
                 layout
-                initial={{ opacity: 0, y: 30, scale: 0.8 }}
+                initial={dealInitial}
                 animate={{
                   opacity: isMyTurn && !playable && !cochina ? 0.38 : 1,
                   y: cochina ? -8 : selected ? -16 : 0,
@@ -289,7 +316,7 @@ export function Hand({ onPlayTile, onPass, disabled = false }: HandProps) {
                     : undefined
                 }
                 exit={{ opacity: 0, y: -20, scale: 0.8 }}
-                transition={{ type: "spring", stiffness: 350, damping: 22, delay: i * 0.03 }}
+                transition={dealTransition}
                 className="relative"
                 style={{ cursor: playable ? "pointer" : "default", minWidth: 44, minHeight: 44, display: "flex", alignItems: "center", justifyContent: "center" }}
               >
