@@ -95,6 +95,31 @@ export function Hand({ onPlayTile, onPass, disabled = false }: HandProps) {
       role="region"
       aria-label="Tu mano"
     >
+      {/* Player identity badge */}
+      <div className="flex items-center gap-1.5">
+        <span
+          className="w-1.5 h-1.5 rounded-full shrink-0"
+          style={{ backgroundColor: teamColors.name }}
+          aria-hidden="true"
+        />
+        <span
+          className="text-[10px] sm:text-[11px] font-semibold truncate max-w-[100px] leading-none"
+          style={{ color: teamColors.name }}
+        >
+          {myName}
+        </span>
+        <span
+          className="text-[8px] uppercase tracking-widest leading-none px-1 py-0.5 rounded"
+          style={{
+            color: teamColors.name,
+            backgroundColor: teamColors.badgeBg,
+            border: `1px solid ${teamColors.badgeBorder}`,
+          }}
+        >
+          tú
+        </span>
+      </div>
+
       {/* "Choose an end" hint — shown when a tile is selected and needs end selection */}
       <AnimatePresence>
         {awaitingEndChoice && (
