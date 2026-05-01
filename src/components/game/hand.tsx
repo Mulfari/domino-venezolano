@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { DominoTile } from "./tile";
 import { useGameStore } from "@/stores/game-store";
@@ -89,6 +89,20 @@ export function Hand({ onPlayTile, onPass, disabled = false }: HandProps) {
   const myTeam = mySeat !== null ? ((mySeat % 2) as 0 | 1) : 0;
   const myName = players.find((p) => p.seat === mySeat)?.displayName ?? "Tú";
   const teamColors = TEAM_COLORS[myTeam];
+  const [showShortcuts, setShowShortcuts] = useState(false);
+  const shortcutsRef = useRef<HTMLDivElement>(null);
+
+  // Close shortcuts popover when clicking outside
+  useEffect(() => {
+    if (!showShortcuts) return;
+    function onPointerDown(e: PointerEvent) {
+      if (shortcutsRef.current && !shortcutsRef.current.contains(e.target as Node)) {
+        setShowShortcuts(false);
+      }
+    }
+    document.addEventListener("pointerdown", onPointerDown);
+    return () => document.removeEventListener("pointerdown", onPointerDown);
+  }, [showShortcuts]);
 
   const totalPips = myHand.reduce((sum, [a, b]) => sum + a + b, 0);
   // trancado is imminent when 2+ consecutive passes have happened
@@ -516,6 +530,96 @@ export function Hand({ onPlayTile, onPass, disabled = false }: HandProps) {
               </motion.div>
             );
           })}
+        </AnimatePresence>
+      </div>
+
+      {/* Keyboard shortcuts help button — desktop only */}
+      <div ref={shortcutsRef} className="hidden sm:block relative">
+        <button
+          onClick={() => setShowShortcuts((v) => !v)}
+          aria-label="Atajos de teclado"
+          aria-expanded={showShortcuts}
+          className="flex items-center gap-1 rounded-full px-2 py-1 text-[9px] font-semibold uppercase tracking-widest transition-colors"
+          style={{
+            color: showShortcuts ? "#c9a84c" : "rgba(168,196,160,0.45)",
+            background: showShortcuts ? "rgba(201,168,76,0.1)" : "transparent",
+            border: `1px solid ${showShortcuts ? "rgba(201,168,76,0.35)" : "rgba(168,196,160,0.15)"}`,
+          }}
+        >
+          <svg width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true">
+            <rect x="0.5" y="0.5" width="9" height="9" rx="2" stroke="currentColor" strokeWidth="1"/>
+            <path d="M3.5 3.5h1M5.5 3.5h1M3.5 5h1M5.5 5h1M3.5 6.5h3" stroke="currentColor" strokeWidth="0.8" strokeLinecap="round"/>
+          </svg>
+          Atajos
+        </button>
+
+        <AnimatePresence>
+          {showShortcuts && (
+            <motion.div
+              key="shortcuts-popover"
+              initial={{ opacity: 0, y: 8, scale: 0.92 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 4, scale: 0.94 }}
+              transition={{ type: "spring", stiffness: 420, damping: 26 }}
+              className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 z-50 rounded-xl overflow-hidden"
+              style={{
+                background: "linear-gradient(160deg, #1e3a20 0%, #0f2010 100%)",
+                border: "1px solid rgba(201,168,76,0.3)",
+                boxShadow: "0 8px 32px rgba(0,0,0,0.75), 0 0 0 1px rgba(0,0,0,0.4)",
+                minWidth: 200,
+              }}
+              role="tooltip"
+              aria-label="Atajos de teclado disponibles"
+            >
+              {/* Header */}
+              <div className="px-3 py-2 border-b border-[#c9a84c]/15 flex items-center gap-1.5">
+                <svg width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true">
+                  <rect x="0.5" y="0.5" width="9" height="9" rx="2" stroke="#c9a84c" strokeWidth="1" opacity="0.7"/>
+                  <path d="M3.5 3.5h1M5.5 3.5h1M3.5 5h1M5.5 5h1M3.5 6.5h3" stroke="#c9a84c" strokeWidth="0.8" strokeLinecap="round" opacity="0.7"/>
+                </svg>
+                <span className="text-[9px] font-bold uppercase tracking-widest text-[#c9a84c]/70">
+                  Atajos de teclado
+                </span>
+              </div>
+
+              {/* Shortcut rows */}
+              <div className="px-3 py-2 space-y-1.5">
+                {[
+                  { keys: ["1", "–", "7"], desc: "Seleccionar ficha" },
+                  { keys: ["←", "→"], desc: "Elegir extremo" },
+                  { keys: ["P"], desc: "Pasar turno" },
+                  { keys: ["Esc"], desc: "Cancelar selección" },
+                ].map(({ keys, desc }) => (
+                  <div key={desc} className="flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-0.5">
+                      {keys.map((k, i) => (
+                        <span key={i} className="flex items-center gap-0.5">
+                          {i > 0 && k !== "–" && (
+                            <span className="text-[8px] text-[#a8c4a0]/30 mx-0.5">/</span>
+                          )}
+                          <kbd
+                            className="inline-flex items-center justify-center rounded px-1.5 py-0.5 text-[9px] font-bold leading-none"
+                            style={{
+                              background: "rgba(0,0,0,0.4)",
+                              border: "1px solid rgba(201,168,76,0.25)",
+                              color: "#c9a84c",
+                              minWidth: k === "–" ? undefined : 18,
+                              fontFamily: "monospace",
+                            }}
+                          >
+                            {k}
+                          </kbd>
+                        </span>
+                      ))}
+                    </div>
+                    <span className="text-[10px] text-[#f5f0e8]/55 leading-none text-right">
+                      {desc}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          )}
         </AnimatePresence>
       </div>
 
