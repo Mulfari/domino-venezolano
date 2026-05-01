@@ -151,47 +151,48 @@ export function DominoTile({
           <stop offset="0%" stopColor="transparent" />
           <stop offset="100%" stopColor="rgba(0,0,0,0.16)" />
         </linearGradient>
-        <linearGradient id={`back-${uid}`} x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor="#6b4422" />
-          <stop offset="45%" stopColor="#3a2210" />
-          <stop offset="100%" stopColor="#1a0c04" />
+        <linearGradient id={`back-${uid}`} x1="0.15" y1="0" x2="0.85" y2="1">
+          <stop offset="0%" stopColor="#7a4e28" />
+          <stop offset="30%" stopColor="#4a2c12" />
+          <stop offset="65%" stopColor="#2e1808" />
+          <stop offset="100%" stopColor="#150800" />
         </linearGradient>
-        <pattern id={`grain-${uid}`} x="0" y="0" width="3" height="3" patternUnits="userSpaceOnUse" patternTransform="rotate(12)">
-          <line x1="0" y1="0" x2="0" y2="3" stroke="#c07838" strokeWidth="1.2" opacity="0.9"/>
+        <pattern id={`grain-${uid}`} x="0" y="0" width="3" height="3" patternUnits="userSpaceOnUse" patternTransform="rotate(10)">
+          <line x1="0" y1="0" x2="0" y2="3" stroke="#d08840" strokeWidth="1.4" opacity="1.0"/>
         </pattern>
-        <pattern id={`grain2-${uid}`} x="0" y="0" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(78)">
-          <line x1="0" y1="0" x2="0" y2="5" stroke="#2a0e02" strokeWidth="1.0" opacity="0.7"/>
+        <pattern id={`grain2-${uid}`} x="0" y="0" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(75)">
+          <line x1="0" y1="0" x2="0" y2="5" stroke="#1a0800" strokeWidth="1.2" opacity="0.85"/>
         </pattern>
-        <pattern id={`grain3-${uid}`} x="0" y="0" width="9" height="9" patternUnits="userSpaceOnUse" patternTransform="rotate(5)">
-          <line x1="0" y1="0" x2="0" y2="9" stroke="#8a5228" strokeWidth="2.0" opacity="0.5"/>
+        <pattern id={`grain3-${uid}`} x="0" y="0" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(6)">
+          <line x1="0" y1="0" x2="0" y2="8" stroke="#9a5e30" strokeWidth="2.2" opacity="0.65"/>
         </pattern>
-        <pattern id={`grain4-${uid}`} x="0" y="0" width="18" height="18" patternUnits="userSpaceOnUse" patternTransform="rotate(2)">
-          <line x1="0" y1="0" x2="0" y2="18" stroke="#5a2e0a" strokeWidth="3.0" opacity="0.22"/>
+        <pattern id={`grain4-${uid}`} x="0" y="0" width="16" height="16" patternUnits="userSpaceOnUse" patternTransform="rotate(3)">
+          <line x1="0" y1="0" x2="0" y2="16" stroke="#6a3818" strokeWidth="3.5" opacity="0.38"/>
         </pattern>
-        <radialGradient id={`vignette-${uid}`} cx="50%" cy="50%" r="70%">
+        <radialGradient id={`vignette-${uid}`} cx="50%" cy="50%" r="68%">
           <stop offset="0%" stopColor="transparent" />
-          <stop offset="100%" stopColor="#0a0400" stopOpacity="0.72" />
+          <stop offset="100%" stopColor="#080200" stopOpacity="0.82" />
         </radialGradient>
         {/* 3D bevel: bright top/left, dark bottom/right */}
         <linearGradient id={`edge-top-${uid}`} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="white" stopOpacity="0.52" />
-          <stop offset="30%" stopColor="white" stopOpacity="0.18" />
+          <stop offset="0%" stopColor="white" stopOpacity="0.72" />
+          <stop offset="25%" stopColor="white" stopOpacity="0.28" />
           <stop offset="100%" stopColor="white" stopOpacity="0" />
         </linearGradient>
         <linearGradient id={`edge-bottom-${uid}`} x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stopColor="black" stopOpacity="0" />
-          <stop offset="65%" stopColor="black" stopOpacity="0.35" />
-          <stop offset="100%" stopColor="black" stopOpacity="0.65" />
+          <stop offset="55%" stopColor="black" stopOpacity="0.45" />
+          <stop offset="100%" stopColor="black" stopOpacity="0.82" />
         </linearGradient>
         <linearGradient id={`edge-left-${uid}`} x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0%" stopColor="white" stopOpacity="0.32" />
-          <stop offset="40%" stopColor="white" stopOpacity="0.08" />
+          <stop offset="0%" stopColor="white" stopOpacity="0.45" />
+          <stop offset="35%" stopColor="white" stopOpacity="0.12" />
           <stop offset="100%" stopColor="white" stopOpacity="0" />
         </linearGradient>
         <linearGradient id={`edge-right-${uid}`} x1="0" y1="0" x2="1" y2="0">
           <stop offset="0%" stopColor="black" stopOpacity="0" />
-          <stop offset="60%" stopColor="black" stopOpacity="0.22" />
-          <stop offset="100%" stopColor="black" stopOpacity="0.48" />
+          <stop offset="55%" stopColor="black" stopOpacity="0.32" />
+          <stop offset="100%" stopColor="black" stopOpacity="0.62" />
         </linearGradient>
         <clipPath id={`clip-${uid}`}>
           <rect x={0} y={0} width={w} height={h} rx={borderRadius}/>
