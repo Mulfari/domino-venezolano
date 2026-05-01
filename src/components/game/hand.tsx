@@ -181,14 +181,44 @@ export function Hand({ onPlayTile, onPass, disabled = false }: HandProps) {
       <AnimatePresence>
         {isMyTurn && canPass && (
           <motion.button
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.8 }}
+            initial={{ opacity: 0, scale: 0.75, y: 10 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.8, y: 6 }}
+            transition={{ type: "spring", stiffness: 420, damping: 22 }}
+            whileTap={{ scale: 0.93 }}
             onClick={onPass}
-            aria-label="Pasar turno"
-            className="rounded-xl bg-[#c9a84c] hover:bg-[#dfc06a] px-6 py-3 min-h-[44px] text-sm font-semibold text-[#2a1a0a] transition-colors"
+            aria-label="Pasar turno — sin jugadas disponibles"
+            className="relative flex items-center gap-2.5 rounded-2xl min-h-[44px] px-5 py-2.5 overflow-hidden"
+            style={{
+              background: "linear-gradient(135deg, #3a2210 0%, #2a1808 100%)",
+              border: "1.5px solid rgba(201,168,76,0.55)",
+              boxShadow: "0 0 18px rgba(201,168,76,0.18), 0 4px 14px rgba(0,0,0,0.55), inset 0 1px 0 rgba(201,168,76,0.12)",
+            }}
           >
-            Pasar
+            {/* Pulsing ring */}
+            <motion.span
+              className="absolute inset-0 rounded-2xl pointer-events-none"
+              style={{ border: "1.5px solid rgba(201,168,76,0.6)" }}
+              animate={{ opacity: [0.5, 1, 0.5], scale: [1, 1.04, 1] }}
+              transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
+            />
+
+            {/* Skip icon */}
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true" className="shrink-0">
+              <circle cx="9" cy="9" r="7.5" stroke="#c9a84c" strokeWidth="1.5" />
+              <line x1="5.5" y1="5.5" x2="12.5" y2="12.5" stroke="#c9a84c" strokeWidth="1.8" strokeLinecap="round" />
+              <line x1="12.5" y1="5.5" x2="5.5" y2="12.5" stroke="#c9a84c" strokeWidth="1.8" strokeLinecap="round" />
+            </svg>
+
+            {/* Label */}
+            <div className="flex flex-col leading-tight">
+              <span className="text-[13px] font-bold text-[#c9a84c] tracking-wide leading-none">
+                Pasar
+              </span>
+              <span className="text-[9px] text-[#c9a84c]/55 uppercase tracking-widest leading-none mt-0.5">
+                sin jugadas
+              </span>
+            </div>
           </motion.button>
         )}
       </AnimatePresence>
