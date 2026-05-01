@@ -91,6 +91,8 @@ export function Hand({ onPlayTile, onPass, disabled = false }: HandProps) {
   const teamColors = TEAM_COLORS[myTeam];
   const [showShortcuts, setShowShortcuts] = useState(false);
   const shortcutsRef = useRef<HTMLDivElement>(null);
+  const [hintTile, setHintTile] = useState<Tile | null>(null);
+  const hintTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Close shortcuts popover when clicking outside
   useEffect(() => {
@@ -107,6 +109,32 @@ export function Hand({ onPlayTile, onPass, disabled = false }: HandProps) {
   const totalPips = myHand.reduce((sum, [a, b]) => sum + a + b, 0);
   // trancado is imminent when 2+ consecutive passes have happened
   const trancadoImminent = consecutivePasses >= 2 && myHand.length > 0;
+
+  // Clear hint when turn changes or tile is played
+  useEffect(() => {
+    setHintTile(null);
+    if (hintTimerRef.current) clearTimeout(hintTimerRef.current);
+  }, [isMyTurn, myHand.length]);
+
+  function handleHint() {
+    if (!isMyTurn || validMoves.length < 2) return;
+    // Pick the playable tile with the highest pip sum (best to shed)
+    const best = validMoves.reduce<Tile | null>((acc, m) => {
+      if (!acc) return m.tile;
+      return m.tile[0] + m.tile[1] > acc[0] + acc[1] ? m.tile : acc;
+    }, null);
+    setHintTile(best);
+    if (hintTimerRef.current) clearTimeout(hintTimerRef.current);
+    hintTimerRef.current = setTimeout(() => setHintTile(null), 3500);
+  }
+
+  function isHintTile(tile: Tile): boolean {
+    if (!hintTile) return false;
+    return (
+      (hintTile[0] === tile[0] && hintTile[1] === tile[1]) ||
+      (hintTile[0] === tile[1] && hintTile[1] === tile[0])
+    );
+  }
 
   function isTilePlayable(tile: Tile): boolean {
     return validMoves.some(
@@ -485,8 +513,38 @@ export function Hand({ onPlayTile, onPass, disabled = false }: HandProps) {
                   </>
                 )}
 
+                {/* Hint: bright teal glow when this tile is the suggested play */}
+                {isHintTile(tile) && playable && (
+                  <>
+                    <motion.div
+                      className="absolute -inset-3 rounded-xl pointer-events-none z-10"
+                      style={{ background: "radial-gradient(ellipse, rgba(56,220,180,0.45) 0%, transparent 65%)" }}
+                      animate={{ opacity: [0.5, 1, 0.5], scale: [0.95, 1.05, 0.95] }}
+                      transition={{ duration: 1.1, repeat: Infinity, ease: "easeInOut" }}
+                    />
+                    <motion.div
+                      className="absolute -inset-0.5 rounded-lg border-2 pointer-events-none z-10"
+                      style={{ borderColor: "rgba(56,220,180,0.85)" }}
+                      animate={{ opacity: [0.6, 1, 0.6] }}
+                      transition={{ duration: 1.1, repeat: Infinity, ease: "easeInOut" }}
+                    />
+                    <motion.div
+                      className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-widest whitespace-nowrap pointer-events-none z-20"
+                      style={{
+                        color: "rgba(56,220,180,1)",
+                        backgroundColor: "rgba(4,20,14,0.88)",
+                        border: "1px solid rgba(56,220,180,0.5)",
+                      }}
+                      animate={{ opacity: [0.8, 1, 0.8] }}
+                      transition={{ duration: 1.1, repeat: Infinity, ease: "easeInOut" }}
+                    >
+                      sugerida
+                    </motion.div>
+                  </>
+                )}
+
                 {/* Playable: subtle gold shimmer */}
-                {playable && !cochina && (
+                {playable && !cochina && !isHintTile(tile) && (
                   <>
                     <motion.div
                       className="absolute -inset-2 rounded-xl pointer-events-none"
@@ -532,6 +590,42 @@ export function Hand({ onPlayTile, onPass, disabled = false }: HandProps) {
           })}
         </AnimatePresence>
       </div>
+
+      {/* Hint button — visible when it's your turn and 2+ valid moves exist */}
+      <AnimatePresence>
+        {isMyTurn && validMoves.length >= 2 && (
+          <motion.button
+            key="hint-btn"
+            initial={{ opacity: 0, scale: 0.8, y: 6 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.8, y: 4 }}
+            transition={{ type: "spring", stiffness: 420, damping: 24 }}
+            whileTap={{ scale: 0.93 }}
+            onClick={handleHint}
+            aria-label="Sugerencia: resaltar la mejor ficha a jugar"
+            className="flex items-center gap-1.5 rounded-full px-3 py-1.5 transition-colors"
+            style={hintTile ? {
+              background: "linear-gradient(135deg, #0a2a20 0%, #061a12 100%)",
+              border: "1.5px solid rgba(56,220,180,0.65)",
+              boxShadow: "0 0 14px rgba(56,220,180,0.25), 0 2px 8px rgba(0,0,0,0.5)",
+              color: "rgba(56,220,180,1)",
+            } : {
+              background: "rgba(0,0,0,0.22)",
+              border: "1px solid rgba(168,196,160,0.2)",
+              color: "rgba(168,196,160,0.55)",
+            }}
+          >
+            {/* Lightbulb icon */}
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+              <path d="M6 1.5C4.067 1.5 2.5 3.067 2.5 5c0 1.2.6 2.26 1.5 2.9V9a.5.5 0 00.5.5h3A.5.5 0 008 9V7.9C8.9 7.26 9.5 6.2 9.5 5c0-1.933-1.567-3.5-3.5-3.5z" stroke="currentColor" strokeWidth="1" fill="none"/>
+              <line x1="4.5" y1="10" x2="7.5" y2="10" stroke="currentColor" strokeWidth="1" strokeLinecap="round"/>
+            </svg>
+            <span className="text-[10px] font-semibold uppercase tracking-widest leading-none">
+              {hintTile ? "Sugerida" : "Sugerencia"}
+            </span>
+          </motion.button>
+        )}
+      </AnimatePresence>
 
       {/* Keyboard shortcuts help button — desktop only */}
       <div ref={shortcutsRef} className="hidden sm:block relative">
