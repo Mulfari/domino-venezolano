@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useGameStore } from "@/stores/game-store";
-import type { RoundResult } from "@/lib/game/types";
+import type { RoundResult, Seat } from "@/lib/game/types";
 
 const AUTO_START_DELAY = 7;
 
@@ -231,6 +231,7 @@ export function GameOverModal({ onNextRound, onBackToLobby, onRevancha }: GameOv
   const players = useGameStore((s) => s.players);
   const round = useGameStore((s) => s.round);
   const roundHistory = useGameStore((s) => s.roundHistory);
+  const hands = useGameStore((s) => s.hands);
 
   const [countdown, setCountdown] = useState(AUTO_START_DELAY);
   const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -301,6 +302,8 @@ export function GameOverModal({ onNextRound, onBackToLobby, onRevancha }: GameOv
       team1Names={team1Names}
       countdown={countdown}
       onNextRound={onNextRound}
+      hands={hands}
+      players={players}
     />
   );
 }
@@ -317,6 +320,8 @@ interface RoundEndViewProps {
   team1Names: string[];
   countdown: number;
   onNextRound?: () => void;
+  hands: { 0: import("@/lib/game/types").Tile[]; 1: import("@/lib/game/types").Tile[]; 2: import("@/lib/game/types").Tile[]; 3: import("@/lib/game/types").Tile[] };
+  players: { seat: Seat; displayName: string; connected: boolean; isBot?: boolean }[];
 }
 
 const REASON_META: Record<string, { label: string; icon: string; desc: string }> = {
@@ -335,6 +340,8 @@ function RoundEndView({
   team1Names,
   countdown,
   onNextRound,
+  hands,
+  players,
 }: RoundEndViewProps) {
   const [showCard, setShowCard] = useState(false);
 
@@ -500,6 +507,83 @@ function RoundEndView({
             )}
           </div>
         </motion.div>
+
+        {/* Pip breakdown — only for locked/tied rounds */}
+        {(roundResult.reason === "locked" || roundResult.reason === "tied") && (
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.60 }}
+            className="mx-5 mb-4"
+          >
+            <p className="text-[10px] uppercase tracking-widest text-[#a8c4a0]/50 mb-2 text-center">
+              Fichas en mano
+            </p>
+            <div className="rounded-xl border border-[#f5f0e8]/8 overflow-hidden">
+              <div className="grid grid-cols-[1fr_auto_auto] gap-x-3 px-3 py-1.5 bg-[#0f3520]/60">
+                <span className="text-[9px] uppercase tracking-wider text-[#a8c4a0]/40">Jugador</span>
+                <span className="text-[9px] uppercase tracking-wider text-[#a8c4a0]/40 text-center">Equipo</span>
+                <span className="text-[9px] uppercase tracking-wider text-[#a8c4a0]/40 text-right">Puntos</span>
+              </div>
+              {([0, 1, 2, 3] as const).map((seat, i) => {
+                const player = players.find((p) => p.seat === seat);
+                const name = player?.displayName ?? `J${seat + 1}`;
+                const team = (seat % 2) as 0 | 1;
+                const isWinnerTeam = roundResult.winner_team === team;
+                const isMyTeamRow = myTeam === team;
+                const pipSum = (hands[seat] ?? []).reduce((s, [a, b]) => s + a + b, 0);
+                return (
+                  <div
+                    key={seat}
+                    className={`grid grid-cols-[1fr_auto_auto] gap-x-3 px-3 py-1.5 border-t border-[#f5f0e8]/5 ${
+                      i % 2 === 0 ? "bg-[#163d28]" : "bg-[#1a4530]/40"
+                    }`}
+                  >
+                    <span className={`text-[10px] font-medium truncate ${isMyTeamRow ? "text-[#c9a84c]" : "text-[#f5f0e8]/65"}`}>
+                      {name}
+                    </span>
+                    <span
+                      className="text-[9px] font-bold text-center tabular-nums"
+                      style={{ color: team === 0 ? "#c9a84c" : "#4ca8c9" }}
+                    >
+                      {team === 0 ? "A" : "B"}
+                    </span>
+                    <span className={`text-[10px] font-bold tabular-nums text-right ${isWinnerTeam && !isDraw ? "text-green-400" : "text-[#f5f0e8]/55"}`}>
+                      {pipSum}
+                    </span>
+                  </div>
+                );
+              })}
+              {/* Team totals row */}
+              <div className="grid grid-cols-2 gap-x-2 px-3 py-1.5 border-t border-[#c9a84c]/15 bg-[#0f3520]/50">
+                {([0, 1] as const).map((team) => {
+                  const teamPips = ([0, 2] as const).map(offset => {
+                    const seat = (team === 0 ? offset : offset + 1) as 0 | 1 | 2 | 3;
+                    return (hands[seat] ?? []).reduce((s, [a, b]) => s + a + b, 0);
+                  }).reduce((a, b) => a + b, 0);
+                  const isWinner = roundResult.winner_team === team;
+                  const isMyT = myTeam === team;
+                  return (
+                    <div key={team} className="flex items-center justify-between gap-1">
+                      <span className="text-[9px] uppercase tracking-wider" style={{ color: team === 0 ? "rgba(201,168,76,0.6)" : "rgba(76,168,201,0.6)" }}>
+                        Eq. {team === 0 ? "A" : "B"}
+                      </span>
+                      <span
+                        className="text-[11px] font-black tabular-nums"
+                        style={{
+                          color: isWinner && !isDraw ? "#4ade80" : isMyT ? "#c9a84c" : "#f5f0e8",
+                          textShadow: isWinner && !isDraw ? "0 0 8px rgba(74,222,128,0.5)" : undefined,
+                        }}
+                      >
+                        {teamPips} pts
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </motion.div>
+        )}
 
         {/* Score progress bars */}
         <motion.div
