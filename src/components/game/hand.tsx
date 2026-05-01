@@ -46,6 +46,8 @@ export function Hand({ onPlayTile, onPass, disabled = false }: HandProps) {
   const [soloJugadaHint, setSoloJugadaHint] = useState(false);
   const soloJugadaTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const autoSelectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [sinJugadasHint, setSinJugadasHint] = useState(false);
+  const sinJugadasTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     const justBecameMyTurn = isMyTurn && !prevIsMyTurnRef.current;
@@ -53,6 +55,14 @@ export function Hand({ onPlayTile, onPass, disabled = false }: HandProps) {
 
     if (!isMyTurn) return;
     if (!justBecameMyTurn || selectedTile !== null) return;
+
+    if (validMoves.length === 0 && canPass) {
+      setSinJugadasHint(true);
+      if (sinJugadasTimerRef.current) clearTimeout(sinJugadasTimerRef.current);
+      sinJugadasTimerRef.current = setTimeout(() => setSinJugadasHint(false), 2800);
+      return;
+    }
+
     if (validMoves.length !== 1) return;
 
     if (autoSelectTimerRef.current) clearTimeout(autoSelectTimerRef.current);
@@ -71,7 +81,7 @@ export function Hand({ onPlayTile, onPass, disabled = false }: HandProps) {
       if (autoSelectTimerRef.current) clearTimeout(autoSelectTimerRef.current);
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isMyTurn, validMoves.length]);
+  }, [isMyTurn, validMoves.length, canPass]);
 
   useEffect(() => {
     if (round !== prevRoundRef.current && myHand.length > 0) {
@@ -277,6 +287,37 @@ export function Hand({ onPlayTile, onPass, disabled = false }: HandProps) {
             </svg>
             <span className="text-[10px] font-semibold uppercase tracking-widest leading-none" style={{ color: "rgba(168,196,160,0.85)" }}>
               ¡Solo una jugada!
+            </span>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ¡Sin jugadas! hint — forced pass when no valid moves */}
+      <AnimatePresence>
+        {sinJugadasHint && (
+          <motion.div
+            key="sin-jugadas"
+            initial={{ opacity: 0, y: 8, scale: 0.88 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 4, scale: 0.92 }}
+            transition={{ type: "spring", stiffness: 420, damping: 24 }}
+            className="flex items-center gap-1.5 rounded-full px-3 py-1 pointer-events-none"
+            style={{
+              background: "linear-gradient(135deg, #2a1a08 0%, #1a0e00 100%)",
+              border: "1px solid rgba(201,168,76,0.4)",
+              boxShadow: "0 0 12px rgba(201,168,76,0.18), 0 2px 8px rgba(0,0,0,0.5)",
+            }}
+            role="status"
+            aria-live="assertive"
+          >
+            {/* Blocked domino icon */}
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+              <rect x="1" y="1" width="12" height="12" rx="2.5" stroke="rgba(201,168,76,0.7)" strokeWidth="1.2" fill="none"/>
+              <line x1="1" y1="7" x2="13" y2="7" stroke="rgba(201,168,76,0.5)" strokeWidth="0.8"/>
+              <line x1="3" y1="3" x2="11" y2="11" stroke="rgba(201,168,76,0.85)" strokeWidth="1.4" strokeLinecap="round"/>
+            </svg>
+            <span className="text-[10px] font-semibold uppercase tracking-widest leading-none" style={{ color: "rgba(201,168,76,0.85)" }}>
+              ¡Sin jugadas! — pasa turno
             </span>
           </motion.div>
         )}
