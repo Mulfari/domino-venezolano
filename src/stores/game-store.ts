@@ -17,6 +17,15 @@ export interface RoundHistoryEntry {
   reason: "domino" | "locked" | "tied";
 }
 
+export interface MoveLogEntry {
+  id: number;
+  seat: Seat;
+  playerName: string;
+  type: "play" | "pass";
+  tile?: Tile;
+  round: number;
+}
+
 /** Serializable version of GameState for the store (no Map). */
 interface SerializableHands {
   0: Tile[];
@@ -51,6 +60,7 @@ interface GameStore {
   players: PlayerInfo[];
   roundResult: RoundResult | null;
   roundHistory: RoundHistoryEntry[];
+  moveLog: MoveLogEntry[];
   selectedTile: Tile | null;
 
   // --- Derived (computed via getters) ---
@@ -76,6 +86,7 @@ interface GameStore {
   setPlayers: (players: PlayerInfo[]) => void;
   setRoundResult: (result: RoundResult | null) => void;
   addRoundHistory: (entry: RoundHistoryEntry) => void;
+  addMoveLog: (entry: Omit<MoveLogEntry, "id">) => void;
   selectTile: (tile: Tile | null) => void;
   playTile: (tile: Tile, end: "left" | "right") => void;
   passTurn: () => void;
@@ -100,6 +111,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   players: [],
   roundResult: null,
   roundHistory: [],
+  moveLog: [],
   selectedTile: null,
 
   // --- Derived ---
@@ -153,6 +165,10 @@ export const useGameStore = create<GameStore>((set, get) => ({
   setRoundResult: (result) => set({ roundResult: result }),
   addRoundHistory: (entry) =>
     set((s) => ({ roundHistory: [...s.roundHistory, entry] })),
+  addMoveLog: (entry) =>
+    set((s) => ({
+      moveLog: [...s.moveLog.slice(-49), { ...entry, id: Date.now() + Math.random() }],
+    })),
   selectTile: (tile) => set({ selectedTile: tile }),
 
   playTile: (tile, end) => {

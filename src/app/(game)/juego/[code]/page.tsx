@@ -16,6 +16,7 @@ import { DisconnectOverlay } from "@/components/game/disconnect-overlay";
 import { ChatPanel } from "@/components/chat/chat-panel";
 import { SoundToggle } from "@/components/game/sound-toggle";
 import { TileTracker } from "@/components/game/tile-tracker";
+import { MoveLog } from "@/components/game/move-log";
 import { LandscapePrompt } from "@/components/game/landscape-prompt";
 import { DominoSplash } from "@/components/game/domino-splash";
 import { PassMeter } from "@/components/game/pass-meter";
@@ -149,6 +150,7 @@ export default function GamePage() {
   const setTargetScore = useGameStore((s) => s.setTargetScore);
   const setRoundResult = useGameStore((s) => s.setRoundResult);
   const addRoundHistory = useGameStore((s) => s.addRoundHistory);
+  const addMoveLog = useGameStore((s) => s.addMoveLog);
   const updatePlayerConnection = useGameStore((s) => s.updatePlayerConnection);
   const playTile = useGameStore((s) => s.playTile);
   const passTurn = useGameStore((s) => s.passTurn);
@@ -332,6 +334,8 @@ export default function GamePage() {
           const playedTile = event.tile as Tile;
           if (playedTile[0] === playedTile[1]) playDouble();
           else playTilePlace();
+          const playedName = useGameStore.getState().players.find((p) => p.seat === event.seat)?.displayName ?? `Jugador ${event.seat + 1}`;
+          addMoveLog({ seat: event.seat as Seat, playerName: playedName, type: "play", tile: event.tile as Tile, round: roundRef.current });
           if (currentSeat !== null && event.seat === currentSeat) {
             break;
           }
@@ -341,7 +345,6 @@ export default function GamePage() {
             return next;
           });
           // Show a brief toast with the tile the opponent played
-          const playedName = useGameStore.getState().players.find((p) => p.seat === event.seat)?.displayName ?? `Jugador ${event.seat + 1}`;
           if (tilePlayedTimerRef.current) clearTimeout(tilePlayedTimerRef.current);
           setTilePlayedAlert({ name: playedName, tile: event.tile as Tile, seat: event.seat as Seat });
           tilePlayedTimerRef.current = setTimeout(() => setTilePlayedAlert(null), 2200);
@@ -352,6 +355,8 @@ export default function GamePage() {
         case "turn_passed": {
           playPass();
           showPassIndicator(event.seat as Seat);
+          const passedName = useGameStore.getState().players.find((p) => p.seat === event.seat)?.displayName ?? `Jugador ${event.seat + 1}`;
+          addMoveLog({ seat: event.seat as Seat, playerName: passedName, type: "pass", round: roundRef.current });
           if (currentSeat !== null && event.seat === currentSeat) {
             break;
           }
@@ -524,6 +529,11 @@ export default function GamePage() {
     if (tile[0] === tile[1]) playDouble();
     else playTilePlace();
 
+    // Log own play
+    if (mySeat !== null) {
+      addMoveLog({ seat: mySeat, playerName: displayName, type: "play", tile, round: roundRef.current });
+    }
+
     // Optimistic update
     playTile(tile, end);
     setHandCounts((prev) => {
@@ -556,6 +566,11 @@ export default function GamePage() {
   async function handlePass() {
     if (actionLoading) return;
     setActionLoading(true);
+
+    // Log own pass
+    if (mySeat !== null) {
+      addMoveLog({ seat: mySeat, playerName: displayName, type: "pass", round: roundRef.current });
+    }
 
     // Optimistic update
     passTurn();
@@ -709,6 +724,7 @@ export default function GamePage() {
         </div>
         {/* Room code badge + sound */}
         <div className="min-w-0 sm:min-w-[160px] flex items-center justify-end gap-1 sm:gap-2">
+          <MoveLog />
           <TileTracker />
           <SoundToggle />
           {roomCode && (
