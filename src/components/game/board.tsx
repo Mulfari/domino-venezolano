@@ -373,10 +373,54 @@ export function Board({ onPlaceEnd, clearing = false }: BoardProps) {
             </AnimatePresence>
 
             {board.plays.length === 0 ? (
-              <div className="absolute inset-0 flex items-center justify-center">
-                <p className="text-emerald-200/70 text-sm font-medium" aria-live="polite">
-                  {isMyTurn ? "Juega tu primera ficha" : "Esperando primera jugada..."}
-                </p>
+              <div className="absolute inset-0 flex items-center justify-center" aria-live="polite">
+                <div className="flex flex-col items-center gap-3 select-none pointer-events-none">
+                  {/* Decorative domino silhouette */}
+                  <motion.svg
+                    width={isMobile ? 36 : 44}
+                    height={isMobile ? 64 : 80}
+                    viewBox="0 0 44 80"
+                    fill="none"
+                    aria-hidden="true"
+                    animate={{ opacity: [0.18, 0.38, 0.18] }}
+                    transition={{ duration: 2.8, repeat: Infinity, ease: "easeInOut" }}
+                  >
+                    <rect x="2" y="2" width="40" height="76" rx="6" stroke="rgba(201,168,76,0.5)" strokeWidth="2" fill="rgba(201,168,76,0.04)" />
+                    <line x1="2" y1="40" x2="42" y2="40" stroke="rgba(201,168,76,0.4)" strokeWidth="1.5" />
+                    <circle cx="22" cy="20" r="4" fill="rgba(201,168,76,0.35)" />
+                    <circle cx="13" cy="58" r="3" fill="rgba(201,168,76,0.3)" />
+                    <circle cx="22" cy="58" r="3" fill="rgba(201,168,76,0.3)" />
+                    <circle cx="31" cy="58" r="3" fill="rgba(201,168,76,0.3)" />
+                  </motion.svg>
+
+                  {/* Status text */}
+                  <div className="flex flex-col items-center gap-1">
+                    {isMyTurn ? (
+                      <>
+                        <motion.span
+                          className="text-[13px] sm:text-sm font-bold uppercase tracking-widest"
+                          style={{ color: "#c9a84c", textShadow: "0 0 16px rgba(201,168,76,0.5)" }}
+                          animate={{ opacity: [0.7, 1, 0.7] }}
+                          transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
+                        >
+                          ¡Tu turno!
+                        </motion.span>
+                        <span className="text-[10px] sm:text-[11px] text-[#a8c4a0]/55 uppercase tracking-wider">
+                          Juega la primera ficha
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        <span className="text-[12px] sm:text-[13px] font-semibold text-[#a8c4a0]/60 uppercase tracking-widest">
+                          Esperando...
+                        </span>
+                        <span className="text-[10px] sm:text-[11px] text-[#a8c4a0]/35 uppercase tracking-wider">
+                          Primera jugada
+                        </span>
+                      </>
+                    )}
+                  </div>
+                </div>
               </div>
             ) : (
               <svg
