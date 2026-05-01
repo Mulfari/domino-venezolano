@@ -398,6 +398,97 @@ export function playTimeout() {
   noise.stop(t3 + 0.11);
 }
 
+export function playGameOver() {
+  if (_muted) return;
+  const ctx = getCtx();
+  // Rising arpeggio: C4 E4 G4 C5 E5 G5 C6
+  const arpNotes = [262, 330, 392, 523, 659, 784, 1047];
+  arpNotes.forEach((freq, i) => {
+    const t = ctx.currentTime + i * 0.1;
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0.28 * _volume, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
+    g.connect(ctx.destination);
+    const osc = ctx.createOscillator();
+    osc.type = "triangle";
+    osc.frequency.value = freq;
+    osc.connect(g);
+    osc.start(t);
+    osc.stop(t + 0.36);
+  });
+  // Final chord: C5 + E5 + G5 held together
+  const chordT = ctx.currentTime + 0.75;
+  [523, 659, 784].forEach((freq) => {
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0.22 * _volume, chordT);
+    g.gain.exponentialRampToValueAtTime(0.001, chordT + 1.2);
+    g.connect(ctx.destination);
+    const osc = ctx.createOscillator();
+    osc.type = "sine";
+    osc.frequency.value = freq;
+    osc.connect(g);
+    osc.start(chordT);
+    osc.stop(chordT + 1.25);
+  });
+  // Deep bass thud on the chord
+  const bassG = ctx.createGain();
+  bassG.gain.setValueAtTime(0.4 * _volume, chordT);
+  bassG.gain.exponentialRampToValueAtTime(0.001, chordT + 0.5);
+  bassG.connect(ctx.destination);
+  const bassOsc = ctx.createOscillator();
+  bassOsc.type = "sine";
+  bassOsc.frequency.setValueAtTime(130, chordT);
+  bassOsc.frequency.exponentialRampToValueAtTime(65, chordT + 0.4);
+  bassOsc.connect(bassG);
+  bassOsc.start(chordT);
+  bassOsc.stop(chordT + 0.5);
+}
+
+export function playGameOverDefeat() {
+  if (_muted) return;
+  const ctx = getCtx();
+  // Slow descending sequence: G4 F4 Eb4 D4 C4
+  const notes = [392, 349, 311, 294, 262];
+  notes.forEach((freq, i) => {
+    const t = ctx.currentTime + i * 0.28;
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0.22 * _volume, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.55);
+    g.connect(ctx.destination);
+    const osc = ctx.createOscillator();
+    osc.type = "sawtooth";
+    osc.frequency.value = freq;
+    osc.connect(g);
+    osc.start(t);
+    osc.stop(t + 0.56);
+    // Sub-octave harmonic for weight
+    const g2 = ctx.createGain();
+    g2.gain.setValueAtTime(0.08 * _volume, t);
+    g2.gain.exponentialRampToValueAtTime(0.001, t + 0.4);
+    g2.connect(ctx.destination);
+    const osc2 = ctx.createOscillator();
+    osc2.type = "sine";
+    osc2.frequency.value = freq * 0.5;
+    osc2.connect(g2);
+    osc2.start(t);
+    osc2.stop(t + 0.41);
+  });
+  // Final low noise thud
+  const thudT = ctx.currentTime + notes.length * 0.28 + 0.1;
+  const buf = ctx.createBuffer(1, Math.floor(ctx.sampleRate * 0.15), ctx.sampleRate);
+  const data = buf.getChannelData(0);
+  for (let i = 0; i < data.length; i++) data[i] = (Math.random() * 2 - 1) * 0.35;
+  const noise = ctx.createBufferSource();
+  noise.buffer = buf;
+  const ng = ctx.createGain();
+  ng.gain.setValueAtTime(0.3 * _volume, thudT);
+  ng.gain.exponentialRampToValueAtTime(0.001, thudT + 0.15);
+  noise.connect(ng);
+  ng.connect(ctx.destination);
+  noise.start(thudT);
+  noise.stop(thudT + 0.16);
+}
+
 export function playChatReceived() {
   if (_muted) return;
   const ctx = getCtx();

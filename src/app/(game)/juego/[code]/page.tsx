@@ -24,7 +24,7 @@ import { CapicuaSplash } from "@/components/game/capicua-splash";
 import { PassMeter } from "@/components/game/pass-meter";
 import { useGameChannel } from "@/hooks/use-game-channel";
 import { useGameStore } from "@/stores/game-store";
-import { playTilePlace, playPass, playYourTurn, playVictory, playDefeat, playCapicua, playUnaFicha, playDosFichas, playShuffle, playDouble, playStreak, playCochina, playTimeout } from "@/lib/sounds/sound-engine";
+import { playTilePlace, playPass, playYourTurn, playVictory, playDefeat, playGameOver, playGameOverDefeat, playCapicua, playUnaFicha, playDosFichas, playShuffle, playDouble, playStreak, playCochina, playTimeout } from "@/lib/sounds/sound-engine";
 import { requestNotificationPermission, notifyTurn } from "@/lib/notifications/turn-notification";
 import type { GameEvent } from "@/lib/realtime/events";
 import type { Tile, Seat } from "@/lib/game/types";
@@ -434,7 +434,14 @@ export default function GamePage() {
 
         case "round_ended": {
           const myTeam = currentSeat !== null ? (currentSeat % 2) : null;
-          if (myTeam !== null && event.winner_team === myTeam) {
+          const isGameOver = event.scores.team0 >= useGameStore.getState().targetScore || event.scores.team1 >= useGameStore.getState().targetScore;
+          if (isGameOver) {
+            if (myTeam !== null && event.winner_team === myTeam) {
+              playGameOver();
+            } else if (event.winner_team !== null) {
+              playGameOverDefeat();
+            }
+          } else if (myTeam !== null && event.winner_team === myTeam) {
             playVictory();
           } else if (event.winner_team !== null) {
             playDefeat();
