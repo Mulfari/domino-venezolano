@@ -11,9 +11,15 @@ interface HandProps {
   disabled?: boolean;
 }
 
+const TEAM_COLORS = {
+  0: { name: "#c9a84c", badgeBg: "#2a1a08", badgeBorder: "rgba(201,168,76,0.45)", glow: "rgba(201,168,76,0.3)" },
+  1: { name: "#4ca8c9", badgeBg: "#081a2a", badgeBorder: "rgba(76,168,201,0.45)", glow: "rgba(76,168,201,0.3)" },
+} as const;
+
 export function Hand({ onPlayTile, onPass, disabled = false }: HandProps) {
   const mySeat = useGameStore((s) => s.mySeat);
   const hands = useGameStore((s) => s.hands);
+  const players = useGameStore((s) => s.players);
   const isMyTurnFn = useGameStore((s) => s.isMyTurn);
   const validMovesFn = useGameStore((s) => s.validMoves);
   const canPassFn = useGameStore((s) => s.canPass);
@@ -27,6 +33,10 @@ export function Hand({ onPlayTile, onPass, disabled = false }: HandProps) {
   const validMoves = validMovesFn();
   const canPass = canPassFn();
   const isFirstPlay = round === 1 && board.plays.length === 0;
+
+  const myTeam = mySeat !== null ? ((mySeat % 2) as 0 | 1) : 0;
+  const myName = players.find((p) => p.seat === mySeat)?.displayName ?? "Tú";
+  const teamColors = TEAM_COLORS[myTeam];
 
   function isTilePlayable(tile: Tile): boolean {
     return validMoves.some(
@@ -76,12 +86,52 @@ export function Hand({ onPlayTile, onPass, disabled = false }: HandProps) {
     selectTile(tile);
   }
 
+  // A tile is selected and needs the player to pick an end on the board
+  const awaitingEndChoice = selectedTile !== null && board.plays.length > 0 && board.left !== board.right;
+
   return (
     <div
       className="flex flex-col items-center gap-2 sm:gap-3 pb-[max(8px,env(safe-area-inset-bottom))] sm:pb-4 px-1 sm:px-2"
       role="region"
       aria-label="Tu mano"
     >
+      {/* "Choose an end" hint — shown when a tile is selected and needs end selection */}
+      <AnimatePresence>
+        {awaitingEndChoice && (
+          <motion.div
+            key="choose-end-hint"
+            initial={{ opacity: 0, y: 10, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 6, scale: 0.93 }}
+            transition={{ type: "spring", stiffness: 400, damping: 24 }}
+            className="flex items-center gap-2 rounded-full px-4 py-2 pointer-events-none"
+            role="status"
+            aria-live="polite"
+            style={{
+              background: "linear-gradient(135deg, rgba(42,26,8,0.97) 0%, rgba(26,14,0,0.97) 100%)",
+              border: "1.5px solid rgba(201,168,76,0.6)",
+              boxShadow: "0 0 20px rgba(201,168,76,0.25), 0 4px 16px rgba(0,0,0,0.6)",
+            }}
+          >
+            {/* Up arrow */}
+            <motion.svg
+              width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"
+              animate={{ y: [0, -3, 0] }}
+              transition={{ duration: 1.2, repeat: Infinity, ease: "easeInOut" }}
+            >
+              <path d="M7 2L12 9H2L7 2Z" fill="#c9a84c" />
+            </motion.svg>
+            <span className="text-[12px] sm:text-[13px] font-bold text-[#c9a84c] tracking-wide leading-none">
+              Elige un extremo en el tablero
+            </span>
+            {/* Tap to deselect hint */}
+            <span className="text-[9px] text-[#c9a84c]/45 uppercase tracking-widest leading-none hidden sm:inline">
+              · toca la ficha para cancelar
+            </span>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <div className="flex items-end justify-center gap-1.5 sm:gap-2 flex-wrap">
         <AnimatePresence mode="popLayout">
           {myHand.map((tile, i) => {
