@@ -939,9 +939,9 @@ export default function GamePage() {
             key={`played-${tilePlayedAlert.seat}-${tilePlayedAlert.tile[0]}-${tilePlayedAlert.tile[1]}`}
             initial={{ opacity: 0, y: 20, scale: 0.85 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 12, scale: 0.9 }}
+            exit={{ opacity: 0, y: -14, scale: 0.9 }}
             transition={{ type: "spring", stiffness: 420, damping: 24 }}
-            className="fixed bottom-32 sm:bottom-28 left-1/2 -translate-x-1/2 z-50 pointer-events-none"
+            className="fixed bottom-40 sm:bottom-28 left-1/2 -translate-x-1/2 z-50 pointer-events-none"
             role="status"
             aria-live="polite"
           >
