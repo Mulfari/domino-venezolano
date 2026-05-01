@@ -15,6 +15,7 @@ import { GameOverModal } from "@/components/game/game-over-modal";
 import { DisconnectOverlay } from "@/components/game/disconnect-overlay";
 import { ChatPanel } from "@/components/chat/chat-panel";
 import { SoundToggle } from "@/components/game/sound-toggle";
+import { TileTracker } from "@/components/game/tile-tracker";
 import { LandscapePrompt } from "@/components/game/landscape-prompt";
 import { DominoSplash } from "@/components/game/domino-splash";
 import { useGameChannel } from "@/hooks/use-game-channel";
@@ -658,6 +659,7 @@ export default function GamePage() {
         </div>
         {/* Room code badge + sound */}
         <div className="min-w-0 sm:min-w-[160px] flex items-center justify-end gap-1 sm:gap-2">
+          <TileTracker />
           <SoundToggle />
           {roomCode && (
             <div className="hidden sm:block rounded-lg bg-[#3a2210]/80 border border-[#c9a84c]/20 px-3 py-1.5 text-center">
