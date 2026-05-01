@@ -662,6 +662,59 @@ export function Board({ onPlaceEnd, clearing = false }: BoardProps) {
                 </AnimatePresence>
               </svg>
             )}
+
+            {/* End value badges — show current open numbers at each end */}
+            {board.plays.length > 0 && board.left !== null && board.right !== null && (
+              <>
+                <motion.div
+                  key={`left-${board.left}`}
+                  initial={{ opacity: 0, scale: 0.7, x: -8 }}
+                  animate={{ opacity: 1, scale: 1, x: 0 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 22 }}
+                  className="absolute bottom-2 left-2 z-10 pointer-events-none"
+                  aria-hidden="true"
+                >
+                  <div
+                    style={{
+                      background: "linear-gradient(135deg, #2a1a08 0%, #1a0e04 100%)",
+                      border: "1.5px solid rgba(201,168,76,0.55)",
+                      borderRadius: "8px",
+                      padding: isMobile ? "3px 5px" : "4px 7px",
+                      boxShadow: "0 0 12px rgba(201,168,76,0.2), 0 2px 8px rgba(0,0,0,0.7)",
+                    }}
+                  >
+                    <div className="flex items-center gap-1">
+                      <span style={{ fontSize: isMobile ? 8 : 9, color: "rgba(201,168,76,0.55)", fontWeight: 700, lineHeight: 1 }}>←</span>
+                      <span style={{ fontSize: isMobile ? 15 : 18, color: "#c9a84c", fontWeight: 900, lineHeight: 1, fontVariantNumeric: "tabular-nums" as const }}>{board.left}</span>
+                    </div>
+                  </div>
+                </motion.div>
+
+                <motion.div
+                  key={`right-${board.right}`}
+                  initial={{ opacity: 0, scale: 0.7, x: 8 }}
+                  animate={{ opacity: 1, scale: 1, x: 0 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 22 }}
+                  className="absolute bottom-2 right-2 z-10 pointer-events-none"
+                  aria-hidden="true"
+                >
+                  <div
+                    style={{
+                      background: "linear-gradient(135deg, #2a1a08 0%, #1a0e04 100%)",
+                      border: "1.5px solid rgba(201,168,76,0.55)",
+                      borderRadius: "8px",
+                      padding: isMobile ? "3px 5px" : "4px 7px",
+                      boxShadow: "0 0 12px rgba(201,168,76,0.2), 0 2px 8px rgba(0,0,0,0.7)",
+                    }}
+                  >
+                    <div className="flex items-center gap-1">
+                      <span style={{ fontSize: isMobile ? 15 : 18, color: "#c9a84c", fontWeight: 900, lineHeight: 1, fontVariantNumeric: "tabular-nums" as const }}>{board.right}</span>
+                      <span style={{ fontSize: isMobile ? 8 : 9, color: "rgba(201,168,76,0.55)", fontWeight: 700, lineHeight: 1 }}>→</span>
+                    </div>
+                  </div>
+                </motion.div>
+              </>
+            )}
           </div>
         </div>
       </div>
