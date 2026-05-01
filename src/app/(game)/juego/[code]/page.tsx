@@ -111,6 +111,9 @@ export default function GamePage() {
   const [handCounts, setHandCounts] = useState<number[]>([7, 7, 7, 7]);
   const [actionLoading, setActionLoading] = useState(false);
   const [lastPassSeat, setLastPassSeat] = useState<Seat | null>(null);
+  const [unaFichaAlert, setUnaFichaAlert] = useState<{ name: string; seat: Seat } | null>(null);
+  const unaFichaTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const prevHandCountsRef = useRef<number[]>([7, 7, 7, 7]);
   const [boardTransitioning, setBoardTransitioning] = useState(false);
   const [transitionRound, setTransitionRound] = useState<number | null>(null);
   const [transitionScores, setTransitionScores] = useState<{ prev: { 0: number; 1: number }; next: { 0: number; 1: number } } | null>(null);
@@ -152,6 +155,20 @@ export default function GamePage() {
     setLastPassSeat(seat);
     passTimerRef.current = setTimeout(() => setLastPassSeat(null), 2000);
   }, []);
+
+  // Detect when any player drops to 1 tile and show the ¡Una ficha! toast
+  useEffect(() => {
+    const prev = prevHandCountsRef.current;
+    handCounts.forEach((count, seat) => {
+      if (count === 1 && prev[seat] > 1) {
+        const name = players.find((p) => p.seat === seat)?.displayName ?? `Jugador ${seat + 1}`;
+        if (unaFichaTimerRef.current) clearTimeout(unaFichaTimerRef.current);
+        setUnaFichaAlert({ name, seat: seat as Seat });
+        unaFichaTimerRef.current = setTimeout(() => setUnaFichaAlert(null), 3000);
+      }
+    });
+    prevHandCountsRef.current = [...handCounts];
+  }, [handCounts, players]);
 
   /* ---------------------------------------------------------------- */
   /*  Fetch session + game state on mount                             */
@@ -829,6 +846,46 @@ export default function GamePage() {
         <Hand onPlayTile={handlePlayTile} onPass={handlePass} disabled={actionLoading} />
       </div>
       </motion.div>
+
+      {/* ¡Una ficha! toast */}
+      <AnimatePresence>
+        {unaFichaAlert && (
+          <motion.div
+            key={`una-${unaFichaAlert.seat}`}
+            initial={{ opacity: 0, y: -24, scale: 0.85 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -16, scale: 0.9 }}
+            transition={{ type: "spring", stiffness: 420, damping: 24 }}
+            className="fixed top-16 left-1/2 -translate-x-1/2 z-50 pointer-events-none"
+            role="status"
+            aria-live="polite"
+          >
+            <div
+              className="flex items-center gap-2.5 rounded-full px-5 py-2.5 backdrop-blur-sm"
+              style={{
+                background: "linear-gradient(135deg, #2a1600 0%, #1a0e00 100%)",
+                border: "1.5px solid rgba(201,168,76,0.7)",
+                boxShadow: "0 0 32px 8px rgba(201,168,76,0.35), 0 8px 24px rgba(0,0,0,0.8)",
+              }}
+            >
+              {/* Domino icon */}
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                <rect x="1" y="1" width="18" height="18" rx="3" fill="#1a0e00" stroke="#c9a84c" strokeWidth="1.5"/>
+                <line x1="1" y1="10" x2="19" y2="10" stroke="#c9a84c" strokeWidth="1"/>
+                <circle cx="10" cy="5" r="2" fill="#c9a84c"/>
+              </svg>
+              <div className="flex flex-col leading-tight">
+                <span className="text-[13px] font-black text-[#c9a84c] uppercase tracking-widest leading-none">
+                  ¡Una ficha!
+                </span>
+                <span className="text-[10px] text-[#f5f0e8]/65 leading-none mt-0.5 truncate max-w-[120px]">
+                  {unaFichaAlert.name}
+                </span>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Disconnect overlay */}
       <DisconnectOverlay />

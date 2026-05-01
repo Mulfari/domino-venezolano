@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { DominoTile } from "./tile";
 import { PassIndicator } from "./pass-indicator";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -94,6 +94,15 @@ export function OpponentHand({
       {/* Face-down tile stack */}
       {tileCount > 0 && (
         <div className="relative" aria-hidden="true">
+          {/* ¡Una ficha! aura — only when 1 tile left */}
+          {tileCount === 1 && (
+            <motion.div
+              className="absolute -inset-4 rounded-2xl pointer-events-none z-0"
+              style={{ background: "radial-gradient(ellipse, rgba(201,168,76,0.45) 0%, transparent 70%)" }}
+              animate={{ opacity: [0.4, 1, 0.4], scale: [0.9, 1.08, 0.9] }}
+              transition={{ duration: 1.1, repeat: Infinity, ease: "easeInOut" }}
+            />
+          )}
           <div
             className={`flex items-end justify-center ${
               isVertical ? "flex-col" : "flex-row"
@@ -153,7 +162,9 @@ export function OpponentHand({
               min-w-[22px] sm:min-w-[26px] h-[22px] sm:h-[26px] px-1.5
               rounded-full text-[11px] sm:text-[12px] font-black leading-none
               shadow-lg border-2
-              ${isCurrentTurn
+              ${tileCount === 1
+                ? "bg-[#c9a84c] text-[#1a0800] border-[#f0d878] shadow-[0_0_16px_rgba(201,168,76,1)]"
+                : isCurrentTurn
                 ? "bg-[#c9a84c] text-[#1a0800] border-[#f0d878] shadow-[0_0_12px_rgba(201,168,76,0.9)]"
                 : "bg-[#1e0e04] text-[#d4a855] border-[#7a4a22] shadow-[0_2px_8px_rgba(0,0,0,0.7)]"
               }`}
@@ -161,6 +172,29 @@ export function OpponentHand({
           >
             {tileCount}
           </motion.div>
+
+          {/* ¡UNA! label — floats above the stack when 1 tile left */}
+          <AnimatePresence>
+            {tileCount === 1 && (
+              <motion.div
+                key="una-label"
+                initial={{ opacity: 0, y: 6, scale: 0.7 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.7 }}
+                transition={{ type: "spring", stiffness: 500, damping: 22 }}
+                className="absolute -top-5 left-1/2 -translate-x-1/2 z-30 pointer-events-none"
+              >
+                <motion.span
+                  animate={{ opacity: [0.75, 1, 0.75] }}
+                  transition={{ duration: 1.0, repeat: Infinity, ease: "easeInOut" }}
+                  className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-[#c9a84c] whitespace-nowrap"
+                  style={{ textShadow: "0 0 8px rgba(201,168,76,0.9), 0 1px 3px rgba(0,0,0,0.9)" }}
+                >
+                  ¡UNA!
+                </motion.span>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       )}
 
