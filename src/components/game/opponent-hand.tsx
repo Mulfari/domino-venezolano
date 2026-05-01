@@ -13,6 +13,7 @@ interface OpponentHandProps {
   connected?: boolean;
   isCurrentTurn?: boolean;
   isBot?: boolean;
+  isPartner?: boolean;
   position: "top" | "left" | "right";
   showPass?: boolean;
 }
@@ -31,6 +32,7 @@ export function OpponentHand({
   connected = true,
   isCurrentTurn = false,
   isBot = false,
+  isPartner = false,
   position,
   showPass = false,
 }: OpponentHandProps) {
@@ -114,6 +116,24 @@ export function OpponentHand({
           style={{ color: isCurrentTurn ? colors.name : "#a8c4a0" }}
         >
           {playerName}
+        </span>
+
+        {/* Partner / Rival badge */}
+        <span
+          className={`shrink-0 text-[8px] font-bold uppercase tracking-widest px-1 py-0.5 rounded leading-none ${
+            isVertical ? "hidden sm:inline" : ""
+          }`}
+          style={isPartner ? {
+            color: "#c9a84c",
+            backgroundColor: "rgba(201,168,76,0.12)",
+            border: "1px solid rgba(201,168,76,0.35)",
+          } : {
+            color: "rgba(239,68,68,0.75)",
+            backgroundColor: "rgba(239,68,68,0.08)",
+            border: "1px solid rgba(239,68,68,0.25)",
+          }}
+        >
+          {isPartner ? "Compa" : "Rival"}
         </span>
 
         {/* Tile count pill — always visible next to name */}

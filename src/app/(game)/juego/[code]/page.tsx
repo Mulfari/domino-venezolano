@@ -886,6 +886,7 @@ export default function GamePage() {
           connected={getPlayerConnected(seats.top)}
           isCurrentTurn={currentTurn === seats.top}
           isBot={players.find((p) => p.seat === seats.top)?.isBot ?? false}
+          isPartner
           position="top"
           showPass={lastPassSeat === seats.top}
         />
