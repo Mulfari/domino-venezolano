@@ -297,6 +297,67 @@ export function Board({ onPlaceEnd, clearing = false }: BoardProps) {
               }}
             />
 
+            {/* Capicúa indicator — both open ends show the same number */}
+            <AnimatePresence>
+              {board.left !== null && board.right !== null && board.left === board.right && board.plays.length > 1 && status === "playing" && (
+                <motion.div
+                  key={`capicua-${board.left}`}
+                  initial={{ opacity: 0, scale: 0.7, y: -6 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.8 }}
+                  transition={{ type: "spring", stiffness: 380, damping: 22 }}
+                  className="absolute top-2 left-2 z-20 pointer-events-none"
+                  role="status"
+                  aria-live="polite"
+                  aria-label={`Capicúa disponible — ambos extremos muestran el ${board.left}`}
+                >
+                  <div
+                    style={{
+                      background: "linear-gradient(135deg, #2a1a00 0%, #1a0e00 100%)",
+                      border: "1.5px solid rgba(201,168,76,0.75)",
+                      borderRadius: "8px",
+                      padding: isMobile ? "3px 6px" : "4px 8px",
+                      boxShadow: "0 0 16px rgba(201,168,76,0.4), 0 2px 8px rgba(0,0,0,0.7)",
+                    }}
+                  >
+                    <div className="flex items-center gap-1">
+                      {/* Two matching pip dots */}
+                      <div className="flex gap-0.5" aria-hidden="true">
+                        {[0, 1].map((i) => (
+                          <motion.div
+                            key={i}
+                            animate={{ scale: [1, 1.35, 1], opacity: [0.8, 1, 0.8] }}
+                            transition={{ duration: 1.1, repeat: Infinity, delay: i * 0.18, ease: "easeInOut" }}
+                            style={{
+                              width: isMobile ? 5 : 6,
+                              height: isMobile ? 5 : 6,
+                              borderRadius: "50%",
+                              backgroundColor: "#c9a84c",
+                              boxShadow: "0 0 6px rgba(201,168,76,0.8)",
+                            }}
+                          />
+                        ))}
+                      </div>
+                      <motion.span
+                        animate={{ opacity: [0.75, 1, 0.75] }}
+                        transition={{ duration: 1.1, repeat: Infinity, ease: "easeInOut" }}
+                        style={{
+                          fontSize: isMobile ? 8 : 9,
+                          fontWeight: 700,
+                          letterSpacing: "0.08em",
+                          textTransform: "uppercase",
+                          color: "#c9a84c",
+                          lineHeight: 1,
+                        }}
+                      >
+                        ¡Capicúa!
+                      </motion.span>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
             {/* Trancado warning — shows when consecutive passes accumulate */}
             <AnimatePresence>
               {consecutivePasses >= 1 && status === "playing" && (
