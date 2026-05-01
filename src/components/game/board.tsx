@@ -523,6 +523,38 @@ export function Board({ onPlaceEnd, clearing = false }: BoardProps) {
                         transition={isNew ? { type: "spring", stiffness: 380, damping: 18 } : undefined}
                         style={{ transformOrigin: `${pt.x}px ${pt.y}px` }}
                       >
+                        {/* Fading "just played" glow — one-shot, fades out over 2.5s */}
+                        {isNew && (
+                          <>
+                            <motion.rect
+                              x={pt.x - tw / 2 - 9}
+                              y={pt.y - th / 2 - 9}
+                              width={tw + 18}
+                              height={th + 18}
+                              rx={8}
+                              fill="rgba(201,168,76,0.22)"
+                              stroke="none"
+                              initial={{ opacity: 1 }}
+                              animate={{ opacity: 0 }}
+                              transition={{ duration: 2.5, delay: 0.3, ease: "easeOut" }}
+                              style={{ filter: "blur(5px)" }}
+                            />
+                            <motion.rect
+                              x={pt.x - tw / 2 - 5}
+                              y={pt.y - th / 2 - 5}
+                              width={tw + 10}
+                              height={th + 10}
+                              rx={6}
+                              fill="none"
+                              stroke="#c9a84c"
+                              strokeWidth={2.5}
+                              initial={{ opacity: 0.95 }}
+                              animate={{ opacity: 0 }}
+                              transition={{ duration: 2.0, delay: 0.2, ease: "easeOut" }}
+                              style={{ filter: "drop-shadow(0 0 6px rgba(201,168,76,0.9))" }}
+                            />
+                          </>
+                        )}
                         {isEndTile && (
                           <>
                             {/* Outer glow */}
