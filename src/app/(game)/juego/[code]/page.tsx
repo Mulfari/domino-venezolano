@@ -1211,57 +1211,70 @@ export default function GamePage() {
 
       {/* Tile played toast — shows what tile an opponent just played */}
       <AnimatePresence>
-        {tilePlayedAlert && (
-          <motion.div
-            key={`played-${tilePlayedAlert.seat}-${tilePlayedAlert.tile[0]}-${tilePlayedAlert.tile[1]}`}
-            initial={{ opacity: 0, y: 20, scale: 0.85 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -14, scale: 0.9 }}
-            transition={{ type: "spring", stiffness: 420, damping: 24 }}
-            className="fixed bottom-40 sm:bottom-28 left-1/2 -translate-x-1/2 z-50 pointer-events-none"
-            role="status"
-            aria-live="polite"
-          >
-            <div
-              className="flex items-center gap-2.5 rounded-full px-4 py-2 backdrop-blur-sm"
-              style={{
-                background: "linear-gradient(135deg, #0e1e14 0%, #071408 100%)",
-                border: "1.5px solid rgba(168,196,160,0.35)",
-                boxShadow: "0 0 20px rgba(0,0,0,0.7), 0 6px 18px rgba(0,0,0,0.6)",
-              }}
+        {tilePlayedAlert && (() => {
+          const isPartner = mySeat !== null && (tilePlayedAlert.seat % 2) === (mySeat % 2);
+          const accentColor = isPartner ? "#c9a84c" : "#4ca8c9";
+          const accentRgb = isPartner ? "201,168,76" : "76,168,201";
+          const bgGradient = isPartner
+            ? "linear-gradient(135deg, #1a1000 0%, #0e0a00 100%)"
+            : "linear-gradient(135deg, #001a1e 0%, #000e12 100%)";
+          const relation = isPartner ? "compañero" : "rival";
+          return (
+            <motion.div
+              key={`played-${tilePlayedAlert.seat}-${tilePlayedAlert.tile[0]}-${tilePlayedAlert.tile[1]}`}
+              initial={{ opacity: 0, y: 20, scale: 0.85 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -14, scale: 0.9 }}
+              transition={{ type: "spring", stiffness: 420, damping: 24 }}
+              className="fixed bottom-40 sm:bottom-28 left-1/2 -translate-x-1/2 z-50 pointer-events-none"
+              role="status"
+              aria-live="polite"
             >
-              {/* Mini domino icon showing the tile */}
-              <svg width="28" height="16" viewBox="0 0 28 16" fill="none" aria-hidden="true">
-                <rect x="0.75" y="0.75" width="26.5" height="14.5" rx="2.5" fill="#f5f0e8" stroke="#c9a84c" strokeWidth="1.5"/>
-                <line x1="14" y1="1.5" x2="14" y2="14.5" stroke="#c9a84c" strokeWidth="1"/>
-                {/* Left pip(s) — center only for odd values */}
-                {tilePlayedAlert.tile[0] % 2 === 1 && <circle cx="7" cy="8" r="1.5" fill="#1a1a1a"/>}
-                {tilePlayedAlert.tile[0] >= 2 && <circle cx="4" cy="5" r="1.2" fill="#1a1a1a"/>}
-                {tilePlayedAlert.tile[0] >= 2 && <circle cx="10" cy="11" r="1.2" fill="#1a1a1a"/>}
-                {tilePlayedAlert.tile[0] >= 4 && <circle cx="10" cy="5" r="1.2" fill="#1a1a1a"/>}
-                {tilePlayedAlert.tile[0] >= 4 && <circle cx="4" cy="11" r="1.2" fill="#1a1a1a"/>}
-                {tilePlayedAlert.tile[0] === 6 && <circle cx="4" cy="8" r="1.2" fill="#1a1a1a"/>}
-                {tilePlayedAlert.tile[0] === 6 && <circle cx="10" cy="8" r="1.2" fill="#1a1a1a"/>}
-                {/* Right pip(s) — center only for odd values */}
-                {tilePlayedAlert.tile[1] % 2 === 1 && <circle cx="21" cy="8" r="1.5" fill="#1a1a1a"/>}
-                {tilePlayedAlert.tile[1] >= 2 && <circle cx="18" cy="5" r="1.2" fill="#1a1a1a"/>}
-                {tilePlayedAlert.tile[1] >= 2 && <circle cx="24" cy="11" r="1.2" fill="#1a1a1a"/>}
-                {tilePlayedAlert.tile[1] >= 4 && <circle cx="24" cy="5" r="1.2" fill="#1a1a1a"/>}
-                {tilePlayedAlert.tile[1] >= 4 && <circle cx="18" cy="11" r="1.2" fill="#1a1a1a"/>}
-                {tilePlayedAlert.tile[1] === 6 && <circle cx="18" cy="8" r="1.2" fill="#1a1a1a"/>}
-                {tilePlayedAlert.tile[1] === 6 && <circle cx="24" cy="8" r="1.2" fill="#1a1a1a"/>}
-              </svg>
-              <div className="flex flex-col leading-tight">
-                <span className="text-[11px] font-black text-[#a8c4a0] uppercase tracking-widest leading-none">
-                  {tilePlayedAlert.name}
-                </span>
-                <span className="text-[9px] text-[#a8c4a0]/50 leading-none mt-0.5">
-                  jugó {tilePlayedAlert.tile[0]}·{tilePlayedAlert.tile[1]}
-                </span>
+              <div
+                className="flex items-center gap-2.5 rounded-full px-4 py-2 backdrop-blur-sm"
+                style={{
+                  background: bgGradient,
+                  border: `1.5px solid rgba(${accentRgb},0.45)`,
+                  boxShadow: `0 0 20px rgba(${accentRgb},0.2), 0 6px 18px rgba(0,0,0,0.6)`,
+                }}
+              >
+                {/* Mini domino icon showing the tile */}
+                <svg width="28" height="16" viewBox="0 0 28 16" fill="none" aria-hidden="true">
+                  <rect x="0.75" y="0.75" width="26.5" height="14.5" rx="2.5" fill="#f5f0e8" stroke={accentColor} strokeWidth="1.5"/>
+                  <line x1="14" y1="1.5" x2="14" y2="14.5" stroke={accentColor} strokeWidth="1"/>
+                  {tilePlayedAlert.tile[0] % 2 === 1 && <circle cx="7" cy="8" r="1.5" fill="#1a1a1a"/>}
+                  {tilePlayedAlert.tile[0] >= 2 && <circle cx="4" cy="5" r="1.2" fill="#1a1a1a"/>}
+                  {tilePlayedAlert.tile[0] >= 2 && <circle cx="10" cy="11" r="1.2" fill="#1a1a1a"/>}
+                  {tilePlayedAlert.tile[0] >= 4 && <circle cx="10" cy="5" r="1.2" fill="#1a1a1a"/>}
+                  {tilePlayedAlert.tile[0] >= 4 && <circle cx="4" cy="11" r="1.2" fill="#1a1a1a"/>}
+                  {tilePlayedAlert.tile[0] === 6 && <circle cx="4" cy="8" r="1.2" fill="#1a1a1a"/>}
+                  {tilePlayedAlert.tile[0] === 6 && <circle cx="10" cy="8" r="1.2" fill="#1a1a1a"/>}
+                  {tilePlayedAlert.tile[1] % 2 === 1 && <circle cx="21" cy="8" r="1.5" fill="#1a1a1a"/>}
+                  {tilePlayedAlert.tile[1] >= 2 && <circle cx="18" cy="5" r="1.2" fill="#1a1a1a"/>}
+                  {tilePlayedAlert.tile[1] >= 2 && <circle cx="24" cy="11" r="1.2" fill="#1a1a1a"/>}
+                  {tilePlayedAlert.tile[1] >= 4 && <circle cx="24" cy="5" r="1.2" fill="#1a1a1a"/>}
+                  {tilePlayedAlert.tile[1] >= 4 && <circle cx="18" cy="11" r="1.2" fill="#1a1a1a"/>}
+                  {tilePlayedAlert.tile[1] === 6 && <circle cx="18" cy="8" r="1.2" fill="#1a1a1a"/>}
+                  {tilePlayedAlert.tile[1] === 6 && <circle cx="24" cy="8" r="1.2" fill="#1a1a1a"/>}
+                </svg>
+                <div className="flex flex-col leading-tight">
+                  <span
+                    className="text-[11px] font-black uppercase tracking-widest leading-none"
+                    style={{ color: accentColor }}
+                  >
+                    {tilePlayedAlert.name}
+                  </span>
+                  <span
+                    className="text-[9px] leading-none mt-0.5"
+                    style={{ color: `rgba(${accentRgb},0.55)` }}
+                  >
+                    {relation} · jugó {tilePlayedAlert.tile[0]}·{tilePlayedAlert.tile[1]}
+                  </span>
+                </div>
               </div>
-            </div>
-          </motion.div>
-        )}
+            </motion.div>
+          );
+        })()}
       </AnimatePresence>
 
       {/* ¡Capicúa! splash — fires when both open ends match */}
