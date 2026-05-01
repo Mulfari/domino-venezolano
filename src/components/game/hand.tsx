@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { DominoTile } from "./tile";
 import { useGameStore } from "@/stores/game-store";
@@ -68,6 +69,69 @@ export function Hand({ onPlayTile, onPass, disabled = false }: HandProps) {
     return isFirstPlay && tile[0] === 6 && tile[1] === 6;
   }
 
+  // Must be declared before the keyboard useEffect so it's not in the TDZ when the dep array is evaluated
+  const awaitingEndChoice = selectedTile !== null && board.plays.length > 0 && board.left !== board.right;
+
+  // Keyboard shortcuts: 1-7 select tiles, Escape deselects, P passes,
+  // ArrowLeft/ArrowRight pick an end when awaiting end choice.
+  useEffect(() => {
+    if (!isMyTurn || disabled) return;
+
+    function onKeyDown(e: KeyboardEvent) {
+      // Ignore when focus is inside an input/textarea
+      const tag = (e.target as HTMLElement)?.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA") return;
+
+      const key = e.key;
+
+      if (key === "Escape") {
+        e.preventDefault();
+        selectTile(null);
+        return;
+      }
+
+      if ((key === "p" || key === "P") && canPass) {
+        e.preventDefault();
+        onPass?.();
+        return;
+      }
+
+      if (awaitingEndChoice && selectedTile) {
+        if (key === "ArrowLeft") {
+          const ends = getEndsForTile(selectedTile);
+          if (ends.includes("left")) {
+            e.preventDefault();
+            onPlayTile?.(selectedTile, "left");
+            selectTile(null);
+          }
+          return;
+        }
+        if (key === "ArrowRight") {
+          const ends = getEndsForTile(selectedTile);
+          if (ends.includes("right")) {
+            e.preventDefault();
+            onPlayTile?.(selectedTile, "right");
+            selectTile(null);
+          }
+          return;
+        }
+      }
+
+      const num = parseInt(key, 10);
+      if (num >= 1 && num <= 7) {
+        const tile = myHand[num - 1];
+        if (tile && isTilePlayable(tile)) {
+          e.preventDefault();
+          handleTileClick(tile);
+        }
+      }
+    }
+
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isMyTurn, disabled, canPass, awaitingEndChoice, selectedTile, myHand]);
+
   function handleTileClick(tile: Tile) {
     if (disabled || !isMyTurn || !isTilePlayable(tile)) return;
 
@@ -85,9 +149,6 @@ export function Hand({ onPlayTile, onPass, disabled = false }: HandProps) {
 
     selectTile(tile);
   }
-
-  // A tile is selected and needs the player to pick an end on the board
-  const awaitingEndChoice = selectedTile !== null && board.plays.length > 0 && board.left !== board.right;
 
   return (
     <div
