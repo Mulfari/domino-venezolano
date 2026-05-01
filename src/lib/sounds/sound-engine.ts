@@ -118,6 +118,36 @@ export function playDefeat() {
   });
 }
 
+export function playCapicua() {
+  if (_muted) return;
+  const ctx = getCtx();
+  // Ascending arpeggio + shimmer — celebratory but brief
+  const notes = [523, 659, 784, 1047, 1319]; // C5 E5 G5 C6 E6
+  notes.forEach((freq, i) => {
+    const g = gain(ctx, 0.22);
+    const osc = ctx.createOscillator();
+    osc.type = "sine";
+    osc.frequency.value = freq;
+    const t = ctx.currentTime + i * 0.09;
+    g.gain.setValueAtTime(0.22 * _volume, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.28);
+    osc.connect(g);
+    osc.start(t);
+    osc.stop(t + 0.28);
+  });
+  // Shimmer overtone
+  const g2 = gain(ctx, 0.12);
+  const osc2 = ctx.createOscillator();
+  osc2.type = "triangle";
+  osc2.frequency.value = 2093; // C7
+  const t2 = ctx.currentTime + 0.36;
+  g2.gain.setValueAtTime(0.12 * _volume, t2);
+  g2.gain.exponentialRampToValueAtTime(0.001, t2 + 0.5);
+  osc2.connect(g2);
+  osc2.start(t2);
+  osc2.stop(t2 + 0.5);
+}
+
 export function playChatReceived() {
   if (_muted) return;
   const ctx = getCtx();

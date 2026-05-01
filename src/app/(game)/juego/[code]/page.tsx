@@ -20,7 +20,7 @@ import { LandscapePrompt } from "@/components/game/landscape-prompt";
 import { DominoSplash } from "@/components/game/domino-splash";
 import { useGameChannel } from "@/hooks/use-game-channel";
 import { useGameStore } from "@/stores/game-store";
-import { playTilePlace, playPass, playYourTurn, playVictory, playDefeat } from "@/lib/sounds/sound-engine";
+import { playTilePlace, playPass, playYourTurn, playVictory, playDefeat, playCapicua } from "@/lib/sounds/sound-engine";
 import { requestNotificationPermission, notifyTurn } from "@/lib/notifications/turn-notification";
 import type { GameEvent } from "@/lib/realtime/events";
 import type { Tile, Seat } from "@/lib/game/types";
@@ -119,6 +119,9 @@ export default function GamePage() {
   const [dominoSplash, setDominoSplash] = useState<{ playerName: string; isMyTeam: boolean; reason: "domino" | "locked" } | null>(null);
   const [tilePlayedAlert, setTilePlayedAlert] = useState<{ name: string; tile: Tile; seat: Seat } | null>(null);
   const tilePlayedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [capicuaAlert, setCapicuaAlert] = useState(false);
+  const capicuaTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const prevCapicuaRef = useRef(false);
   const [boardTransitioning, setBoardTransitioning] = useState(false);
   const [transitionRound, setTransitionRound] = useState<number | null>(null);
   const [transitionScores, setTransitionScores] = useState<{ prev: { 0: number; 1: number }; next: { 0: number; 1: number } } | null>(null);
@@ -283,6 +286,19 @@ export default function GamePage() {
     window.addEventListener("beforeunload", handler);
     return () => window.removeEventListener("beforeunload", handler);
   }, [status]);
+
+  /* ---- Capicúa detection ---- */
+  const board = useGameStore((s) => s.board);
+  useEffect(() => {
+    const isCapicua = board.left !== null && board.left === board.right && board.plays.length > 1;
+    if (isCapicua && !prevCapicuaRef.current) {
+      playCapicua();
+      setCapicuaAlert(true);
+      if (capicuaTimerRef.current) clearTimeout(capicuaTimerRef.current);
+      capicuaTimerRef.current = setTimeout(() => setCapicuaAlert(false), 3200);
+    }
+    prevCapicuaRef.current = isCapicua;
+  }, [board]);
 
   /* ---- "Your turn" sound + browser notification ---- */
   const prevTurnRef = useRef<number | null>(null);
@@ -1037,6 +1053,52 @@ export default function GamePage() {
                 </span>
                 <span className="text-[9px] text-[#a8c4a0]/50 leading-none mt-0.5">
                   jugó {tilePlayedAlert.tile[0]}·{tilePlayedAlert.tile[1]}
+                </span>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ¡Capicúa! toast — fires when both open ends match */}
+      <AnimatePresence>
+        {capicuaAlert && (
+          <motion.div
+            key="capicua-toast"
+            initial={{ opacity: 0, y: -28, scale: 0.82 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -18, scale: 0.9 }}
+            transition={{ type: "spring", stiffness: 440, damping: 24 }}
+            className="fixed top-16 left-1/2 -translate-x-1/2 z-50 pointer-events-none"
+            role="status"
+            aria-live="polite"
+          >
+            <div
+              className="flex items-center gap-3 rounded-full px-5 py-2.5 backdrop-blur-sm"
+              style={{
+                background: "linear-gradient(135deg, #1a0e2a 0%, #0e0818 100%)",
+                border: "1.5px solid rgba(201,168,76,0.75)",
+                boxShadow: "0 0 36px 10px rgba(201,168,76,0.3), 0 8px 28px rgba(0,0,0,0.85)",
+              }}
+            >
+              {/* Double-pip domino icon */}
+              <svg width="36" height="20" viewBox="0 0 36 20" fill="none" aria-hidden="true">
+                <rect x="0.75" y="0.75" width="34.5" height="18.5" rx="3" fill="#1a0e2a" stroke="#c9a84c" strokeWidth="1.5"/>
+                <line x1="18" y1="1.5" x2="18" y2="18.5" stroke="#c9a84c" strokeWidth="1"/>
+                <circle cx="9" cy="10" r="3" fill="#c9a84c"/>
+                <circle cx="27" cy="10" r="3" fill="#c9a84c"/>
+              </svg>
+              <div className="flex flex-col leading-tight">
+                <motion.span
+                  className="text-[14px] font-black uppercase tracking-widest leading-none"
+                  style={{ color: "#c9a84c", textShadow: "0 0 16px rgba(201,168,76,0.8)" }}
+                  animate={{ opacity: [1, 0.7, 1] }}
+                  transition={{ duration: 0.9, repeat: Infinity, ease: "easeInOut" }}
+                >
+                  ¡Capicúa!
+                </motion.span>
+                <span className="text-[10px] text-[#f5f0e8]/55 leading-none mt-0.5 uppercase tracking-wider">
+                  ambos extremos iguales
                 </span>
               </div>
             </div>
