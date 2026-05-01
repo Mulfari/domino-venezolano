@@ -16,6 +16,7 @@ import { DisconnectOverlay } from "@/components/game/disconnect-overlay";
 import { ChatPanel } from "@/components/chat/chat-panel";
 import { SoundToggle } from "@/components/game/sound-toggle";
 import { LandscapePrompt } from "@/components/game/landscape-prompt";
+import { DominoSplash } from "@/components/game/domino-splash";
 import { useGameChannel } from "@/hooks/use-game-channel";
 import { useGameStore } from "@/stores/game-store";
 import { playTilePlace, playPass, playYourTurn, playVictory, playDefeat } from "@/lib/sounds/sound-engine";
@@ -114,6 +115,7 @@ export default function GamePage() {
   const [unaFichaAlert, setUnaFichaAlert] = useState<{ name: string; seat: Seat } | null>(null);
   const unaFichaTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const prevHandCountsRef = useRef<number[]>([7, 7, 7, 7]);
+  const [dominoSplash, setDominoSplash] = useState<{ playerName: string; isMyTeam: boolean } | null>(null);
   const [boardTransitioning, setBoardTransitioning] = useState(false);
   const [transitionRound, setTransitionRound] = useState<number | null>(null);
   const [transitionScores, setTransitionScores] = useState<{ prev: { 0: number; 1: number }; next: { 0: number; 1: number } } | null>(null);
@@ -377,8 +379,27 @@ export default function GamePage() {
             points: event.points,
             reason: event.reason,
           });
-          // Start the board fade + overlay as soon as the round ends
-          setBoardTransitioning(true);
+
+          if (event.reason === "domino") {
+            // Find who played the last tile — they dominoed
+            const lastPlay = useGameStore.getState().board.plays.at(-1);
+            const dominoSeat = lastPlay?.seat ?? null;
+            const dominoPlayer = dominoSeat !== null
+              ? (useGameStore.getState().players.find((p) => p.seat === dominoSeat)?.displayName ?? `Jugador ${dominoSeat + 1}`)
+              : "Jugador";
+            const isMyTeamDomino = dominoSeat !== null && currentSeat !== null
+              ? (dominoSeat % 2) === (currentSeat % 2)
+              : false;
+            setDominoSplash({ playerName: dominoPlayer, isMyTeam: isMyTeamDomino });
+            // Show splash for 1.6s, then start board transition
+            setTimeout(() => {
+              setDominoSplash(null);
+              setBoardTransitioning(true);
+            }, 1600);
+          } else {
+            // Start the board fade + overlay as soon as the round ends
+            setBoardTransitioning(true);
+          }
           break;
         }
 
@@ -903,6 +924,15 @@ export default function GamePage() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* ¡Dominó! splash */}
+      {dominoSplash && (
+        <DominoSplash
+          show={true}
+          playerName={dominoSplash.playerName}
+          isMyTeam={dominoSplash.isMyTeam}
+        />
+      )}
 
       {/* Disconnect overlay */}
       <DisconnectOverlay />
