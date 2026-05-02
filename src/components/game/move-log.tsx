@@ -267,6 +267,15 @@ export function MoveLog() {
                             ) : entry.tile ? (
                               <div className="flex items-center gap-1.5">
                                 <MiniDomino a={entry.tile[0]} b={entry.tile[1]} />
+                                {entry.end && (
+                                  <span
+                                    className="text-[9px] font-bold leading-none tabular-nums"
+                                    style={{ color: `${colors.dot}80` }}
+                                    aria-label={entry.end === "left" ? "extremo izquierdo" : "extremo derecho"}
+                                  >
+                                    {entry.end === "left" ? "←" : "→"}
+                                  </span>
+                                )}
                                 {entry.tile[0] === entry.tile[1] && (
                                   <span
                                     className="text-[8px] font-black uppercase tracking-wider leading-none"

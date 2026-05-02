@@ -24,6 +24,7 @@ export interface MoveLogEntry {
   playerName: string;
   type: "play" | "pass";
   tile?: Tile;
+  end?: "left" | "right";
   round: number;
 }
 

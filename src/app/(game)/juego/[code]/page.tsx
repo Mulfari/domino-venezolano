@@ -407,7 +407,7 @@ export default function GamePage() {
           if (playedTile[0] === playedTile[1]) playDouble();
           else playTilePlace();
           const playedName = useGameStore.getState().players.find((p) => p.seat === event.seat)?.displayName ?? `Jugador ${event.seat + 1}`;
-          addMoveLog({ seat: event.seat as Seat, playerName: playedName, type: "play", tile: event.tile as Tile, round: roundRef.current });
+          addMoveLog({ seat: event.seat as Seat, playerName: playedName, type: "play", tile: event.tile as Tile, end: event.end, round: roundRef.current });
           // Show ¡Doble! toast for non-cochina doubles
           if (playedTile[0] === playedTile[1] && !(playedTile[0] === 6 && useGameStore.getState().board.plays.length === 0)) {
             if (dobleTimerRef.current) clearTimeout(dobleTimerRef.current);
@@ -658,7 +658,7 @@ export default function GamePage() {
 
     // Log own play
     if (mySeat !== null) {
-      addMoveLog({ seat: mySeat, playerName: displayName, type: "play", tile, round: roundRef.current });
+      addMoveLog({ seat: mySeat, playerName: displayName, type: "play", tile, end, round: roundRef.current });
     }
 
     // Optimistic update
