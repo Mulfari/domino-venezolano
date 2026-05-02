@@ -77,11 +77,13 @@ export function OpponentHand({
   const isVertical = position === "left" || position === "right";
   const isMobile = useIsMobile();
   const moveLog = useGameStore((s) => s.moveLog);
+  const currentRound = useGameStore((s) => s.round);
 
-  // Find the last tile this opponent played in the current round
+  // Find the last tile this opponent played in the current round only
   const lastPlayedTile: Tile | null = (() => {
     for (let i = moveLog.length - 1; i >= 0; i--) {
       const entry = moveLog[i];
+      if (entry.round !== currentRound) break;
       if (entry.seat === seat && entry.type === "play" && entry.tile) {
         return entry.tile;
       }
