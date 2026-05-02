@@ -4,7 +4,6 @@ import { useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { createPortal } from "react-dom";
 import { useGameStore } from "@/stores/game-store";
-import { playTimeout } from "@/lib/sounds/sound-engine";
 
 const TURN_DURATION = 30;
 
@@ -74,7 +73,6 @@ export function TurnTimer({ onAutoPass, onAutoPlay, onTimeout }: TurnTimerProps)
   useEffect(() => {
     if (seconds === 0 && isMyTurn && !autoPassedRef.current) {
       autoPassedRef.current = true;
-      playTimeout();
       onTimeout?.();
       if (canPass && onAutoPass) {
         onAutoPass();
