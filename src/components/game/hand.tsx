@@ -237,7 +237,7 @@ export function Hand({ onPlayTile, onPass, disabled = false }: HandProps) {
 
       const num = parseInt(key, 10);
       if (num >= 1 && num <= 7) {
-        const tile = myHand[num - 1];
+        const tile = displayHand[num - 1];
         if (tile && isTilePlayable(tile)) {
           e.preventDefault();
           handleTileClick(tile);
@@ -248,7 +248,7 @@ export function Hand({ onPlayTile, onPass, disabled = false }: HandProps) {
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isMyTurn, disabled, canPass, awaitingEndChoice, selectedTile, myHand]);
+  }, [isMyTurn, disabled, canPass, awaitingEndChoice, selectedTile, displayHand]);
 
   function handleRejectedClick(tile: Tile) {
     if (rejectedTimerRef.current) clearTimeout(rejectedTimerRef.current);
