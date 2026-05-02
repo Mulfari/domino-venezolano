@@ -153,6 +153,8 @@ export default function GamePage() {
   const passTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [streakAlert, setStreakAlert] = useState<{ team: 0 | 1; streak: number; isMyTeam: boolean } | null>(null);
   const streakTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [cercaAlert, setCercaAlert] = useState<{ team: 0 | 1; remaining: number; isMyTeam: boolean } | null>(null);
+  const cercaTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   /* ---- Zustand store ---- */
   const mySeat = useGameStore((s) => s.mySeat);
@@ -523,7 +525,16 @@ export default function GamePage() {
             const justEnteredCerca = ([0, 1] as const).some(
               (t) => target - newScores[t] <= CERCA && target - prevScores[t] > CERCA
             );
-            if (justEnteredCerca) playCerca();
+            if (justEnteredCerca) {
+              playCerca();
+              const cercaTeam = ([0, 1] as const).find(
+                (t) => target - newScores[t] <= CERCA && target - prevScores[t] > CERCA
+              ) ?? 0;
+              const isMyTeamCerca = currentSeat !== null && (currentSeat % 2) === cercaTeam;
+              if (cercaTimerRef.current) clearTimeout(cercaTimerRef.current);
+              setCercaAlert({ team: cercaTeam, remaining: target - newScores[cercaTeam], isMyTeam: isMyTeamCerca });
+              cercaTimerRef.current = setTimeout(() => setCercaAlert(null), 3500);
+            }
           }
 
           // Play streak sound when a team wins 3+ consecutive rounds
@@ -1652,6 +1663,85 @@ export default function GamePage() {
                 >
                   {streakAlert.streak}
                 </div>
+              </div>
+            </motion.div>
+          );
+        })()}
+      </AnimatePresence>
+
+      {/* ¡Cerca! toast — fires when a team first enters the danger zone (≤20 pts from target) */}
+      <AnimatePresence>
+        {cercaAlert && (() => {
+          const accentColor = cercaAlert.isMyTeam ? "#e84a3a" : "#c9a84c";
+          const accentRgb = cercaAlert.isMyTeam ? "232,74,58" : "201,168,76";
+          const bgGradient = cercaAlert.isMyTeam
+            ? "linear-gradient(135deg, #2a0800 0%, #1a0400 100%)"
+            : "linear-gradient(135deg, #2a1600 0%, #1a0e00 100%)";
+          const label = cercaAlert.isMyTeam ? "¡Estamos cerca!" : "¡Rivales cerca!";
+          return (
+            <motion.div
+              key={`cerca-${cercaAlert.team}`}
+              initial={{ opacity: 0, y: -28, scale: 0.82 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -18, scale: 0.9 }}
+              transition={{ type: "spring", stiffness: 380, damping: 22 }}
+              className="flex items-center gap-3 rounded-2xl px-4 py-2.5 shadow-2xl pointer-events-none"
+              style={{
+                background: bgGradient,
+                border: `1.5px solid rgba(${accentRgb},0.55)`,
+                boxShadow: `0 0 24px rgba(${accentRgb},0.25), 0 8px 24px rgba(0,0,0,0.6)`,
+              }}
+              role="status"
+              aria-live="polite"
+              aria-label={`${label} — faltan ${cercaAlert.remaining} puntos`}
+            >
+              {/* Warning icon */}
+              <motion.div
+                animate={{ scale: [1, 1.18, 1] }}
+                transition={{ duration: 0.7, repeat: 2, ease: "easeInOut" }}
+                className="flex items-center justify-center rounded-full shrink-0"
+                style={{
+                  width: 36,
+                  height: 36,
+                  background: `rgba(${accentRgb},0.15)`,
+                  border: `1.5px solid rgba(${accentRgb},0.45)`,
+                }}
+                aria-hidden="true"
+              >
+                <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                  <path d="M9 2L16.5 15H1.5L9 2Z" stroke={accentColor} strokeWidth="1.5" strokeLinejoin="round" fill="none"/>
+                  <line x1="9" y1="7" x2="9" y2="11" stroke={accentColor} strokeWidth="1.5" strokeLinecap="round"/>
+                  <circle cx="9" cy="13.5" r="0.9" fill={accentColor}/>
+                </svg>
+              </motion.div>
+              <div className="flex flex-col gap-0.5 min-w-0">
+                <motion.span
+                  className="text-[13px] sm:text-[14px] font-black uppercase tracking-wider leading-none whitespace-nowrap"
+                  style={{ color: accentColor, textShadow: `0 0 12px rgba(${accentRgb},0.7)` }}
+                  animate={{ opacity: [1, 0.7, 1] }}
+                  transition={{ duration: 0.9, repeat: 2, ease: "easeInOut" }}
+                >
+                  {label}
+                </motion.span>
+                <span className="text-[10px] text-[#f5f0e8]/60 leading-none mt-0.5">
+                  faltan {cercaAlert.remaining} pts para ganar
+                </span>
+              </div>
+              {/* Remaining points badge */}
+              <div
+                className="flex items-center justify-center rounded-xl shrink-0 font-black tabular-nums leading-none"
+                style={{
+                  minWidth: 40,
+                  height: 40,
+                  fontSize: 18,
+                  background: `rgba(${accentRgb},0.12)`,
+                  border: `1.5px solid rgba(${accentRgb},0.55)`,
+                  color: accentColor,
+                  textShadow: `0 0 8px rgba(${accentRgb},0.7)`,
+                }}
+                aria-hidden="true"
+              >
+                {cercaAlert.remaining}
               </div>
             </motion.div>
           );
