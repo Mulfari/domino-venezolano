@@ -106,6 +106,10 @@ export function Hand({ onPlayTile, onPass, disabled = false }: HandProps) {
   const hintTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [rejectedTile, setRejectedTile] = useState<Tile | null>(null);
   const rejectedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [sortByPips, setSortByPips] = useState(false);
+  const displayHand = sortByPips
+    ? [...myHand].sort((a, b) => (b[0] + b[1]) - (a[0] + a[1]))
+    : myHand;
 
   // Close shortcuts popover when clicking outside
   useEffect(() => {
@@ -517,7 +521,7 @@ export function Hand({ onPlayTile, onPass, disabled = false }: HandProps) {
 
       <div className="flex items-end justify-center gap-1.5 sm:gap-2 flex-wrap">
         <AnimatePresence mode="popLayout">
-          {myHand.map((tile, i) => {
+          {displayHand.map((tile, i) => {
             const playable = isMyTurn && isTilePlayable(tile);
             const selected = isTileSelected(tile);
             const cochina = isCochina(tile);
@@ -721,6 +725,44 @@ export function Hand({ onPlayTile, onPass, disabled = false }: HandProps) {
             </svg>
             <span className="text-[10px] font-semibold uppercase tracking-widest leading-none">
               {hintTile ? "Sugerida" : "Sugerencia"}
+            </span>
+          </motion.button>
+        )}
+      </AnimatePresence>
+
+      {/* Sort toggle button — always visible when hand has 2+ tiles */}
+      <AnimatePresence>
+        {myHand.length >= 2 && (
+          <motion.button
+            key="sort-btn"
+            initial={{ opacity: 0, scale: 0.8, y: 6 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.8, y: 4 }}
+            transition={{ type: "spring", stiffness: 420, damping: 24 }}
+            whileTap={{ scale: 0.93 }}
+            onClick={() => setSortByPips((v) => !v)}
+            aria-label={sortByPips ? "Orden original" : "Ordenar por puntos"}
+            aria-pressed={sortByPips}
+            className="flex items-center gap-1.5 rounded-full px-3 py-1.5 transition-colors"
+            style={sortByPips ? {
+              background: "linear-gradient(135deg, #1a2a10 0%, #0e1a08 100%)",
+              border: "1.5px solid rgba(168,196,160,0.65)",
+              boxShadow: "0 0 14px rgba(168,196,160,0.25), 0 2px 8px rgba(0,0,0,0.5)",
+              color: "rgba(168,196,160,1)",
+            } : {
+              background: "rgba(0,0,0,0.22)",
+              border: "1px solid rgba(168,196,160,0.2)",
+              color: "rgba(168,196,160,0.55)",
+            }}
+          >
+            {/* Sort icon */}
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+              <line x1="1" y1="3" x2="11" y2="3" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
+              <line x1="2.5" y1="6" x2="9.5" y2="6" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
+              <line x1="4" y1="9" x2="8" y2="9" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
+            </svg>
+            <span className="text-[10px] font-semibold uppercase tracking-widest leading-none">
+              {sortByPips ? "Ordenado" : "Ordenar"}
             </span>
           </motion.button>
         )}
