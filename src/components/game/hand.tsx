@@ -519,6 +519,46 @@ export function Hand({ onPlayTile, onPass, disabled = false }: HandProps) {
         )}
       </AnimatePresence>
 
+      {/* ¡UNA FICHA! persistent label + glow — mirrors the opponent-hand treatment */}
+      <AnimatePresence>
+        {myHand.length === 1 && (
+          <motion.div
+            key="una-ficha-label"
+            initial={{ opacity: 0, scale: 0.7, y: 6 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.7 }}
+            transition={{ type: "spring", stiffness: 500, damping: 22 }}
+            className="pointer-events-none"
+          >
+            <motion.span
+              animate={{ opacity: [0.75, 1, 0.75] }}
+              transition={{ duration: 1.0, repeat: Infinity, ease: "easeInOut" }}
+              className="text-[11px] sm:text-[13px] font-black uppercase tracking-widest whitespace-nowrap"
+              style={{
+                color: teamColors.name,
+                textShadow: `0 0 10px ${teamColors.glow}, 0 1px 3px rgba(0,0,0,0.9)`,
+              }}
+              role="status"
+              aria-live="polite"
+              aria-label="¡Una ficha! — última ficha en mano"
+            >
+              ¡UNA FICHA!
+            </motion.span>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <div className="relative">
+        {/* Pulsing aura behind the tile when 1 tile left */}
+        {myHand.length === 1 && (
+          <motion.div
+            className="absolute -inset-6 rounded-2xl pointer-events-none z-0"
+            style={{ background: `radial-gradient(ellipse, ${teamColors.glow} 0%, transparent 70%)` }}
+            animate={{ opacity: [0.4, 1, 0.4], scale: [0.9, 1.08, 0.9] }}
+            transition={{ duration: 1.1, repeat: Infinity, ease: "easeInOut" }}
+            aria-hidden="true"
+          />
+        )}
       <div className="flex items-end justify-center gap-1.5 sm:gap-2 flex-wrap">
         <AnimatePresence mode="popLayout">
           {displayHand.map((tile, i) => {
@@ -692,6 +732,7 @@ export function Hand({ onPlayTile, onPass, disabled = false }: HandProps) {
             );
           })}
         </AnimatePresence>
+      </div>
       </div>
 
       {/* Hint button — visible when it's your turn and 2+ valid moves exist */}
