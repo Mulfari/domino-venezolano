@@ -519,6 +519,35 @@ export function Hand({ onPlayTile, onPass, disabled = false }: HandProps) {
         )}
       </AnimatePresence>
 
+      {/* ¡DOS! persistent label — mirrors the opponent-hand treatment */}
+      <AnimatePresence>
+        {myHand.length === 2 && (
+          <motion.div
+            key="dos-label"
+            initial={{ opacity: 0, scale: 0.7, y: 6 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.7 }}
+            transition={{ type: "spring", stiffness: 500, damping: 22 }}
+            className="pointer-events-none"
+          >
+            <motion.span
+              animate={{ opacity: [0.65, 1, 0.65] }}
+              transition={{ duration: 1.3, repeat: Infinity, ease: "easeInOut" }}
+              className="text-[11px] sm:text-[13px] font-black uppercase tracking-widest whitespace-nowrap"
+              style={{
+                color: teamColors.name,
+                textShadow: `0 0 8px ${teamColors.glow}, 0 1px 3px rgba(0,0,0,0.9)`,
+              }}
+              role="status"
+              aria-live="polite"
+              aria-label="¡Dos fichas! — quedan dos fichas en mano"
+            >
+              ¡DOS!
+            </motion.span>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* ¡UNA FICHA! persistent label + glow — mirrors the opponent-hand treatment */}
       <AnimatePresence>
         {myHand.length === 1 && (
