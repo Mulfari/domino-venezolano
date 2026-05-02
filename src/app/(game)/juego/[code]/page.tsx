@@ -21,6 +21,7 @@ import { BoardEnds } from "@/components/game/board-ends";
 import { LandscapePrompt } from "@/components/game/landscape-prompt";
 import { DominoSplash } from "@/components/game/domino-splash";
 import { CapicuaSplash } from "@/components/game/capicua-splash";
+import { CochinaSplash } from "@/components/game/cochina-splash";
 import { TurnFlash } from "@/components/game/turn-flash";
 import { PassMeter } from "@/components/game/pass-meter";
 import { ToastStack } from "@/components/game/toast-stack";
@@ -132,6 +133,8 @@ export default function GamePage() {
   const prevCapicuaRef = useRef(false);
   const [cochinaAlert, setCochinaAlert] = useState<{ name: string } | null>(null);
   const cochinaTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [cochinaShow, setCochinaShow] = useState(false);
+  const cochinaShowTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const prevFirstPlayRef = useRef<string | null>(null);
   const [dobleAlert, setDobleAlert] = useState<{ name: string; pip: number; seat: Seat } | null>(null);
   const dobleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -349,6 +352,9 @@ export default function GamePage() {
       if (cochinaTimerRef.current) clearTimeout(cochinaTimerRef.current);
       setCochinaAlert({ name });
       cochinaTimerRef.current = setTimeout(() => setCochinaAlert(null), 3500);
+      setCochinaShow(true);
+      if (cochinaShowTimerRef.current) clearTimeout(cochinaShowTimerRef.current);
+      cochinaShowTimerRef.current = setTimeout(() => setCochinaShow(false), 3500);
     }
   }, [board.plays, players]);
 
@@ -1572,6 +1578,13 @@ export default function GamePage() {
           tile={dominoSplash.tile}
         />
       )}
+
+      {/* ¡Cochina! splash */}
+      <CochinaSplash
+        show={cochinaShow}
+        playerName={cochinaAlert?.name ?? board.plays[0] ? (players.find((p) => p.seat === board.plays[0]?.seat)?.displayName ?? "") : ""}
+        isMe={mySeat !== null && board.plays[0]?.seat === mySeat}
+      />
 
       {/* Disconnect overlay */}
       <DisconnectOverlay />
