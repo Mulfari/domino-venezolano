@@ -816,8 +816,13 @@ export function Board({ onPlaceEnd, clearing = false }: BoardProps) {
                         transition={isNew ? { type: "spring", stiffness: 380, damping: 18 } : undefined}
                         style={{ transformOrigin: `${pt.x}px ${pt.y}px` }}
                       >
-                        {/* Fading "just played" glow — one-shot, fades out over 2.5s */}
-                        {isNew && (
+                        {/* Fading "just played" glow — one-shot, fades out over 2.5s, colored by team */}
+                        {isNew && (() => {
+                          const glowTeam = (pt.seat % 2) as 0 | 1;
+                          const glowStroke = glowTeam === 0 ? "#c9a84c" : "#4ca8c9";
+                          const glowFill = glowTeam === 0 ? "rgba(201,168,76,0.22)" : "rgba(76,168,201,0.22)";
+                          const glowDrop = glowTeam === 0 ? "drop-shadow(0 0 6px rgba(201,168,76,0.9))" : "drop-shadow(0 0 6px rgba(76,168,201,0.9))";
+                          return (
                           <>
                             <motion.rect
                               x={pt.x - tw / 2 - 9}
@@ -825,7 +830,7 @@ export function Board({ onPlaceEnd, clearing = false }: BoardProps) {
                               width={tw + 18}
                               height={th + 18}
                               rx={8}
-                              fill="rgba(201,168,76,0.22)"
+                              fill={glowFill}
                               stroke="none"
                               initial={{ opacity: 1 }}
                               animate={{ opacity: 0 }}
@@ -839,15 +844,16 @@ export function Board({ onPlaceEnd, clearing = false }: BoardProps) {
                               height={th + 10}
                               rx={6}
                               fill="none"
-                              stroke="#c9a84c"
+                              stroke={glowStroke}
                               strokeWidth={2.5}
                               initial={{ opacity: 0.95 }}
                               animate={{ opacity: 0 }}
                               transition={{ duration: 2.0, delay: 0.2, ease: "easeOut" }}
-                              style={{ filter: "drop-shadow(0 0 6px rgba(201,168,76,0.9))" }}
+                              style={{ filter: glowDrop }}
                             />
                           </>
-                        )}
+                          );
+                        })()}
                         {/* Persistent "last played" ring — stays until next tile is placed */}
                         {pt.key === animatingKey && !isNew && !isEndTile && (() => {
                           const team = lastPlayedSeat !== null ? (lastPlayedSeat % 2) as 0 | 1 : 0;
