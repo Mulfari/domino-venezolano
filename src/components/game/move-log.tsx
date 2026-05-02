@@ -112,6 +112,9 @@ export function MoveLog() {
   const mySeat = useGameStore((s) => s.mySeat);
   const roundHistory = useGameStore((s) => s.roundHistory);
   const [open, setOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [pulsing, setPulsing] = useState(false);
+  const pulseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const prevLenRef = useRef(moveLog.length);
@@ -128,13 +131,31 @@ export function MoveLog() {
   }, [open]);
 
   useEffect(() => {
-    if (open && moveLog.length !== prevLenRef.current && listRef.current) {
-      listRef.current.scrollTop = listRef.current.scrollHeight;
+    const newLen = moveLog.length;
+    const prevLen = prevLenRef.current;
+    if (newLen > prevLen) {
+      if (open) {
+        // Auto-scroll to bottom when panel is open
+        if (listRef.current) listRef.current.scrollTop = listRef.current.scrollHeight;
+      } else {
+        // Accumulate unread count and trigger pulse animation
+        setUnreadCount((c) => c + (newLen - prevLen));
+        setPulsing(true);
+        if (pulseTimerRef.current) clearTimeout(pulseTimerRef.current);
+        pulseTimerRef.current = setTimeout(() => setPulsing(false), 1200);
+      }
     }
-    prevLenRef.current = moveLog.length;
+    prevLenRef.current = newLen;
   }, [moveLog.length, open]);
 
   const myTeam = mySeat !== null ? ((mySeat % 2) as 0 | 1) : null;
+
+  function handleToggle() {
+    setOpen((v) => {
+      if (!v) setUnreadCount(0); // clear unread when opening
+      return !v;
+    });
+  }
 
   // Group entries by round, preserving chronological order within each group
   const grouped = moveLog.reduce<Record<number, MoveLogEntry[]>>((acc, entry) => {
@@ -148,14 +169,26 @@ export function MoveLog() {
     <div className="relative" ref={containerRef}>
       {/* Toggle button */}
       <motion.button
-        onClick={() => setOpen((v) => !v)}
+        onClick={handleToggle}
         whileTap={{ scale: 0.92 }}
+        animate={pulsing && !open ? {
+          boxShadow: [
+            "0 0 0px rgba(201,168,76,0)",
+            "0 0 14px rgba(201,168,76,0.7)",
+            "0 0 6px rgba(201,168,76,0.35)",
+          ],
+        } : {}}
+        transition={pulsing && !open ? { duration: 0.55, ease: "easeOut" } : {}}
         aria-label={open ? "Cerrar registro de jugadas" : "Ver registro de jugadas"}
         aria-expanded={open}
         className="relative flex items-center gap-1 rounded-lg border px-2 py-1 text-[10px] font-semibold uppercase tracking-wider transition-colors"
         style={{
           background: open ? "rgba(201,168,76,0.15)" : "rgba(58,34,16,0.8)",
-          borderColor: open ? "rgba(201,168,76,0.5)" : "rgba(201,168,76,0.2)",
+          borderColor: open
+            ? "rgba(201,168,76,0.5)"
+            : unreadCount > 0
+            ? "rgba(201,168,76,0.45)"
+            : "rgba(201,168,76,0.2)",
           color: open ? "#c9a84c" : "rgba(168,196,160,0.7)",
           minHeight: 36,
         }}
@@ -167,21 +200,50 @@ export function MoveLog() {
           <circle cx="12" cy="4" r="1.2" fill="currentColor" />
         </svg>
         <span className="hidden sm:inline">Jugadas</span>
-        {moveLog.length > 0 && (
-          <span
-            className="flex items-center justify-center rounded-full text-[9px] font-black leading-none tabular-nums"
-            style={{
-              minWidth: 16,
-              height: 16,
-              paddingInline: 3,
-              background: open ? "rgba(201,168,76,0.3)" : "rgba(201,168,76,0.2)",
-              color: "#c9a84c",
-              border: "1px solid rgba(201,168,76,0.35)",
-            }}
-          >
-            {moveLog.length > 99 ? "99+" : moveLog.length}
-          </span>
-        )}
+        {/* Unread badge — shown when panel is closed and new moves arrived */}
+        <AnimatePresence mode="wait">
+          {!open && unreadCount > 0 ? (
+            <motion.span
+              key="unread"
+              initial={{ scale: 0, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0, opacity: 0 }}
+              transition={{ type: "spring", stiffness: 500, damping: 22 }}
+              className="flex items-center justify-center rounded-full text-[9px] font-black leading-none tabular-nums"
+              style={{
+                minWidth: 16,
+                height: 16,
+                paddingInline: 3,
+                background: "rgba(201,168,76,0.35)",
+                color: "#c9a84c",
+                border: "1px solid rgba(201,168,76,0.6)",
+                boxShadow: "0 0 6px rgba(201,168,76,0.4)",
+              }}
+              aria-label={`${unreadCount} jugadas nuevas`}
+            >
+              +{unreadCount > 9 ? "9" : unreadCount}
+            </motion.span>
+          ) : moveLog.length > 0 ? (
+            <motion.span
+              key="total"
+              initial={{ scale: 0, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0, opacity: 0 }}
+              transition={{ type: "spring", stiffness: 500, damping: 22 }}
+              className="flex items-center justify-center rounded-full text-[9px] font-black leading-none tabular-nums"
+              style={{
+                minWidth: 16,
+                height: 16,
+                paddingInline: 3,
+                background: open ? "rgba(201,168,76,0.3)" : "rgba(201,168,76,0.2)",
+                color: "#c9a84c",
+                border: "1px solid rgba(201,168,76,0.35)",
+              }}
+            >
+              {moveLog.length > 99 ? "99+" : moveLog.length}
+            </motion.span>
+          ) : null}
+        </AnimatePresence>
       </motion.button>
 
       {/* Dropdown panel */}
