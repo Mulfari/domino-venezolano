@@ -151,6 +151,21 @@ export function DominoTile({
           <stop offset="0%" stopColor="transparent" />
           <stop offset="100%" stopColor="rgba(0,0,0,0.16)" />
         </linearGradient>
+        {/* Divider bar gradients — fade to transparent at ends for a carved look */}
+        <linearGradient id={`div-h-${uid}`} x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%"   stopColor="rgba(180,168,140,0)" />
+          <stop offset="18%"  stopColor="rgba(180,168,140,0.55)" />
+          <stop offset="50%"  stopColor="rgba(200,185,155,0.75)" />
+          <stop offset="82%"  stopColor="rgba(180,168,140,0.55)" />
+          <stop offset="100%" stopColor="rgba(180,168,140,0)" />
+        </linearGradient>
+        <linearGradient id={`div-v-${uid}`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%"   stopColor="rgba(180,168,140,0)" />
+          <stop offset="18%"  stopColor="rgba(180,168,140,0.55)" />
+          <stop offset="50%"  stopColor="rgba(200,185,155,0.75)" />
+          <stop offset="82%"  stopColor="rgba(180,168,140,0.55)" />
+          <stop offset="100%" stopColor="rgba(180,168,140,0)" />
+        </linearGradient>
         <linearGradient id={`back-${uid}`} x1="0.15" y1="0" x2="0.85" y2="1">
           <stop offset="0%" stopColor="#7a4e28" />
           <stop offset="30%" stopColor="#4a2c12" />
@@ -285,11 +300,9 @@ export function DominoTile({
             <g>
               <PipDots value={tile[0]} pipSize={pip} halfWidth={w / 2} halfHeight={h} horizontal pipGradientId={`pip-${uid}`} pipShineId={`pip-shine-${uid}`} pipRimId={`pip-rim-${uid}`} />
             </g>
-            <line
-              x1={w / 2} y1={3}
-              x2={w / 2} y2={h - 3}
-              stroke="#c0b8a8" strokeWidth={0.6}
-            />
+            {/* Carved groove: dark shadow left, light highlight right */}
+            <line x1={w / 2 - 0.6} y1={3} x2={w / 2 - 0.6} y2={h - 3} stroke="rgba(0,0,0,0.55)" strokeWidth={1.4} />
+            <line x1={w / 2 + 0.6} y1={3} x2={w / 2 + 0.6} y2={h - 3} stroke="rgba(255,255,255,0.32)" strokeWidth={0.8} />
             <g transform={`translate(${w / 2}, 0)`}>
               <PipDots value={tile[1]} pipSize={pip} halfWidth={w / 2} halfHeight={h} horizontal pipGradientId={`pip-${uid}`} pipShineId={`pip-shine-${uid}`} pipRimId={`pip-rim-${uid}`} />
             </g>
@@ -299,11 +312,9 @@ export function DominoTile({
             <g>
               <PipDots value={tile[0]} pipSize={pip} halfWidth={w} halfHeight={(h - gap) / 2} pipGradientId={`pip-${uid}`} pipShineId={`pip-shine-${uid}`} pipRimId={`pip-rim-${uid}`} />
             </g>
-            <line
-              x1={3} y1={(h - gap) / 2 + gap / 2}
-              x2={w - 3} y2={(h - gap) / 2 + gap / 2}
-              stroke="#c0b8a8" strokeWidth={0.6}
-            />
+            {/* Carved groove: dark shadow above, light highlight below */}
+            <line x1={3} y1={(h - gap) / 2 + gap / 2 - 0.6} x2={w - 3} y2={(h - gap) / 2 + gap / 2 - 0.6} stroke="rgba(0,0,0,0.55)" strokeWidth={1.4} />
+            <line x1={3} y1={(h - gap) / 2 + gap / 2 + 0.6} x2={w - 3} y2={(h - gap) / 2 + gap / 2 + 0.6} stroke="rgba(255,255,255,0.32)" strokeWidth={0.8} />
             <g transform={`translate(0, ${(h - gap) / 2 + gap})`}>
               <PipDots value={tile[1]} pipSize={pip} halfWidth={w} halfHeight={(h - gap) / 2} pipGradientId={`pip-${uid}`} pipShineId={`pip-shine-${uid}`} pipRimId={`pip-rim-${uid}`} />
             </g>
