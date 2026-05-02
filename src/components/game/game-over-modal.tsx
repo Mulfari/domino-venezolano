@@ -286,6 +286,8 @@ export function GameOverModal({ onNextRound, onBackToLobby, onRevancha }: GameOv
         team0Names={team0Names}
         team1Names={team1Names}
         roundHistory={roundHistory}
+        players={players}
+        moveLog={moveLog}
         onBackToLobby={onBackToLobby}
         onRevancha={onRevancha}
       />
@@ -735,11 +737,13 @@ interface GameOverViewProps {
   team0Names: string[];
   team1Names: string[];
   roundHistory: import("@/stores/game-store").RoundHistoryEntry[];
+  players: { seat: Seat; displayName: string; connected: boolean; isBot?: boolean }[];
+  moveLog: import("@/stores/game-store").MoveLogEntry[];
   onBackToLobby?: () => void;
   onRevancha?: () => void;
 }
 
-function GameOverView({ scores, myTeam, team0Names, team1Names, roundHistory, onBackToLobby, onRevancha }: GameOverViewProps) {
+function GameOverView({ scores, myTeam, team0Names, team1Names, roundHistory, players, moveLog, onBackToLobby, onRevancha }: GameOverViewProps) {
   const winnerTeam: 0 | 1 = scores[0] >= scores[1] ? 0 : 1;
   const loserTeam: 0 | 1 = winnerTeam === 0 ? 1 : 0;
   const iWon = myTeam === winnerTeam;
@@ -1031,6 +1035,67 @@ function GameOverView({ scores, myTeam, team0Names, team1Names, roundHistory, on
                     </span>
                     <span className={`text-[10px] font-bold tabular-nums text-right ${isMyTeamWin ? "text-[#c9a84c]" : "text-[#f5f0e8]/50"}`}>
                       +{entry.points}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </motion.div>
+        )}
+
+        {/* Match stats — per-player totals across all rounds */}
+        {moveLog.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 1.6 }}
+            className="mx-5 mb-4"
+          >
+            <p className="text-[9px] uppercase tracking-widest text-[#a8c4a0]/40 mb-2 text-center">
+              Estadísticas del partido
+            </p>
+            <div className="rounded-xl border border-[#f5f0e8]/8 overflow-hidden">
+              <div className="grid grid-cols-[1fr_auto_auto_auto_auto] gap-x-2 px-3 py-1.5 bg-[#0f3520]/60">
+                <span className="text-[9px] uppercase tracking-wider text-[#a8c4a0]/40">Jugador</span>
+                <span className="text-[9px] uppercase tracking-wider text-[#a8c4a0]/40 text-center" title="Equipo">Eq.</span>
+                <span className="text-[9px] uppercase tracking-wider text-[#a8c4a0]/40 text-center" title="Fichas jugadas">🁣</span>
+                <span className="text-[9px] uppercase tracking-wider text-[#a8c4a0]/40 text-center" title="Dobles jugados">2x</span>
+                <span className="text-[9px] uppercase tracking-wider text-[#a8c4a0]/40 text-right" title="Pases">↩</span>
+              </div>
+              {([0, 1, 2, 3] as const).map((seat, i) => {
+                const player = players.find((p) => p.seat === seat);
+                const name = player?.displayName ?? `J${seat + 1}`;
+                const team = (seat % 2) as 0 | 1;
+                const isMyTeamRow = myTeam === team;
+                const isWinnerRow = winnerTeam === team;
+                const playsCount = moveLog.filter((e) => e.seat === seat && e.type === "play").length;
+                const doublesCount = moveLog.filter((e) => e.seat === seat && e.type === "play" && e.tile && e.tile[0] === e.tile[1]).length;
+                const passCount = moveLog.filter((e) => e.seat === seat && e.type === "pass").length;
+                return (
+                  <div
+                    key={seat}
+                    className={`grid grid-cols-[1fr_auto_auto_auto_auto] gap-x-2 px-3 py-1.5 border-t border-[#f5f0e8]/5 ${
+                      i % 2 === 0 ? "bg-[#163d28]" : "bg-[#1a4530]/40"
+                    }`}
+                  >
+                    <span className={`text-[10px] font-medium truncate flex items-center gap-1 ${isMyTeamRow ? "text-[#c9a84c]" : "text-[#f5f0e8]/65"}`}>
+                      {isWinnerRow && <span className="text-[8px]">★</span>}
+                      {name}
+                    </span>
+                    <span
+                      className="text-[9px] font-bold text-center tabular-nums"
+                      style={{ color: team === 0 ? "#c9a84c" : "#4ca8c9" }}
+                    >
+                      {team === 0 ? "A" : "B"}
+                    </span>
+                    <span className="text-[10px] font-bold tabular-nums text-center text-[#f5f0e8]/70">
+                      {playsCount}
+                    </span>
+                    <span className={`text-[10px] font-bold tabular-nums text-center ${doublesCount > 0 ? "text-[#c9a84c]/80" : "text-[#f5f0e8]/25"}`}>
+                      {doublesCount > 0 ? doublesCount : "—"}
+                    </span>
+                    <span className={`text-[10px] font-bold tabular-nums text-right ${passCount > 0 ? "text-[#fb923c]/80" : "text-[#f5f0e8]/25"}`}>
+                      {passCount > 0 ? passCount : "—"}
                     </span>
                   </div>
                 );
