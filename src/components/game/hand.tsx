@@ -54,7 +54,6 @@ export function Hand({ onPlayTile, onPass, disabled = false }: HandProps) {
     if (!isMyTurn) return;
     if (!justBecameMyTurn || selectedTile !== null) return;
 
-    if (validMoves.length === 0 || !canPass) return;
     if (validMoves.length !== 1) return;
 
     if (autoSelectTimerRef.current) clearTimeout(autoSelectTimerRef.current);
