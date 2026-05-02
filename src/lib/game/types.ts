@@ -29,6 +29,7 @@ export interface RoundResult {
   winner_team: Team | null;
   points: number;
   reason: "domino" | "locked" | "tied";
+  is_capicua?: boolean;
 }
 
 /** Complete state of a single round. */

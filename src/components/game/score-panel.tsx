@@ -312,13 +312,24 @@ function RoundHistory({ history, myTeam, className = "mt-2 pt-2 border-t border-
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.2 }}
               role="listitem"
-              aria-label={`Ronda ${entry.round}: ${tied ? "Empate" : `Equipo ${(entry.winner_team ?? 0) + 1} ganó`}, ${entry.points} pts, ${reasonFull}`}
+              aria-label={`Ronda ${entry.round}: ${tied ? "Empate" : `Equipo ${(entry.winner_team ?? 0) + 1} ganó`}, ${entry.points} pts, ${reasonFull}${entry.is_capicua ? ", capicúa" : ""}`}
               className={`flex items-center gap-0.5 px-1.5 py-0.5 rounded border text-[8px] font-semibold tabular-nums ${bg}`}
+              style={entry.is_capicua ? { borderColor: "rgba(201,168,76,0.7)", boxShadow: "0 0 6px rgba(201,168,76,0.3)" } : undefined}
             >
               <span className="text-[#f5f0e8]/30">{entry.round}</span>
               <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${dot}`} />
               <span className="text-[#f5f0e8]/70">{entry.points}</span>
               <span className="text-[#f5f0e8]/35 text-[7px] font-bold">{reason}</span>
+              {entry.is_capicua && (
+                <span
+                  className="text-[7px] font-black leading-none"
+                  style={{ color: "#c9a84c", textShadow: "0 0 6px rgba(201,168,76,0.8)" }}
+                  title="Capicúa"
+                  aria-hidden="true"
+                >
+                  ✦
+                </span>
+              )}
             </motion.div>
           );
         })}

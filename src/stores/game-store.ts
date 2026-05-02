@@ -15,6 +15,7 @@ export interface RoundHistoryEntry {
   winner_team: Team | null;
   points: number;
   reason: "domino" | "locked" | "tied";
+  is_capicua?: boolean;
 }
 
 export interface MoveLogEntry {

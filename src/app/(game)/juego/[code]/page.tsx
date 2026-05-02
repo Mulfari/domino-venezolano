@@ -500,11 +500,17 @@ export default function GamePage() {
             points: event.points,
             reason: event.reason,
           });
+          const boardAtEnd = useGameStore.getState().board;
+          const isCapicuaRound =
+            boardAtEnd.left !== null &&
+            boardAtEnd.left === boardAtEnd.right &&
+            boardAtEnd.plays.length > 1;
           addRoundHistory({
             round: roundRef.current,
             winner_team: event.winner_team as (0 | 1 | null),
             points: event.points,
             reason: event.reason,
+            is_capicua: isCapicuaRound || undefined,
           });
 
           // Play streak sound when a team wins 3+ consecutive rounds
