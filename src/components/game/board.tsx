@@ -317,97 +317,6 @@ export function Board({ onPlaceEnd, clearing = false }: BoardProps) {
               }}
             />
 
-            {/* Empty board placeholder — shown before the first tile is played */}
-            <AnimatePresence>
-              {board.plays.length === 0 && status === "playing" && (
-                <motion.div
-                  key="empty-board"
-                  initial={{ opacity: 0, scale: 0.88 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.92 }}
-                  transition={{ duration: 0.45, ease: "easeOut" }}
-                  className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-10"
-                  aria-hidden="true"
-                >
-                  {/* Faint radial glow behind the icon */}
-                  <div
-                    className="absolute"
-                    style={{
-                      width: isMobile ? 100 : 130,
-                      height: isMobile ? 100 : 130,
-                      borderRadius: "50%",
-                      background: "radial-gradient(ellipse, rgba(201,168,76,0.13) 0%, transparent 70%)",
-                    }}
-                  />
-
-                  {/* Double-6 domino icon on round 1, generic domino otherwise */}
-                  <motion.div
-                    animate={{ opacity: [0.55, 0.85, 0.55] }}
-                    transition={{ duration: 2.8, repeat: Infinity, ease: "easeInOut" }}
-                  >
-                    {round === 1 ? (
-                      /* 6-6 domino */
-                      <svg
-                        width={isMobile ? 52 : 64}
-                        height={isMobile ? 28 : 34}
-                        viewBox="0 0 64 34"
-                        fill="none"
-                      >
-                        <rect x="1" y="1" width="62" height="32" rx="5" fill="rgba(245,240,232,0.07)" stroke="rgba(201,168,76,0.45)" strokeWidth="1.5"/>
-                        <line x1="32" y1="2" x2="32" y2="32" stroke="rgba(201,168,76,0.35)" strokeWidth="1"/>
-                        {/* Left 6 */}
-                        {[[8,7],[14,7],[8,17],[14,17],[8,27],[14,27]].map(([cx,cy],i) => (
-                          <circle key={i} cx={cx} cy={cy} r="2.2" fill="rgba(201,168,76,0.55)"/>
-                        ))}
-                        {/* Right 6 */}
-                        {[[50,7],[56,7],[50,17],[56,17],[50,27],[56,27]].map(([cx,cy],i) => (
-                          <circle key={i} cx={cx} cy={cy} r="2.2" fill="rgba(201,168,76,0.55)"/>
-                        ))}
-                      </svg>
-                    ) : (
-                      /* Generic domino */
-                      <svg
-                        width={isMobile ? 52 : 64}
-                        height={isMobile ? 28 : 34}
-                        viewBox="0 0 64 34"
-                        fill="none"
-                      >
-                        <rect x="1" y="1" width="62" height="32" rx="5" fill="rgba(245,240,232,0.07)" stroke="rgba(201,168,76,0.35)" strokeWidth="1.5"/>
-                        <line x1="32" y1="2" x2="32" y2="32" stroke="rgba(201,168,76,0.25)" strokeWidth="1"/>
-                        <circle cx="16" cy="17" r="3" fill="rgba(201,168,76,0.45)"/>
-                        <circle cx="48" cy="17" r="3" fill="rgba(201,168,76,0.45)"/>
-                      </svg>
-                    )}
-                  </motion.div>
-
-                  {/* Label */}
-                  <motion.div
-                    className="mt-2 flex flex-col items-center gap-0.5"
-                    animate={{ opacity: [0.45, 0.75, 0.45] }}
-                    transition={{ duration: 2.8, repeat: Infinity, ease: "easeInOut", delay: 0.3 }}
-                  >
-                    <span
-                      className="text-center font-semibold uppercase tracking-widest leading-none"
-                      style={{
-                        fontSize: isMobile ? 8 : 9,
-                        color: "rgba(201,168,76,0.65)",
-                      }}
-                    >
-                      {round === 1 ? "¡Cochina para abrir!" : "Primera jugada"}
-                    </span>
-                    <span
-                      className="text-center uppercase tracking-wider leading-none"
-                      style={{
-                        fontSize: isMobile ? 7 : 8,
-                        color: "rgba(168,196,160,0.4)",
-                      }}
-                    >
-                      {isMyTurn ? "¡Es tu turno!" : `Turno de ${players.find(p => p.seat === currentTurn)?.displayName?.split(" ")[0] ?? "…"}`}
-                    </span>
-                  </motion.div>
-                </motion.div>
-              )}
-            </AnimatePresence>
 
             {/* Capicúa indicator — both open ends show the same number */}
             <AnimatePresence>
@@ -717,25 +626,62 @@ export function Board({ onPlaceEnd, clearing = false }: BoardProps) {
             {board.plays.length === 0 ? (
               <div className="absolute inset-0 flex items-center justify-center" aria-live="polite">
                 <div className="flex flex-col items-center gap-3 select-none pointer-events-none">
-                  {/* Decorative domino silhouette */}
-                  <motion.svg
-                    width={isMobile ? 36 : 44}
-                    height={isMobile ? 64 : 80}
-                    viewBox="0 0 44 80"
-                    fill="none"
-                    aria-hidden="true"
-                    animate={{ opacity: [0.18, 0.38, 0.18] }}
+                  {/* Radial glow behind icon */}
+                  <div
+                    className="absolute"
+                    style={{
+                      width: isMobile ? 110 : 140,
+                      height: isMobile ? 110 : 140,
+                      borderRadius: "50%",
+                      background: "radial-gradient(ellipse, rgba(201,168,76,0.12) 0%, transparent 70%)",
+                    }}
+                  />
+
+                  {/* Round-specific domino icon */}
+                  <motion.div
+                    animate={{ opacity: [0.55, 0.9, 0.55] }}
                     transition={{ duration: 2.8, repeat: Infinity, ease: "easeInOut" }}
                   >
-                    <rect x="2" y="2" width="40" height="76" rx="6" stroke="rgba(201,168,76,0.5)" strokeWidth="2" fill="rgba(201,168,76,0.04)" />
-                    <line x1="2" y1="40" x2="42" y2="40" stroke="rgba(201,168,76,0.4)" strokeWidth="1.5" />
-                    <circle cx="22" cy="20" r="4" fill="rgba(201,168,76,0.35)" />
-                    <circle cx="13" cy="58" r="3" fill="rgba(201,168,76,0.3)" />
-                    <circle cx="22" cy="58" r="3" fill="rgba(201,168,76,0.3)" />
-                    <circle cx="31" cy="58" r="3" fill="rgba(201,168,76,0.3)" />
-                  </motion.svg>
+                    {round === 1 ? (
+                      /* 6-6 cochina — horizontal */
+                      <svg width={isMobile ? 56 : 72} height={isMobile ? 30 : 38} viewBox="0 0 72 38" fill="none" aria-hidden="true">
+                        <rect x="1" y="1" width="70" height="36" rx="6" fill="rgba(245,240,232,0.06)" stroke="rgba(201,168,76,0.5)" strokeWidth="1.5"/>
+                        <line x1="36" y1="2" x2="36" y2="36" stroke="rgba(201,168,76,0.38)" strokeWidth="1"/>
+                        {/* Left 6 */}
+                        {[[9,8],[15,8],[9,19],[15,19],[9,30],[15,30]].map(([cx,cy],i) => (
+                          <circle key={i} cx={cx} cy={cy} r="2.4" fill="rgba(201,168,76,0.6)"/>
+                        ))}
+                        {/* Right 6 */}
+                        {[[57,8],[63,8],[57,19],[63,19],[57,30],[63,30]].map(([cx,cy],i) => (
+                          <circle key={i} cx={cx} cy={cy} r="2.4" fill="rgba(201,168,76,0.6)"/>
+                        ))}
+                      </svg>
+                    ) : (
+                      /* Generic domino — horizontal */
+                      <svg width={isMobile ? 56 : 72} height={isMobile ? 30 : 38} viewBox="0 0 72 38" fill="none" aria-hidden="true">
+                        <rect x="1" y="1" width="70" height="36" rx="6" fill="rgba(245,240,232,0.06)" stroke="rgba(201,168,76,0.38)" strokeWidth="1.5"/>
+                        <line x1="36" y1="2" x2="36" y2="36" stroke="rgba(201,168,76,0.28)" strokeWidth="1"/>
+                        <circle cx="18" cy="19" r="3.5" fill="rgba(201,168,76,0.5)"/>
+                        <circle cx="54" cy="19" r="3.5" fill="rgba(201,168,76,0.5)"/>
+                      </svg>
+                    )}
+                  </motion.div>
 
-                  {/* Status text */}
+                  {/* Round context label */}
+                  <motion.span
+                    className="text-center font-bold uppercase tracking-widest leading-none"
+                    style={{
+                      fontSize: isMobile ? 9 : 10,
+                      color: round === 1 ? "rgba(201,168,76,0.75)" : "rgba(168,196,160,0.55)",
+                      textShadow: round === 1 ? "0 0 12px rgba(201,168,76,0.4)" : "none",
+                    }}
+                    animate={{ opacity: [0.6, 1, 0.6] }}
+                    transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
+                  >
+                    {round === 1 ? "¡Cochina para abrir!" : "Primera jugada"}
+                  </motion.span>
+
+                  {/* Turn status */}
                   <div className="flex flex-col items-center gap-1">
                     {isMyTurn ? (
                       <>
@@ -747,13 +693,13 @@ export function Board({ onPlaceEnd, clearing = false }: BoardProps) {
                         >
                           ¡Tu turno!
                         </motion.span>
-                        <span className="text-[10px] sm:text-[11px] text-[#a8c4a0]/55 uppercase tracking-wider">
-                          Juega la primera ficha
+                        <span className="text-[10px] sm:text-[11px] text-[#a8c4a0]/50 uppercase tracking-wider">
+                          {round === 1 ? "Juega el doble-seis" : "Juega la primera ficha"}
                         </span>
                       </>
                     ) : (
                       <>
-                        <span className="text-[12px] sm:text-[13px] font-semibold text-[#a8c4a0]/60 uppercase tracking-widest">
+                        <span className="text-[12px] sm:text-[13px] font-semibold text-[#a8c4a0]/55 uppercase tracking-widest">
                           Esperando...
                         </span>
                         {(() => {
