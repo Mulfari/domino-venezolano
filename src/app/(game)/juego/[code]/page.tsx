@@ -1791,6 +1791,7 @@ export default function GamePage() {
           isMyTeam={dominoSplash.isMyTeam}
           reason={dominoSplash.reason}
           tile={dominoSplash.tile}
+          points={dominoSplash.points}
         />
       )}
 
