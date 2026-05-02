@@ -37,7 +37,7 @@ function PipGrid({ value }: { value: number }) {
   );
 }
 
-function EndBadge({ value, label, matchCount, isCapicua }: { value: number; label: string; matchCount: number; isCapicua?: boolean }) {
+function EndBadge({ value, label, matchCount, isCapicua, isSelectedMatch }: { value: number; label: string; matchCount: number; isCapicua?: boolean; isSelectedMatch?: boolean }) {
   const hasMatches = matchCount > 0;
   return (
     <motion.div
@@ -46,27 +46,42 @@ function EndBadge({ value, label, matchCount, isCapicua }: { value: number; labe
       animate={{ scale: 1, opacity: 1 }}
       transition={{ type: "spring", stiffness: 500, damping: 26 }}
       className="flex flex-col items-center gap-0.5"
-      aria-label={`${label}: ${value}${hasMatches ? `, ${matchCount} ficha${matchCount !== 1 ? "s" : ""} tuya${matchCount !== 1 ? "s" : ""} encajan` : ""}${isCapicua ? ", capicúa" : ""}`}
+      aria-label={`${label}: ${value}${hasMatches ? `, ${matchCount} ficha${matchCount !== 1 ? "s" : ""} tuya${matchCount !== 1 ? "s" : ""} encajan` : ""}${isCapicua ? ", capicúa" : ""}${isSelectedMatch ? ", ficha seleccionada encaja aquí" : ""}`}
     >
       <span className="text-[8px] uppercase tracking-widest text-[#a8c4a0]/50 leading-none font-semibold">
         {label}
       </span>
       <motion.div
         className="w-8 h-8 rounded-lg flex items-center justify-center"
-        animate={isCapicua ? {
+        animate={isSelectedMatch ? {
+          boxShadow: [
+            "0 2px 8px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.6), 0 0 14px rgba(201,168,76,0.7)",
+            "0 2px 8px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.6), 0 0 28px rgba(201,168,76,1.0)",
+            "0 2px 8px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.6), 0 0 14px rgba(201,168,76,0.7)",
+          ],
+          scale: [1, 1.08, 1],
+        } : isCapicua ? {
           boxShadow: [
             "0 2px 8px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.6), 0 0 10px rgba(201,168,76,0.5)",
             "0 2px 8px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.6), 0 0 22px rgba(201,168,76,0.9)",
             "0 2px 8px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.6), 0 0 10px rgba(201,168,76,0.5)",
           ],
         } : {}}
-        transition={isCapicua ? { duration: 1.2, repeat: Infinity, ease: "easeInOut" } : {}}
+        transition={isSelectedMatch
+          ? { duration: 0.7, repeat: Infinity, ease: "easeInOut" }
+          : isCapicua
+          ? { duration: 1.2, repeat: Infinity, ease: "easeInOut" }
+          : {}}
         style={{
-          background: isCapicua
+          background: isSelectedMatch
+            ? "linear-gradient(145deg, #fffbe8 0%, #f5e8a0 100%)"
+            : isCapicua
             ? "linear-gradient(145deg, #fff8e8 0%, #f5e8c0 100%)"
             : "linear-gradient(145deg, #f5f0e8 0%, #e8e0d0 100%)",
-          border: `1.5px solid ${isCapicua ? "rgba(201,168,76,0.95)" : hasMatches ? "rgba(201,168,76,0.75)" : "rgba(201,168,76,0.55)"}`,
-          boxShadow: isCapicua
+          border: `1.5px solid ${isSelectedMatch ? "rgba(201,168,76,1)" : isCapicua ? "rgba(201,168,76,0.95)" : hasMatches ? "rgba(201,168,76,0.75)" : "rgba(201,168,76,0.55)"}`,
+          boxShadow: isSelectedMatch
+            ? "0 2px 8px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.6), 0 0 18px rgba(201,168,76,0.8)"
+            : isCapicua
             ? "0 2px 8px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.6), 0 0 14px rgba(201,168,76,0.6)"
             : hasMatches
             ? "0 2px 8px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.6), 0 0 10px rgba(201,168,76,0.3)"
@@ -122,12 +137,17 @@ function countMatches(hand: Tile[], pipValue: number): number {
   return hand.filter((t) => t[0] === pipValue || t[1] === pipValue).length;
 }
 
+function tileMatchesEnd(tile: Tile, pipValue: number): boolean {
+  return tile[0] === pipValue || tile[1] === pipValue;
+}
+
 export function BoardEnds({ handCounts }: { handCounts?: number[] }) {
   const board = useGameStore((s) => s.board);
   const hands = useGameStore((s) => s.hands);
   const mySeat = useGameStore((s) => s.mySeat);
   const status = useGameStore((s) => s.status);
   const consecutivePasses = useGameStore((s) => s.consecutivePasses);
+  const selectedTile = useGameStore((s) => s.selectedTile);
 
   if (board.left === null || board.right === null || board.plays.length === 0) return null;
   if (status !== "playing") return null;
@@ -136,6 +156,10 @@ export function BoardEnds({ handCounts }: { handCounts?: number[] }) {
   const leftMatches = countMatches(myHand, board.left);
   const rightMatches = countMatches(myHand, board.right);
   const isCapicua = board.left === board.right && board.plays.length > 1;
+
+  // Highlight the end badge when the selected tile fits that end
+  const leftSelectedMatch = selectedTile !== null && tileMatchesEnd(selectedTile, board.left);
+  const rightSelectedMatch = selectedTile !== null && tileMatchesEnd(selectedTile, board.right);
 
   const totalRemaining = handCounts ? handCounts.reduce((a, b) => a + b, 0) : null;
   const tilesOnBoard = board.plays.length;
@@ -158,7 +182,25 @@ export function BoardEnds({ handCounts }: { handCounts?: number[] }) {
       >
         {/* End badges row */}
         <div className="flex items-center gap-2">
-          <EndBadge value={board.left} label="Izq" matchCount={leftMatches} isCapicua={isCapicua} />
+          <div className="flex flex-col items-center gap-0.5">
+            <AnimatePresence>
+              {leftSelectedMatch && (
+                <motion.span
+                  key="left-place-hint"
+                  initial={{ opacity: 0, y: -4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -4 }}
+                  transition={{ type: "spring", stiffness: 500, damping: 26 }}
+                  className="text-[8px] font-black uppercase tracking-widest leading-none whitespace-nowrap"
+                  style={{ color: "#c9a84c", textShadow: "0 0 8px rgba(201,168,76,0.9)" }}
+                  aria-hidden="true"
+                >
+                  ↓ aquí
+                </motion.span>
+              )}
+            </AnimatePresence>
+            <EndBadge value={board.left} label="Izq" matchCount={leftMatches} isCapicua={isCapicua} isSelectedMatch={leftSelectedMatch} />
+          </div>
           <div className="flex flex-col items-center gap-0.5">
             <AnimatePresence mode="wait">
               {isCapicua ? (
@@ -201,7 +243,25 @@ export function BoardEnds({ handCounts }: { handCounts?: number[] }) {
               )}
             </AnimatePresence>
           </div>
-          <EndBadge value={board.right} label="Der" matchCount={rightMatches} isCapicua={isCapicua} />
+          <div className="flex flex-col items-center gap-0.5">
+            <AnimatePresence>
+              {rightSelectedMatch && (
+                <motion.span
+                  key="right-place-hint"
+                  initial={{ opacity: 0, y: -4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -4 }}
+                  transition={{ type: "spring", stiffness: 500, damping: 26 }}
+                  className="text-[8px] font-black uppercase tracking-widest leading-none whitespace-nowrap"
+                  style={{ color: "#c9a84c", textShadow: "0 0 8px rgba(201,168,76,0.9)" }}
+                  aria-hidden="true"
+                >
+                  ↓ aquí
+                </motion.span>
+              )}
+            </AnimatePresence>
+            <EndBadge value={board.right} label="Der" matchCount={rightMatches} isCapicua={isCapicua} isSelectedMatch={rightSelectedMatch} />
+          </div>
         </div>
 
         {/* Consecutive passes tension meter */}
