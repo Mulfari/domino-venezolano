@@ -393,6 +393,49 @@ export function Hand({ onPlayTile, onPass, disabled = false }: HandProps) {
         )}
       </AnimatePresence>
 
+      {/* Pass button — prominent tap target when no valid moves exist */}
+      <AnimatePresence>
+        {isMyTurn && canPass && validMoves.length === 0 && (
+          <motion.button
+            key="pass-btn"
+            initial={{ opacity: 0, scale: 0.82, y: 10 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.88, y: 6 }}
+            transition={{ type: "spring", stiffness: 400, damping: 22 }}
+            whileTap={{ scale: 0.93 }}
+            onClick={onPass}
+            disabled={disabled}
+            aria-label="Pasar turno — no hay jugadas disponibles"
+            className="relative flex items-center gap-2.5 rounded-2xl min-h-[48px] px-6 py-3 overflow-hidden"
+            style={{
+              background: "linear-gradient(135deg, #3a2210 0%, #2a1808 100%)",
+              border: "1.5px solid rgba(201,168,76,0.65)",
+              boxShadow: "0 0 20px rgba(201,168,76,0.22), 0 6px 18px rgba(0,0,0,0.6), inset 0 1px 0 rgba(201,168,76,0.14)",
+            }}
+          >
+            {/* Pulsing ring */}
+            <motion.span
+              className="absolute inset-0 rounded-2xl pointer-events-none"
+              style={{ border: "1.5px solid rgba(201,168,76,0.45)" }}
+              animate={{ opacity: [0.35, 0.85, 0.35], scale: [1, 1.025, 1] }}
+              transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
+            />
+            {/* Arrow icon */}
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+              <path d="M3 8h10M9 4l4 4-4 4" stroke="#c9a84c" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+            <div className="flex flex-col items-start leading-tight">
+              <span className="text-[14px] font-black text-[#c9a84c] uppercase tracking-widest leading-none">
+                Pasar Turno
+              </span>
+              <span className="text-[9px] text-[#c9a84c]/50 uppercase tracking-widest leading-none mt-0.5">
+                sin jugadas disponibles
+              </span>
+            </div>
+          </motion.button>
+        )}
+      </AnimatePresence>
+
       {/* Player identity badge + pip count */}
       <div className="flex items-center gap-2">
         <div className="flex items-center gap-1.5">
