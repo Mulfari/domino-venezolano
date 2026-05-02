@@ -74,6 +74,7 @@ export function TurnIndicator() {
   const firstName = displayName.split(" ")[0];
   const team = teamForSeat(currentTurn);
   const colors = TEAM_COLORS[team];
+  const isBot = currentPlayer?.isBot ?? false;
 
   const position = mySeat !== null ? getRelativePosition(mySeat, currentTurn) : null;
   const arrow = position ? POSITION_ARROW[position] : null;
@@ -202,6 +203,31 @@ export function TurnIndicator() {
                 style={{ color: colors.glow }}
               >
                 ¡Tu turno!
+              </motion.span>
+            ) : isBot ? (
+              <motion.span
+                key="bot-thinking"
+                initial={{ opacity: 0, x: -6 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 6 }}
+                transition={{ duration: 0.18 }}
+                className="flex items-center gap-0.5 leading-none mt-0.5"
+              >
+                <span className="text-[10px] text-[#a8c4a0]/55">pensando</span>
+                {[0, 1, 2].map((i) => (
+                  <motion.span
+                    key={i}
+                    className="inline-block w-0.5 h-0.5 rounded-full bg-[#a8c4a0]/55"
+                    animate={{ opacity: [0.2, 1, 0.2], y: [0, -2, 0] }}
+                    transition={{
+                      duration: 0.9,
+                      repeat: Infinity,
+                      ease: "easeInOut",
+                      delay: i * 0.18,
+                    }}
+                    aria-hidden="true"
+                  />
+                ))}
               </motion.span>
             ) : (
               <motion.span
