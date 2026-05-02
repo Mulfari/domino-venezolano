@@ -102,7 +102,11 @@ export function Hand({ onPlayTile, onPass, disabled = false }: HandProps) {
   const [vasDominar, setVasDominar] = useState(false);
   const vasDominarTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const prevIsMyTurnForDominarRef = useRef(false);
-  const [sortMode, setSortMode] = useState<"original" | "pips" | "suit">("original");
+  const [sortMode, setSortMode] = useState<"original" | "pips" | "suit">(() => {
+    if (typeof window === "undefined") return "original";
+    const saved = localStorage.getItem("domino-sort-mode");
+    return (saved === "pips" || saved === "suit") ? saved : "original";
+  });
   const displayHand = sortMode === "pips"
     ? [...myHand].sort((a, b) => (b[0] + b[1]) - (a[0] + a[1]))
     : sortMode === "suit"
@@ -297,7 +301,11 @@ export function Hand({ onPlayTile, onPass, disabled = false }: HandProps) {
       if (tag === "INPUT" || tag === "TEXTAREA") return;
       if ((e.key === "s" || e.key === "S") && myHand.length >= 2) {
         e.preventDefault();
-        setSortMode((v) => v === "original" ? "pips" : v === "pips" ? "suit" : "original");
+        setSortMode((v) => {
+          const next = v === "original" ? "pips" : v === "pips" ? "suit" : "original";
+          localStorage.setItem("domino-sort-mode", next);
+          return next;
+        });
       }
     }
     window.addEventListener("keydown", onKeyDown);
@@ -1032,7 +1040,11 @@ export function Hand({ onPlayTile, onPass, disabled = false }: HandProps) {
             exit={{ opacity: 0, scale: 0.8, y: 4 }}
             transition={{ type: "spring", stiffness: 420, damping: 24 }}
             whileTap={{ scale: 0.93 }}
-            onClick={() => setSortMode((v) => v === "original" ? "pips" : v === "pips" ? "suit" : "original")}
+            onClick={() => setSortMode((v) => {
+              const next = v === "original" ? "pips" : v === "pips" ? "suit" : "original";
+              localStorage.setItem("domino-sort-mode", next);
+              return next;
+            })}
             aria-label={
               sortMode === "original" ? "Ordenar por puntos" :
               sortMode === "pips" ? "Ordenar por palo" :
