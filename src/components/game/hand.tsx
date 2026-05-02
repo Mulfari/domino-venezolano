@@ -214,6 +214,12 @@ export function Hand({ onPlayTile, onPass, disabled = false }: HandProps) {
         return;
       }
 
+      if ((key === "h" || key === "H") && validMoves.length >= 2) {
+        e.preventDefault();
+        handleHint();
+        return;
+      }
+
       if (awaitingEndChoice && selectedTile) {
         if (key === "ArrowLeft") {
           const ends = getEndsForTile(selectedTile);
@@ -249,6 +255,20 @@ export function Hand({ onPlayTile, onPass, disabled = false }: HandProps) {
     return () => window.removeEventListener("keydown", onKeyDown);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isMyTurn, disabled, canPass, awaitingEndChoice, selectedTile, displayHand]);
+
+  // S key toggles sort — works regardless of turn
+  useEffect(() => {
+    function onKeyDown(e: KeyboardEvent) {
+      const tag = (e.target as HTMLElement)?.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA") return;
+      if ((e.key === "s" || e.key === "S") && myHand.length >= 2) {
+        e.preventDefault();
+        setSortByPips((v) => !v);
+      }
+    }
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [myHand.length]);
 
   function handleRejectedClick(tile: Tile) {
     if (rejectedTimerRef.current) clearTimeout(rejectedTimerRef.current);
@@ -893,6 +913,8 @@ export function Hand({ onPlayTile, onPass, disabled = false }: HandProps) {
                   { keys: ["1", "–", "7"], desc: "Seleccionar ficha" },
                   { keys: ["←", "→"], desc: "Elegir extremo" },
                   { keys: ["P"], desc: "Pasar turno" },
+                  { keys: ["H"], desc: "Sugerencia" },
+                  { keys: ["S"], desc: "Ordenar fichas" },
                   { keys: ["Esc"], desc: "Cancelar selección" },
                 ].map(({ keys, desc }) => (
                   <div key={desc} className="flex items-center justify-between gap-4">
