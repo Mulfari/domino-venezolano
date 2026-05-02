@@ -765,26 +765,40 @@ export function Hand({ onPlayTile, onPass, disabled = false }: HandProps) {
                   </div>
                 )}
 
-                {/* Capicúa opportunity badge */}
+                {/* Capicúa opportunity — violet glow aura + border + badge */}
                 {isCapicuaTile(tile) && (
-                  <motion.div
-                    className="absolute top-full left-1/2 -translate-x-1/2 mt-1 px-1.5 py-0.5 rounded pointer-events-none z-10"
-                    animate={{ opacity: [0.75, 1, 0.75] }}
-                    transition={{ duration: 1.1, repeat: Infinity, ease: "easeInOut" }}
-                    style={{
-                      background: "linear-gradient(135deg, #2a1a00 0%, #1a0e00 100%)",
-                      border: "1px solid rgba(201,168,76,0.7)",
-                      boxShadow: "0 0 8px rgba(201,168,76,0.4)",
-                    }}
-                    aria-label="Esta ficha cierra capicúa"
-                  >
-                    <span
-                      className="text-[8px] font-black uppercase tracking-widest whitespace-nowrap leading-none"
-                      style={{ color: "#c9a84c", textShadow: "0 0 6px rgba(201,168,76,0.8)" }}
+                  <>
+                    <motion.div
+                      className="absolute -inset-3 rounded-xl pointer-events-none z-10"
+                      style={{ background: "radial-gradient(ellipse, rgba(168,100,255,0.42) 0%, transparent 65%)" }}
+                      animate={{ opacity: [0.45, 1, 0.45], scale: [0.95, 1.06, 0.95] }}
+                      transition={{ duration: 1.1, repeat: Infinity, ease: "easeInOut" }}
+                    />
+                    <motion.div
+                      className="absolute -inset-0.5 rounded-lg border-2 pointer-events-none z-10"
+                      style={{ borderColor: "rgba(168,100,255,0.85)" }}
+                      animate={{ opacity: [0.55, 1, 0.55] }}
+                      transition={{ duration: 1.1, repeat: Infinity, ease: "easeInOut" }}
+                    />
+                    <motion.div
+                      className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 px-2 py-0.5 rounded pointer-events-none z-20"
+                      animate={{ opacity: [0.8, 1, 0.8] }}
+                      transition={{ duration: 1.1, repeat: Infinity, ease: "easeInOut" }}
+                      style={{
+                        background: "rgba(20,8,36,0.9)",
+                        border: "1px solid rgba(168,100,255,0.65)",
+                        boxShadow: "0 0 10px rgba(168,100,255,0.4)",
+                      }}
+                      aria-label="Esta ficha cierra capicúa"
                     >
-                      ✦ capicúa
-                    </span>
-                  </motion.div>
+                      <span
+                        className="text-[8px] font-black uppercase tracking-widest whitespace-nowrap leading-none"
+                        style={{ color: "rgba(200,140,255,1)", textShadow: "0 0 8px rgba(168,100,255,0.9)" }}
+                      >
+                        ✦ capicúa
+                      </span>
+                    </motion.div>
+                  </>
                 )}
 
                 <DominoTile
