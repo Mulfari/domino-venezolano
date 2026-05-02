@@ -232,6 +232,7 @@ export function GameOverModal({ onNextRound, onBackToLobby, onRevancha }: GameOv
   const round = useGameStore((s) => s.round);
   const roundHistory = useGameStore((s) => s.roundHistory);
   const hands = useGameStore((s) => s.hands);
+  const moveLog = useGameStore((s) => s.moveLog);
 
   const [countdown, setCountdown] = useState(AUTO_START_DELAY);
   const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -304,6 +305,7 @@ export function GameOverModal({ onNextRound, onBackToLobby, onRevancha }: GameOv
       onNextRound={onNextRound}
       hands={hands}
       players={players}
+      moveLog={moveLog}
     />
   );
 }
@@ -322,6 +324,7 @@ interface RoundEndViewProps {
   onNextRound?: () => void;
   hands: { 0: import("@/lib/game/types").Tile[]; 1: import("@/lib/game/types").Tile[]; 2: import("@/lib/game/types").Tile[]; 3: import("@/lib/game/types").Tile[] };
   players: { seat: Seat; displayName: string; connected: boolean; isBot?: boolean }[];
+  moveLog: import("@/stores/game-store").MoveLogEntry[];
 }
 
 const REASON_META: Record<string, { label: string; icon: string; desc: string }> = {
@@ -342,6 +345,7 @@ function RoundEndView({
   onNextRound,
   hands,
   players,
+  moveLog,
 }: RoundEndViewProps) {
   const [showCard, setShowCard] = useState(false);
 
@@ -507,6 +511,64 @@ function RoundEndView({
             )}
           </div>
         </motion.div>
+
+        {/* Round activity — tiles played and passes per player */}
+        {(() => {
+          const roundEntries = moveLog.filter((e) => e.round === round);
+          if (roundEntries.length === 0) return null;
+          return (
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.62 }}
+              className="mx-5 mb-4"
+            >
+              <p className="text-[10px] uppercase tracking-widest text-[#a8c4a0]/50 mb-2 text-center">
+                Actividad de la ronda
+              </p>
+              <div className="rounded-xl border border-[#f5f0e8]/8 overflow-hidden">
+                <div className="grid grid-cols-[1fr_auto_auto_auto] gap-x-3 px-3 py-1.5 bg-[#0f3520]/60">
+                  <span className="text-[9px] uppercase tracking-wider text-[#a8c4a0]/40">Jugador</span>
+                  <span className="text-[9px] uppercase tracking-wider text-[#a8c4a0]/40 text-center">Eq.</span>
+                  <span className="text-[9px] uppercase tracking-wider text-[#a8c4a0]/40 text-center" title="Fichas jugadas">🁣</span>
+                  <span className="text-[9px] uppercase tracking-wider text-[#a8c4a0]/40 text-right" title="Pases">↩</span>
+                </div>
+                {([0, 1, 2, 3] as const).map((seat, i) => {
+                  const player = players.find((p) => p.seat === seat);
+                  const name = player?.displayName ?? `J${seat + 1}`;
+                  const team = (seat % 2) as 0 | 1;
+                  const isMyTeamRow = myTeam === team;
+                  const playsCount = roundEntries.filter((e) => e.seat === seat && e.type === "play").length;
+                  const passCount = roundEntries.filter((e) => e.seat === seat && e.type === "pass").length;
+                  return (
+                    <div
+                      key={seat}
+                      className={`grid grid-cols-[1fr_auto_auto_auto] gap-x-3 px-3 py-1.5 border-t border-[#f5f0e8]/5 ${
+                        i % 2 === 0 ? "bg-[#163d28]" : "bg-[#1a4530]/40"
+                      }`}
+                    >
+                      <span className={`text-[10px] font-medium truncate ${isMyTeamRow ? "text-[#c9a84c]" : "text-[#f5f0e8]/65"}`}>
+                        {name}
+                      </span>
+                      <span
+                        className="text-[9px] font-bold text-center tabular-nums"
+                        style={{ color: team === 0 ? "#c9a84c" : "#4ca8c9" }}
+                      >
+                        {team === 0 ? "A" : "B"}
+                      </span>
+                      <span className="text-[10px] font-bold tabular-nums text-center text-[#f5f0e8]/70">
+                        {playsCount}
+                      </span>
+                      <span className={`text-[10px] font-bold tabular-nums text-right ${passCount > 0 ? "text-[#fb923c]/80" : "text-[#f5f0e8]/25"}`}>
+                        {passCount > 0 ? passCount : "—"}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            </motion.div>
+          );
+        })()}
 
         {/* Pip breakdown — only for locked/tied rounds */}
         {(roundResult.reason === "locked" || roundResult.reason === "tied") && (
