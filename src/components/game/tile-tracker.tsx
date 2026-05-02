@@ -80,6 +80,87 @@ function MiniTile({ tile, status }: { tile: Tile; status: TileStatus }) {
   );
 }
 
+function SuitBar({ pip, playedCount, boardLeft, boardRight }: {
+  pip: number;
+  playedCount: number;
+  boardLeft: number | null;
+  boardRight: number | null;
+}) {
+  const total = 7;
+  const pct = (playedCount / total) * 100;
+  const isExhausted = playedCount === total;
+  const isActive = boardLeft === pip || boardRight === pip;
+
+  const barColor = isExhausted
+    ? "rgba(255,255,255,0.1)"
+    : isActive
+    ? "#38dca0"
+    : "rgba(201,168,76,0.55)";
+
+  return (
+    <div
+      className="flex items-center gap-1.5"
+      aria-label={`Palo ${pip}: ${playedCount} de ${total} jugadas`}
+    >
+      <span
+        className="w-3 text-[8px] font-bold tabular-nums text-right shrink-0"
+        style={{
+          color: isActive
+            ? "#38dca0"
+            : isExhausted
+            ? "rgba(255,255,255,0.18)"
+            : "rgba(201,168,76,0.55)",
+        }}
+      >
+        {pip}
+      </span>
+      <div
+        className="flex-1 h-1.5 rounded-full overflow-hidden"
+        style={{ minWidth: 60, background: "rgba(15,30,20,0.8)" }}
+      >
+        <motion.div
+          className="h-full rounded-full"
+          initial={false}
+          animate={{ width: `${pct}%` }}
+          transition={{ duration: 0.4, ease: "easeOut" }}
+          style={{ backgroundColor: barColor }}
+        />
+      </div>
+      <span
+        className="text-[8px] tabular-nums shrink-0 font-semibold"
+        style={{
+          minWidth: 22,
+          color: isExhausted
+            ? "rgba(255,255,255,0.18)"
+            : isActive
+            ? "#38dca0"
+            : "rgba(201,168,76,0.4)",
+        }}
+      >
+        {playedCount}/{total}
+      </span>
+      {isActive && !isExhausted && (
+        <span
+          className="text-[7px] shrink-0 leading-none"
+          style={{ color: "rgba(56,220,160,0.75)" }}
+          aria-hidden="true"
+        >
+          ●
+        </span>
+      )}
+      {isExhausted && (
+        <span
+          className="text-[7px] shrink-0 leading-none"
+          style={{ color: "rgba(255,255,255,0.2)" }}
+          aria-hidden="true"
+        >
+          ✓
+        </span>
+      )}
+    </div>
+  );
+}
+
 export function TileTracker() {
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -128,6 +209,11 @@ export function TileTracker() {
   // Group by higher value (0s row, 1s row, ..., 6s row)
   const rows: Tile[][] = Array.from({ length: 7 }, (_, i) =>
     ALL_TILES.filter((t) => t[1] === i)
+  );
+
+  // Per-suit: how many of the 7 tiles containing each pip have been played
+  const suitPlayedCounts = Array.from({ length: 7 }, (_, pip) =>
+    playedTiles.filter((t) => t[0] === pip || t[1] === pip).length
   );
 
   return (
@@ -241,6 +327,20 @@ export function TileTracker() {
                   </span>
                 </motion.div>
               )}
+
+              {/* Suit exhaustion bars */}
+              <div className="flex flex-col gap-1 mb-3 pb-2.5" style={{ borderBottom: "1px solid rgba(201,168,76,0.12)" }}>
+                <span className="text-[8px] uppercase tracking-wider text-[#a8c4a0]/40 mb-0.5">Palos</span>
+                {Array.from({ length: 7 }, (_, pip) => (
+                  <SuitBar
+                    key={pip}
+                    pip={pip}
+                    playedCount={suitPlayedCounts[pip]}
+                    boardLeft={boardLeft}
+                    boardRight={boardRight}
+                  />
+                ))}
+              </div>
 
               {/* Tile grid — one row per higher value */}
               <div className="flex flex-col gap-1">
