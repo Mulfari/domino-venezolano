@@ -215,6 +215,62 @@ function FlashOverlay({ color = "white" }: { color?: string }) {
   );
 }
 
+// ─── Winning tile display ─────────────────────────────────────────────────────
+
+function WinningTile({ tile }: { tile: [number, number] }) {
+  const W = 56;
+  const H = 28;
+
+  function pips(val: number, xOffset: number) {
+    const cx = xOffset + W / 4;
+    const positions: [number, number][] = [];
+    if (val % 2 === 1) positions.push([cx, H / 2]);
+    if (val >= 2) { positions.push([cx - 4, H * 0.28]); positions.push([cx + 4, H * 0.72]); }
+    if (val >= 4) { positions.push([cx + 4, H * 0.28]); positions.push([cx - 4, H * 0.72]); }
+    if (val === 6) { positions.push([cx - 4, H / 2]); positions.push([cx + 4, H / 2]); }
+    return positions.map(([x, y], i) => (
+      <g key={i}>
+        <circle cx={x} cy={y + 0.8} r={2.2} fill="rgba(0,0,0,0.28)" />
+        <circle cx={x} cy={y} r={2.2} fill="#1a1a1a" />
+      </g>
+    ));
+  }
+
+  return (
+    <motion.div
+      initial={{ scale: 0, rotate: -15, opacity: 0 }}
+      animate={{ scale: [0, 1.3, 0.9, 1], rotate: [-15, 8, -4, 0], opacity: 1 }}
+      transition={{ delay: 0.12, duration: 0.65, ease: "easeOut" }}
+      className="drop-shadow-xl"
+      aria-hidden="true"
+    >
+      <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`}>
+        <defs>
+          <linearGradient id="wt-face" x1="0.2" y1="0" x2="0.8" y2="1">
+            <stop offset="0%" stopColor="#fffef9" />
+            <stop offset="100%" stopColor="#ede3d2" />
+          </linearGradient>
+          <filter id="wt-glow">
+            <feGaussianBlur stdDeviation="2.5" result="blur" />
+            <feComposite in="SourceGraphic" in2="blur" operator="over" />
+          </filter>
+        </defs>
+        {/* Gold glow border */}
+        <rect x={0.5} y={0.5} width={W - 1} height={H - 1} rx={5}
+          fill="none" stroke="#c9a84c" strokeWidth={2.5} opacity={0.7} filter="url(#wt-glow)" />
+        {/* Face */}
+        <rect x={1} y={1} width={W - 2} height={H - 2} rx={4.5}
+          fill="url(#wt-face)" stroke="#c9a84c" strokeWidth={1.5} />
+        {/* Divider groove */}
+        <line x1={W / 2 - 0.5} y1={3} x2={W / 2 - 0.5} y2={H - 3} stroke="rgba(0,0,0,0.45)" strokeWidth={1.2} />
+        <line x1={W / 2 + 0.5} y1={3} x2={W / 2 + 0.5} y2={H - 3} stroke="rgba(255,255,255,0.4)" strokeWidth={0.7} />
+        {pips(tile[0], 0)}
+        {pips(tile[1], W / 2)}
+      </svg>
+    </motion.div>
+  );
+}
+
 // ─── Main export ──────────────────────────────────────────────────────────────
 
 interface GameOverModalProps {
@@ -388,6 +444,16 @@ function RoundEndView({
     ? "from-[#a8c4a0]/15 to-transparent"
     : "from-red-900/25 to-transparent";
 
+  // Find the last tile played this round (the winning domino)
+  const winningTile: [number, number] | null = (() => {
+    if (roundResult.reason !== "domino") return null;
+    for (let i = moveLog.length - 1; i >= 0; i--) {
+      const e = moveLog[i];
+      if (e.round === round && e.type === "play" && e.tile) return e.tile as [number, number];
+    }
+    return null;
+  })();
+
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm px-4"
@@ -426,15 +492,30 @@ function RoundEndView({
 
         {/* Header */}
         <div className={`px-6 pt-8 pb-4 text-center bg-gradient-to-b ${headerGradient}`}>
-          <motion.div
-            initial={{ scale: 0, opacity: 0, rotate: -30 }}
-            animate={{ scale: [0, 1.4, 0.85, 1], opacity: 1, rotate: [0, 12, -6, 0] }}
-            transition={{ delay: 0.05, duration: 0.65, ease: "easeOut" }}
-            className="text-6xl mb-2 leading-none"
-            aria-hidden="true"
-          >
-            {isDraw ? "🤝" : iWon ? "🏆" : "😔"}
-          </motion.div>
+          {/* Winning tile — shown for domino rounds */}
+          {winningTile ? (
+            <div className="flex flex-col items-center mb-3">
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.08 }}
+                className="text-[9px] uppercase tracking-widest text-[#a8c4a0]/45 mb-1.5 font-semibold"
+              >
+                última ficha
+              </motion.p>
+              <WinningTile tile={winningTile} />
+            </div>
+          ) : (
+            <motion.div
+              initial={{ scale: 0, opacity: 0, rotate: -30 }}
+              animate={{ scale: [0, 1.4, 0.85, 1], opacity: 1, rotate: [0, 12, -6, 0] }}
+              transition={{ delay: 0.05, duration: 0.65, ease: "easeOut" }}
+              className="text-6xl mb-2 leading-none"
+              aria-hidden="true"
+            >
+              {isDraw ? "🤝" : iWon ? "🏆" : "😔"}
+            </motion.div>
+          )}
 
           <motion.p
             id="round-end-title"
