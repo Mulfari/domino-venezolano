@@ -57,7 +57,11 @@ const POSITION_LABEL: Record<"bottom" | "top" | "left" | "right", string> = {
   right: "der",
 };
 
-export function TurnIndicator() {
+interface TurnIndicatorProps {
+  tileCount?: number;
+}
+
+export function TurnIndicator({ tileCount }: TurnIndicatorProps = {}) {
   const currentTurn = useGameStore((s) => s.currentTurn);
   const isMyTurnFn = useGameStore((s) => s.isMyTurn);
   const players = useGameStore((s) => s.players);
@@ -173,6 +177,29 @@ export function TurnIndicator() {
             {team + 1}
           </div>
         </div>
+
+        {/* Tile count pill */}
+        {tileCount !== undefined && (
+          <motion.div
+            key={tileCount}
+            initial={{ scale: 1.5, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ type: "spring", stiffness: 500, damping: 22 }}
+            className="flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full text-[10px] font-bold leading-none border shrink-0"
+            style={isMyTurn ? {
+              backgroundColor: colors.subtle,
+              color: colors.bg,
+              borderColor: colors.border,
+            } : {
+              backgroundColor: "rgba(0,0,0,0.25)",
+              color: `${colors.glow}cc`,
+              borderColor: `${colors.glow}40`,
+            }}
+            aria-label={`${tileCount} fichas`}
+          >
+            {tileCount}
+          </motion.div>
+        )}
 
         {/* Name + status */}
         <div className="flex flex-col leading-tight">

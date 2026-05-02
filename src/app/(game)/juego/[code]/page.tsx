@@ -859,7 +859,7 @@ export default function GamePage() {
       <div className="flex items-center justify-between px-1.5 py-0.5 sm:p-4 shrink-0 gap-1">
         <ScorePanel />
         <div className="flex items-center gap-1 sm:flex-col sm:gap-1 min-w-0">
-          <TurnIndicator />
+          <TurnIndicator tileCount={handCounts[currentTurn] ?? undefined} />
           <TurnTimer onAutoPass={handlePass} onAutoPlay={handleAutoPlay} onTimeout={handleTimeout} />
         </div>
         {/* Room code badge + sound */}
