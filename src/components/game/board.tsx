@@ -60,6 +60,7 @@ export function Board({ onPlaceEnd, clearing = false }: BoardProps) {
   const [showDoubleBadge, setShowDoubleBadge] = useState(false);
   const doubleBadgeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const prevPlaysLengthRef = useRef(0);
+  const [lastPlayEnd, setLastPlayEnd] = useState<"left" | "right" | null>(null);
 
   useEffect(() => {
     if (board.plays.length === 0) {
@@ -75,6 +76,7 @@ export function Board({ onPlaceEnd, clearing = false }: BoardProps) {
       prevLastKeyRef.current = lastKey;
       setAnimatingKey(lastKey);
       setLastPlayedSeat(lastPlay.seat);
+      setLastPlayEnd(lastPlay.end);
       // Show ¡Doble! badge when a new double tile is placed
       if (board.plays.length > prevPlaysLengthRef.current && lastPlay.tile[0] === lastPlay.tile[1]) {
         setShowDoubleBadge(true);
@@ -756,10 +758,14 @@ export function Board({ onPlaceEnd, clearing = false }: BoardProps) {
                     return (
                       <motion.g
                         key={pt.key}
-                        initial={isNew ? { scale: 0 } : false}
-                        animate={isNew ? { scale: 1 } : undefined}
+                        initial={isNew ? {
+                          scale: 0.7,
+                          opacity: 0,
+                          x: lastPlayEnd === "left" ? -28 : lastPlayEnd === "right" ? 28 : 0,
+                        } : false}
+                        animate={isNew ? { scale: 1, opacity: 1, x: 0 } : undefined}
                         exit={clearing ? { scale: 0, opacity: 0, transition: { duration: 0.25, delay: exitDelay, ease: "easeIn" } } : undefined}
-                        transition={isNew ? { type: "spring", stiffness: 380, damping: 18 } : undefined}
+                        transition={isNew ? { type: "spring", stiffness: 340, damping: 22 } : undefined}
                         style={{ transformOrigin: `${pt.x}px ${pt.y}px` }}
                       >
                         {/* Fading "just played" glow — one-shot, fades out over 2.5s, colored by team */}
