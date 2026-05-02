@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { DominoTile } from "./tile";
 import { useGameStore } from "@/stores/game-store";
@@ -97,6 +98,9 @@ export function Hand({ onPlayTile, onPass, disabled = false }: HandProps) {
   const hintTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [rejectedTile, setRejectedTile] = useState<Tile | null>(null);
   const rejectedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [vasDominar, setVasDominar] = useState(false);
+  const vasDominarTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const prevIsMyTurnForDominarRef = useRef(false);
   const [sortByPips, setSortByPips] = useState(false);
   const displayHand = sortByPips
     ? [...myHand].sort((a, b) => (b[0] + b[1]) - (a[0] + a[1]))
@@ -117,6 +121,17 @@ export function Hand({ onPlayTile, onPass, disabled = false }: HandProps) {
   const totalPips = myHand.reduce((sum, [a, b]) => sum + a + b, 0);
   // trancado is imminent when 2+ consecutive passes have happened
   const trancadoImminent = consecutivePasses >= 2 && myHand.length > 0;
+
+  // Fire ¡Vas a dominar! once when turn arrives with exactly 1 tile left
+  useEffect(() => {
+    const justBecameMyTurn = isMyTurn && !prevIsMyTurnForDominarRef.current;
+    prevIsMyTurnForDominarRef.current = isMyTurn;
+    if (justBecameMyTurn && myHand.length === 1) {
+      setVasDominar(true);
+      if (vasDominarTimerRef.current) clearTimeout(vasDominarTimerRef.current);
+      vasDominarTimerRef.current = setTimeout(() => setVasDominar(false), 2200);
+    }
+  }, [isMyTurn, myHand.length]);
 
   // Clear hint and rejection state when turn changes or tile is played
   useEffect(() => {
@@ -326,6 +341,72 @@ export function Hand({ onPlayTile, onPass, disabled = false }: HandProps) {
   }
 
   return (
+    <>
+    {/* ¡Vas a dominar! portal overlay — fires once when turn arrives with 1 tile left */}
+    {typeof window !== "undefined" && createPortal(
+      <AnimatePresence>
+        {vasDominar && (
+          <motion.div
+            key="vas-dominar"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 z-[48] flex items-center justify-center pointer-events-none"
+            aria-hidden="true"
+          >
+            {/* Radial backdrop */}
+            <div
+              className="absolute inset-0"
+              style={{ background: "radial-gradient(ellipse 60% 40% at 50% 60%, rgba(0,0,0,0.5) 0%, transparent 100%)" }}
+            />
+            {/* Expanding ring */}
+            <motion.div
+              className="absolute rounded-full"
+              initial={{ width: 60, height: 60, opacity: 0.85 }}
+              animate={{ width: 380, height: 380, opacity: 0 }}
+              transition={{ duration: 0.9, ease: "easeOut" }}
+              style={{ border: "2px solid rgba(201,168,76,0.7)" }}
+            />
+            <motion.div
+              className="absolute rounded-full"
+              initial={{ width: 40, height: 40, opacity: 0.6 }}
+              animate={{ width: 280, height: 280, opacity: 0 }}
+              transition={{ duration: 0.75, ease: "easeOut", delay: 0.08 }}
+              style={{ border: "1px solid rgba(201,168,76,0.4)" }}
+            />
+            {/* Text */}
+            <motion.div
+              className="relative flex flex-col items-center gap-1"
+              initial={{ scale: 0.5, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 1.1, y: -14, opacity: 0 }}
+              transition={{ type: "spring", stiffness: 400, damping: 22 }}
+            >
+              <motion.span
+                className="text-[48px] sm:text-[68px] font-black uppercase tracking-tight leading-none select-none"
+                style={{
+                  color: "#c9a84c",
+                  textShadow: "0 0 48px rgba(201,168,76,0.95), 0 0 18px rgba(201,168,76,0.7), 0 4px 20px rgba(0,0,0,0.95)",
+                }}
+                animate={{ opacity: [1, 1, 1, 0] }}
+                transition={{ duration: 2.2, times: [0, 0.35, 0.7, 1], ease: "easeInOut" }}
+              >
+                ¡Vas a dominar!
+              </motion.span>
+              <motion.div
+                initial={{ scaleX: 0 }}
+                animate={{ scaleX: 1 }}
+                transition={{ duration: 0.3, delay: 0.1 }}
+                className="h-0.5 w-36 sm:w-52 rounded-full"
+                style={{ background: "linear-gradient(90deg, transparent, rgba(201,168,76,0.8), transparent)" }}
+              />
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>,
+      document.body
+    )}
     <motion.div
       className="flex flex-col items-center gap-2 sm:gap-3 pb-[max(8px,env(safe-area-inset-bottom))] sm:pb-4 px-1 sm:px-2 rounded-2xl"
       role="region"
@@ -1040,5 +1121,6 @@ export function Hand({ onPlayTile, onPass, disabled = false }: HandProps) {
       </div>
 
     </motion.div>
+    </>
   );
 }
