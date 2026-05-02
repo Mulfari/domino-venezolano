@@ -133,6 +133,8 @@ export default function GamePage() {
   const [cochinaAlert, setCochinaAlert] = useState<{ name: string } | null>(null);
   const cochinaTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const prevFirstPlayRef = useRef<string | null>(null);
+  const [dobleAlert, setDobleAlert] = useState<{ name: string; pip: number; seat: Seat } | null>(null);
+  const dobleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [boardTransitioning, setBoardTransitioning] = useState(false);
   const [copiedCode, setCopiedCode] = useState(false);
   const copiedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -396,6 +398,12 @@ export default function GamePage() {
           else playTilePlace();
           const playedName = useGameStore.getState().players.find((p) => p.seat === event.seat)?.displayName ?? `Jugador ${event.seat + 1}`;
           addMoveLog({ seat: event.seat as Seat, playerName: playedName, type: "play", tile: event.tile as Tile, round: roundRef.current });
+          // Show ¡Doble! toast for non-cochina doubles
+          if (playedTile[0] === playedTile[1] && !(playedTile[0] === 6 && useGameStore.getState().board.plays.length === 0)) {
+            if (dobleTimerRef.current) clearTimeout(dobleTimerRef.current);
+            setDobleAlert({ name: playedName, pip: playedTile[0], seat: event.seat as Seat });
+            dobleTimerRef.current = setTimeout(() => setDobleAlert(null), 2500);
+          }
           if (currentSeat !== null && event.seat === currentSeat) {
             break;
           }
@@ -597,6 +605,13 @@ export default function GamePage() {
 
     if (tile[0] === tile[1]) playDouble();
     else playTilePlace();
+
+    // Show ¡Doble! toast for own non-cochina doubles
+    if (tile[0] === tile[1] && mySeat !== null && !(tile[0] === 6 && useGameStore.getState().board.plays.length === 0)) {
+      if (dobleTimerRef.current) clearTimeout(dobleTimerRef.current);
+      setDobleAlert({ name: displayName, pip: tile[0], seat: mySeat });
+      dobleTimerRef.current = setTimeout(() => setDobleAlert(null), 2500);
+    }
 
     // Log own play
     if (mySeat !== null) {
@@ -1423,6 +1438,60 @@ export default function GamePage() {
                       {vaADominarAlert.name} · última ficha
                     </span>
                   )}
+                </div>
+              </div>
+            </motion.div>
+          );
+        })()}
+      </AnimatePresence>
+
+      {/* ¡Doble! toast — fires when any non-cochina double is played */}
+      <AnimatePresence>
+        {dobleAlert && (() => {
+          const isMe = mySeat !== null && dobleAlert.seat === mySeat;
+          const isPartner = mySeat !== null && (dobleAlert.seat % 2) === (mySeat % 2) && !isMe;
+          const accentColor = isMe || isPartner ? "#c9a84c" : "#a8c4a0";
+          const accentRgb = isMe || isPartner ? "201,168,76" : "168,196,160";
+          const bgGradient = isMe || isPartner
+            ? "linear-gradient(135deg, #1a1000 0%, #0e0a00 100%)"
+            : "linear-gradient(135deg, #0e1a0e 0%, #081008 100%)";
+          const label = isMe ? "¡Doble tuyo!" : isPartner ? "¡Doble del compañero!" : "¡Doble!";
+          return (
+            <motion.div
+              key={`doble-${dobleAlert.seat}-${dobleAlert.pip}`}
+              initial={{ opacity: 0, y: -28, scale: 0.82 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -18, scale: 0.9 }}
+              transition={{ type: "spring", stiffness: 440, damping: 24 }}
+              className="pointer-events-none"
+              role="status"
+              aria-live="polite"
+            >
+              <div
+                className="flex items-center gap-2.5 rounded-full px-5 py-2.5 backdrop-blur-sm"
+                style={{
+                  background: bgGradient,
+                  border: `1.5px solid rgba(${accentRgb},0.7)`,
+                  boxShadow: `0 0 28px 6px rgba(${accentRgb},0.28), 0 8px 24px rgba(0,0,0,0.8)`,
+                }}
+              >
+                {/* Double-pip domino icon */}
+                <svg width="20" height="36" viewBox="0 0 20 36" fill="none" aria-hidden="true">
+                  <rect x="0.75" y="0.75" width="18.5" height="34.5" rx="3" fill="#0e0a00" stroke={accentColor} strokeWidth="1.5"/>
+                  <line x1="1.5" y1="18" x2="18.5" y2="18" stroke={accentColor} strokeWidth="1"/>
+                  <circle cx="10" cy="9" r="2.2" fill={accentColor}/>
+                  <circle cx="10" cy="27" r="2.2" fill={accentColor}/>
+                </svg>
+                <div className="flex flex-col leading-tight">
+                  <span
+                    className="text-[13px] font-black uppercase tracking-widest leading-none"
+                    style={{ color: accentColor, textShadow: `0 0 10px rgba(${accentRgb},0.7)` }}
+                  >
+                    {label}
+                  </span>
+                  <span className="text-[10px] text-[#f5f0e8]/60 leading-none mt-0.5 truncate max-w-[130px]">
+                    {isMe ? `doble ${dobleAlert.pip}` : `${dobleAlert.name} · doble ${dobleAlert.pip}`}
+                  </span>
                 </div>
               </div>
             </motion.div>
