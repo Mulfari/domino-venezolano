@@ -187,6 +187,19 @@ export function Hand({ onPlayTile, onPass, disabled = false }: HandProps) {
     return isFirstPlay && tile[0] === 6 && tile[1] === 6;
   }
 
+  function isCapicuaTile(tile: Tile): boolean {
+    if (!isMyTurn || !isTilePlayable(tile)) return false;
+    if (board.left === null || board.right === null || board.plays.length === 0) return false;
+    const L = board.left;
+    const R = board.right;
+    const [a, b] = tile;
+    if (L === R) {
+      // Both ends already equal — only a matching double keeps capicúa
+      return a === L && b === L;
+    }
+    return (a === L && b === R) || (b === L && a === R);
+  }
+
   // Must be declared before the keyboard useEffect so it's not in the TDZ when the dep array is evaluated
   const awaitingEndChoice = selectedTile !== null && board.plays.length > 0 && board.left !== board.right;
 
@@ -747,6 +760,28 @@ export function Hand({ onPlayTile, onPass, disabled = false }: HandProps) {
                   >
                     doble
                   </div>
+                )}
+
+                {/* Capicúa opportunity badge */}
+                {isCapicuaTile(tile) && (
+                  <motion.div
+                    className="absolute top-full left-1/2 -translate-x-1/2 mt-1 px-1.5 py-0.5 rounded pointer-events-none z-10"
+                    animate={{ opacity: [0.75, 1, 0.75] }}
+                    transition={{ duration: 1.1, repeat: Infinity, ease: "easeInOut" }}
+                    style={{
+                      background: "linear-gradient(135deg, #2a1a00 0%, #1a0e00 100%)",
+                      border: "1px solid rgba(201,168,76,0.7)",
+                      boxShadow: "0 0 8px rgba(201,168,76,0.4)",
+                    }}
+                    aria-label="Esta ficha cierra capicúa"
+                  >
+                    <span
+                      className="text-[8px] font-black uppercase tracking-widest whitespace-nowrap leading-none"
+                      style={{ color: "#c9a84c", textShadow: "0 0 6px rgba(201,168,76,0.8)" }}
+                    >
+                      ✦ capicúa
+                    </span>
+                  </motion.div>
                 )}
 
                 <DominoTile
