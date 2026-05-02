@@ -191,6 +191,13 @@ export function Hand({ onPlayTile, onPass, disabled = false }: HandProps) {
     return (a === L && b === R) || (b === L && a === R);
   }
 
+  // Tiles that fit a board end while waiting for your turn — helps plan the next move
+  function isPlanningMatch(tile: Tile): boolean {
+    if (isMyTurn || board.left === null || board.right === null || board.plays.length === 0) return false;
+    const [a, b] = tile;
+    return a === board.left || b === board.left || a === board.right || b === board.right;
+  }
+
   // Must be declared before the keyboard useEffect so it's not in the TDZ when the dep array is evaluated
   const awaitingEndChoice = selectedTile !== null && board.plays.length > 0 && board.left !== board.right;
 
@@ -631,6 +638,7 @@ export function Hand({ onPlayTile, onPass, disabled = false }: HandProps) {
             const selected = isTileSelected(tile);
             const cochina = isCochina(tile);
             const isDouble = tile[0] === tile[1] && !cochina;
+            const planningMatch = isPlanningMatch(tile);
 
             // Dealing animation: tiles fly in from above with stagger, like being dealt from a deck
             const dealDelay = isDealing ? i * 0.11 : i * 0.03;
@@ -749,6 +757,17 @@ export function Hand({ onPlayTile, onPass, disabled = false }: HandProps) {
                       transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
                     />
                   </>
+                )}
+
+                {/* Planning match: subtle blue-white glow when tile fits a board end but it's not your turn */}
+                {planningMatch && !isMyTurn && (
+                  <motion.div
+                    className="absolute -inset-0.5 rounded-lg border pointer-events-none"
+                    style={{ borderColor: "rgba(168,196,255,0.45)" }}
+                    animate={{ opacity: [0.25, 0.6, 0.25] }}
+                    transition={{ duration: 2.8, repeat: Infinity, ease: "easeInOut" }}
+                    aria-hidden="true"
+                  />
                 )}
 
                 {/* Double tile badge — hidden when hint badge already occupies the same slot */}
