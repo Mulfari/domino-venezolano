@@ -40,7 +40,19 @@ export function MoveLog() {
   const mySeat = useGameStore((s) => s.mySeat);
   const [open, setOpen] = useState(false);
   const listRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const prevLenRef = useRef(moveLog.length);
+
+  useEffect(() => {
+    if (!open) return;
+    function handleClickOutside(e: MouseEvent) {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [open]);
 
   // Auto-scroll to bottom when new entries arrive while open
   useEffect(() => {
@@ -53,7 +65,7 @@ export function MoveLog() {
   const recentCount = moveLog.length;
 
   return (
-    <div className="relative">
+    <div className="relative" ref={containerRef}>
       {/* Toggle button */}
       <motion.button
         onClick={() => setOpen((v) => !v)}
