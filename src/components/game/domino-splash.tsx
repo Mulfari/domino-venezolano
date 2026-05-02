@@ -9,6 +9,7 @@ interface DominoSplashProps {
   isMyTeam: boolean;
   reason?: "domino" | "locked";
   tile?: Tile;
+  points?: number;
 }
 
 function halfPips(val: number, yBase: number): [number, number][] {
@@ -25,7 +26,7 @@ function halfPips(val: number, yBase: number): [number, number][] {
   }
 }
 
-export function DominoSplash({ show, playerName, isMyTeam, reason = "domino", tile }: DominoSplashProps) {
+export function DominoSplash({ show, playerName, isMyTeam, reason = "domino", tile, points }: DominoSplashProps) {
   const isLocked = reason === "locked";
   const displayTile: Tile = tile ?? [6, 6];
 
@@ -164,6 +165,53 @@ export function DominoSplash({ show, playerName, isMyTeam, reason = "domino", ti
               >
                 {isLocked ? "Juego bloqueado" : playerName}
               </motion.span>
+
+              {/* Points earned badge */}
+              {points !== undefined && points > 0 && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.5, y: 10 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  transition={{ delay: 0.52, type: "spring", stiffness: 380, damping: 22 }}
+                  className="flex items-center gap-2 rounded-full px-5 py-2 mt-1"
+                  style={{
+                    background: isLocked
+                      ? "rgba(239,68,68,0.12)"
+                      : isMyTeam
+                      ? "rgba(201,168,76,0.15)"
+                      : "rgba(245,240,232,0.08)",
+                    border: `1.5px solid ${isLocked ? "rgba(239,68,68,0.45)" : isMyTeam ? "rgba(201,168,76,0.5)" : "rgba(245,240,232,0.2)"}`,
+                    boxShadow: isMyTeam && !isLocked ? "0 0 20px rgba(201,168,76,0.25)" : undefined,
+                  }}
+                >
+                  <motion.span
+                    className="text-[28px] sm:text-[34px] font-black tabular-nums leading-none"
+                    style={{
+                      color: isLocked ? "#ef4444" : isMyTeam ? "#c9a84c" : "#f5f0e8",
+                      textShadow: isLocked
+                        ? "0 0 20px rgba(239,68,68,0.7)"
+                        : isMyTeam
+                        ? "0 0 20px rgba(201,168,76,0.7)"
+                        : "0 0 12px rgba(245,240,232,0.4)",
+                    }}
+                    animate={isMyTeam && !isLocked ? { scale: [1, 1.06, 1] } : {}}
+                    transition={{ duration: 1.0, repeat: Infinity, ease: "easeInOut" }}
+                  >
+                    +{points}
+                  </motion.span>
+                  <span
+                    className="text-[11px] font-bold uppercase tracking-widest leading-none"
+                    style={{
+                      color: isLocked
+                        ? "rgba(239,68,68,0.6)"
+                        : isMyTeam
+                        ? "rgba(201,168,76,0.6)"
+                        : "rgba(245,240,232,0.4)",
+                    }}
+                  >
+                    pts
+                  </span>
+                </motion.div>
+              )}
             </motion.div>
 
             {/* Radial glow */}

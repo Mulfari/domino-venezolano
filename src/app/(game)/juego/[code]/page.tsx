@@ -125,7 +125,7 @@ export default function GamePage() {
   const [dosFichasAlert, setDosFichasAlert] = useState<{ name: string; seat: Seat } | null>(null);
   const dosFichasTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const prevHandCountsRef = useRef<number[]>([7, 7, 7, 7]);
-  const [dominoSplash, setDominoSplash] = useState<{ playerName: string; isMyTeam: boolean; reason: "domino" | "locked"; tile?: Tile } | null>(null);
+  const [dominoSplash, setDominoSplash] = useState<{ playerName: string; isMyTeam: boolean; reason: "domino" | "locked"; tile?: Tile; points?: number } | null>(null);
   const [tilePlayedAlert, setTilePlayedAlert] = useState<{ name: string; tile: Tile; seat: Seat } | null>(null);
   const tilePlayedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [capicuaAlert, setCapicuaAlert] = useState<{ playerName: string; isMe: boolean; pipValue: number } | null>(null);
@@ -565,7 +565,7 @@ export default function GamePage() {
             const isMyTeamDomino = dominoSeat !== null && currentSeat !== null
               ? (dominoSeat % 2) === (currentSeat % 2)
               : false;
-            setDominoSplash({ playerName: dominoPlayer, isMyTeam: isMyTeamDomino, reason: "domino", tile: lastPlay?.tile });
+            setDominoSplash({ playerName: dominoPlayer, isMyTeam: isMyTeamDomino, reason: "domino", tile: lastPlay?.tile, points: event.points });
             // Show splash for 1.6s, then start board transition
             setTimeout(() => {
               setDominoSplash(null);
@@ -576,7 +576,7 @@ export default function GamePage() {
             const isMyTeamLocked = currentSeat !== null && event.winner_team !== null
               ? (currentSeat % 2) === event.winner_team
               : false;
-            setDominoSplash({ playerName: "", isMyTeam: isMyTeamLocked, reason: "locked" });
+            setDominoSplash({ playerName: "", isMyTeam: isMyTeamLocked, reason: "locked", points: event.points });
             setTimeout(() => {
               setDominoSplash(null);
               setBoardTransitioning(true);
