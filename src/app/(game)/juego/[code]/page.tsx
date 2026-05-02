@@ -148,7 +148,7 @@ export default function GamePage() {
   const prevTurnForDominarRef = useRef<number | null>(null);
   const [transitionRound, setTransitionRound] = useState<number | null>(null);
   const [transitionScores, setTransitionScores] = useState<{ prev: { 0: number; 1: number }; next: { 0: number; 1: number } } | null>(null);
-  const [transitionWinner, setTransitionWinner] = useState<{ team: 0 | 1 | null; points: number; reason: string } | null>(null);
+  const [transitionWinner, setTransitionWinner] = useState<{ team: 0 | 1 | null; points: number; reason: string; isCapicua?: boolean } | null>(null);
   const [transitionStarter, setTransitionStarter] = useState<{ name: string; isMe: boolean } | null>(null);
   const passTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [streakAlert, setStreakAlert] = useState<{ team: 0 | 1; streak: number; isMyTeam: boolean } | null>(null);
@@ -489,10 +489,16 @@ export default function GamePage() {
           }
           // Capture current scores before updating so the overlay can animate from old → new
           const prevScores = useGameStore.getState().scores;
+          const boardAtEnd = useGameStore.getState().board;
+          const isCapicuaRound =
+            boardAtEnd.left !== null &&
+            boardAtEnd.left === boardAtEnd.right &&
+            boardAtEnd.plays.length > 1;
           setTransitionWinner({
             team: event.winner_team as (0 | 1 | null),
             points: event.points,
             reason: event.reason,
+            isCapicua: isCapicuaRound || undefined,
           });
           setTransitionScores({
             prev: { 0: prevScores[0], 1: prevScores[1] },
@@ -504,11 +510,6 @@ export default function GamePage() {
             points: event.points,
             reason: event.reason,
           });
-          const boardAtEnd = useGameStore.getState().board;
-          const isCapicuaRound =
-            boardAtEnd.left !== null &&
-            boardAtEnd.left === boardAtEnd.right &&
-            boardAtEnd.plays.length > 1;
           addRoundHistory({
             round: roundRef.current,
             winner_team: event.winner_team as (0 | 1 | null),
@@ -957,6 +958,35 @@ export default function GamePage() {
                       <span className="text-[10px] text-[#a8c4a0]/50 uppercase tracking-widest">
                         {transitionWinner.reason === "domino" ? "dominó" : transitionWinner.reason === "locked" ? "trancado" : "empate"} · +{transitionWinner.points} pts
                       </span>
+                      {transitionWinner.isCapicua && (
+                        <motion.div
+                          initial={{ opacity: 0, scale: 0.6 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          transition={{ type: "spring", stiffness: 480, damping: 22, delay: 0.18 }}
+                          className="flex items-center gap-1.5 rounded-full px-3 py-1 mt-0.5"
+                          style={{
+                            background: "rgba(201,168,76,0.15)",
+                            border: "1px solid rgba(201,168,76,0.6)",
+                            boxShadow: "0 0 14px rgba(201,168,76,0.4)",
+                          }}
+                        >
+                          <motion.span
+                            className="text-[13px] leading-none"
+                            style={{ color: "#c9a84c", textShadow: "0 0 10px rgba(201,168,76,0.9)" }}
+                            animate={{ opacity: [1, 0.55, 1] }}
+                            transition={{ duration: 1.1, repeat: Infinity, ease: "easeInOut" }}
+                            aria-hidden="true"
+                          >
+                            ✦
+                          </motion.span>
+                          <span
+                            className="text-[10px] font-black uppercase tracking-widest leading-none"
+                            style={{ color: "#c9a84c" }}
+                          >
+                            ¡Capicúa!
+                          </span>
+                        </motion.div>
+                      )}
                     </>
                   )}
                 </motion.div>
