@@ -102,9 +102,16 @@ export function Hand({ onPlayTile, onPass, disabled = false }: HandProps) {
   const [vasDominar, setVasDominar] = useState(false);
   const vasDominarTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const prevIsMyTurnForDominarRef = useRef(false);
-  const [sortByPips, setSortByPips] = useState(false);
-  const displayHand = sortByPips
+  const [sortMode, setSortMode] = useState<"original" | "pips" | "suit">("original");
+  const displayHand = sortMode === "pips"
     ? [...myHand].sort((a, b) => (b[0] + b[1]) - (a[0] + a[1]))
+    : sortMode === "suit"
+    ? [...myHand].sort((a, b) => {
+        const suitA = Math.max(a[0], a[1]);
+        const suitB = Math.max(b[0], b[1]);
+        if (suitB !== suitA) return suitB - suitA;
+        return Math.min(b[0], b[1]) - Math.min(a[0], a[1]);
+      })
     : myHand;
 
   // Close shortcuts popover when clicking outside
@@ -283,14 +290,14 @@ export function Hand({ onPlayTile, onPass, disabled = false }: HandProps) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isMyTurn, disabled, canPass, awaitingEndChoice, selectedTile, displayHand]);
 
-  // S key toggles sort — works regardless of turn
+  // S key cycles sort mode — works regardless of turn
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
       const tag = (e.target as HTMLElement)?.tagName;
       if (tag === "INPUT" || tag === "TEXTAREA") return;
       if ((e.key === "s" || e.key === "S") && myHand.length >= 2) {
         e.preventDefault();
-        setSortByPips((v) => !v);
+        setSortMode((v) => v === "original" ? "pips" : v === "pips" ? "suit" : "original");
       }
     }
     window.addEventListener("keydown", onKeyDown);
@@ -1015,7 +1022,7 @@ export function Hand({ onPlayTile, onPass, disabled = false }: HandProps) {
         )}
       </AnimatePresence>
 
-      {/* Sort toggle button — always visible when hand has 2+ tiles */}
+      {/* Sort cycle button — original → by pips → by suit → original */}
       <AnimatePresence>
         {myHand.length >= 2 && (
           <motion.button
@@ -1025,15 +1032,24 @@ export function Hand({ onPlayTile, onPass, disabled = false }: HandProps) {
             exit={{ opacity: 0, scale: 0.8, y: 4 }}
             transition={{ type: "spring", stiffness: 420, damping: 24 }}
             whileTap={{ scale: 0.93 }}
-            onClick={() => setSortByPips((v) => !v)}
-            aria-label={sortByPips ? "Orden original" : "Ordenar por puntos"}
-            aria-pressed={sortByPips}
+            onClick={() => setSortMode((v) => v === "original" ? "pips" : v === "pips" ? "suit" : "original")}
+            aria-label={
+              sortMode === "original" ? "Ordenar por puntos" :
+              sortMode === "pips" ? "Ordenar por palo" :
+              "Orden original"
+            }
             className="flex items-center gap-1.5 rounded-full px-3 py-1.5 transition-colors"
-            style={sortByPips ? {
-              background: "linear-gradient(135deg, #1a2a10 0%, #0e1a08 100%)",
-              border: "1.5px solid rgba(168,196,160,0.65)",
-              boxShadow: "0 0 14px rgba(168,196,160,0.25), 0 2px 8px rgba(0,0,0,0.5)",
-              color: "rgba(168,196,160,1)",
+            style={sortMode !== "original" ? {
+              background: sortMode === "suit"
+                ? "linear-gradient(135deg, #0a1a2a 0%, #061018 100%)"
+                : "linear-gradient(135deg, #1a2a10 0%, #0e1a08 100%)",
+              border: sortMode === "suit"
+                ? "1.5px solid rgba(76,168,201,0.65)"
+                : "1.5px solid rgba(168,196,160,0.65)",
+              boxShadow: sortMode === "suit"
+                ? "0 0 14px rgba(76,168,201,0.25), 0 2px 8px rgba(0,0,0,0.5)"
+                : "0 0 14px rgba(168,196,160,0.25), 0 2px 8px rgba(0,0,0,0.5)",
+              color: sortMode === "suit" ? "rgba(76,168,201,1)" : "rgba(168,196,160,1)",
             } : {
               background: "rgba(0,0,0,0.22)",
               border: "1px solid rgba(168,196,160,0.2)",
@@ -1047,7 +1063,7 @@ export function Hand({ onPlayTile, onPass, disabled = false }: HandProps) {
               <line x1="4" y1="9" x2="8" y2="9" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
             </svg>
             <span className="text-[10px] font-semibold uppercase tracking-widest leading-none">
-              {sortByPips ? "Ordenado" : "Ordenar"}
+              {sortMode === "original" ? "Ordenar" : sortMode === "pips" ? "Por puntos" : "Por palo"}
             </span>
           </motion.button>
         )}
@@ -1109,7 +1125,7 @@ export function Hand({ onPlayTile, onPass, disabled = false }: HandProps) {
                   { keys: ["←", "→"], desc: "Elegir extremo" },
                   { keys: ["P"], desc: "Pasar turno" },
                   { keys: ["H"], desc: "Sugerencia" },
-                  { keys: ["S"], desc: "Ordenar fichas" },
+                  { keys: ["S"], desc: "Ordenar: puntos → palo → original" },
                   { keys: ["Esc"], desc: "Cancelar selección" },
                 ].map(({ keys, desc }) => (
                   <div key={desc} className="flex items-center justify-between gap-4">
