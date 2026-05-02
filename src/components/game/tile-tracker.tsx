@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useGameStore } from "@/stores/game-store";
 import type { Tile } from "@/lib/game/types";
@@ -82,10 +82,23 @@ function MiniTile({ tile, status }: { tile: Tile; status: TileStatus }) {
 
 export function TileTracker() {
   const [open, setOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
   const board = useGameStore((s) => s.board);
   const hands = useGameStore((s) => s.hands);
   const mySeat = useGameStore((s) => s.mySeat);
   const status = useGameStore((s) => s.status);
+
+  // Close panel when clicking outside the component
+  useEffect(() => {
+    if (!open) return;
+    function onPointerDown(e: PointerEvent) {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    }
+    document.addEventListener("pointerdown", onPointerDown);
+    return () => document.removeEventListener("pointerdown", onPointerDown);
+  }, [open]);
 
   if (status !== "playing") return null;
 
@@ -118,7 +131,7 @@ export function TileTracker() {
   );
 
   return (
-    <>
+    <div ref={containerRef} className="relative">
       {/* Toggle button */}
       <button
         onClick={() => setOpen((v) => !v)}
@@ -269,6 +282,6 @@ export function TileTracker() {
           </motion.div>
         )}
       </AnimatePresence>
-    </>
+    </div>
   );
 }
