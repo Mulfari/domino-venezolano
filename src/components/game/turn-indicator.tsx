@@ -236,9 +236,16 @@ export function TurnIndicator() {
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: 6 }}
                 transition={{ duration: 0.18 }}
-                className="text-[10px] text-[#a8c4a0]/60 leading-none mt-0.5"
+                className="text-[10px] leading-none mt-0.5"
+                style={{
+                  color: mySeat !== null && currentTurn === ((mySeat + 2) % 4 as Seat)
+                    ? `${colors.glow}99`
+                    : "rgba(168,196,160,0.6)",
+                }}
               >
-                Equipo {team + 1}
+                {mySeat !== null && currentTurn === ((mySeat + 2) % 4 as Seat)
+                  ? "compañero"
+                  : "rival"}
               </motion.span>
             )}
           </AnimatePresence>
