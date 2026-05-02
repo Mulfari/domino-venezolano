@@ -912,17 +912,15 @@ export function Board({ onPlaceEnd, clearing = false }: BoardProps) {
                             orientation={pt.orientation}
                           />
                         </foreignObject>
-                        {/* Team dot — tiny colored circle showing which player placed this tile */}
-                        {board.plays[tileIdx] && (
-                          <circle
-                            cx={pt.x + tw / 2 - (isMobile ? 2.5 : 3)}
-                            cy={pt.y - th / 2 + (isMobile ? 2.5 : 3)}
-                            r={isMobile ? 1.8 : 2.2}
-                            fill={(board.plays[tileIdx].seat % 2) === 0 ? "#c9a84c" : "#4ca8c9"}
-                            opacity={0.88}
-                            style={{ filter: `drop-shadow(0 0 2px ${(board.plays[tileIdx].seat % 2) === 0 ? "rgba(201,168,76,0.9)" : "rgba(76,168,201,0.9)"})` }}
-                          />
-                        )}
+                        {/* Team dot — tiny colored circle in the corner showing which team placed this tile */}
+                        <circle
+                          cx={pt.x + tw / 2 - (isMobile ? 2.5 : 3)}
+                          cy={pt.y - th / 2 + (isMobile ? 2.5 : 3)}
+                          r={isMobile ? 1.8 : 2.2}
+                          fill={(pt.seat % 2) === 0 ? "#c9a84c" : "#4ca8c9"}
+                          opacity={0.88}
+                          style={{ filter: `drop-shadow(0 0 2px ${(pt.seat % 2) === 0 ? "rgba(201,168,76,0.9)" : "rgba(76,168,201,0.9)"})` }}
+                        />
                       </motion.g>
                     );
                   })}

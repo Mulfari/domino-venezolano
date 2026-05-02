@@ -4,6 +4,7 @@ export interface TileEntry {
   tile: Tile;
   isDouble: boolean;
   key: string;
+  seat: number;
 }
 
 export interface PlacedTile extends TileEntry {
@@ -136,9 +137,9 @@ export function buildPlacedTiles(
     const isDouble = t[0] === t[1];
     const key = `${t[0]}-${t[1]}-${play.end}-${i}`;
     if (i === 0 || play.end === "right") {
-      rightChain.push({ tile: t, isDouble, key });
+      rightChain.push({ tile: t, isDouble, key, seat: play.seat });
     } else {
-      leftChain.unshift({ tile: t, isDouble, key });
+      leftChain.unshift({ tile: t, isDouble, key, seat: play.seat });
     }
   }
 
