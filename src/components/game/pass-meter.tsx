@@ -6,11 +6,18 @@ import { useGameStore } from "@/stores/game-store";
 /**
  * Shows a 4-pip tension meter when consecutive passes are happening.
  * Appears at 1+ passes, escalates color from amber → orange → red.
+ * At 2+ passes also shows the local player's pip total for strategic decisions.
  * Disappears when a tile is played (passes reset to 0).
  */
 export function PassMeter() {
   const consecutivePasses = useGameStore((s) => s.consecutivePasses);
   const status = useGameStore((s) => s.status);
+  const hands = useGameStore((s) => s.hands);
+  const mySeat = useGameStore((s) => s.mySeat);
+
+  const myPips = mySeat !== null
+    ? (hands[mySeat] ?? []).reduce((sum, [a, b]) => sum + a + b, 0)
+    : null;
 
   if (status !== "playing" || consecutivePasses === 0) return null;
 
@@ -90,6 +97,43 @@ export function PassMeter() {
             {4 - consecutivePasses} para trancado
           </span>
         )}
+
+        {/* Pip total — shown at 2+ passes so player can judge if a lock benefits them */}
+        <AnimatePresence>
+          {consecutivePasses >= 2 && myPips !== null && (
+            <motion.div
+              key="pip-total"
+              initial={{ opacity: 0, scale: 0.7, y: 4 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.7 }}
+              transition={{ type: "spring", stiffness: 420, damping: 24 }}
+              className="flex items-center gap-1 rounded-full px-2 py-0.5"
+              style={{
+                background: "rgba(0,0,0,0.3)",
+                border: `1px solid ${c.border}`,
+              }}
+              aria-label={`Tus puntos en mano: ${myPips}`}
+            >
+              {/* Domino pip icon */}
+              <svg width="9" height="9" viewBox="0 0 9 9" fill="none" aria-hidden="true">
+                <rect x="0.5" y="0.5" width="8" height="8" rx="1.5" stroke={c.pip} strokeWidth="0.8" fill="none" opacity="0.7"/>
+                <circle cx="4.5" cy="4.5" r="1.5" fill={c.pip} opacity="0.8"/>
+              </svg>
+              <span
+                className="text-[8px] font-bold tabular-nums leading-none"
+                style={{ color: c.label }}
+              >
+                {myPips} pts
+              </span>
+              <span
+                className="text-[7px] leading-none"
+                style={{ color: `${c.label}60` }}
+              >
+                tuyos
+              </span>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </motion.div>
     </AnimatePresence>
   );
