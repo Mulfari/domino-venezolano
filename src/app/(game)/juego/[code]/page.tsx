@@ -1140,7 +1140,7 @@ export default function GamePage() {
           </div>
           <Board onPlaceEnd={handlePlaceEnd} clearing={boardTransitioning} />
           <div className="absolute bottom-1 left-1/2 -translate-x-1/2 z-20">
-            <BoardEnds />
+            <BoardEnds handCounts={handCounts} />
           </div>
         </div>
 

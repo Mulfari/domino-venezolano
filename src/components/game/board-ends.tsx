@@ -122,7 +122,7 @@ function countMatches(hand: Tile[], pipValue: number): number {
   return hand.filter((t) => t[0] === pipValue || t[1] === pipValue).length;
 }
 
-export function BoardEnds() {
+export function BoardEnds({ handCounts }: { handCounts?: number[] }) {
   const board = useGameStore((s) => s.board);
   const hands = useGameStore((s) => s.hands);
   const mySeat = useGameStore((s) => s.mySeat);
@@ -136,6 +136,10 @@ export function BoardEnds() {
   const rightMatches = countMatches(myHand, board.right);
   const isCapicua = board.left === board.right && board.plays.length > 1;
 
+  const totalRemaining = handCounts ? handCounts.reduce((a, b) => a + b, 0) : null;
+  // Warn when few tiles remain — game is close to locking
+  const isLowTiles = totalRemaining !== null && totalRemaining <= 8;
+
   return (
     <AnimatePresence>
       <motion.div
@@ -143,54 +147,90 @@ export function BoardEnds() {
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0 }}
         transition={{ duration: 0.25 }}
-        className="flex items-center gap-2 pointer-events-none"
+        className="flex flex-col items-center gap-1 pointer-events-none"
         role="status"
-        aria-label={`Extremos del tablero: izquierda ${board.left}, derecha ${board.right}${isCapicua ? ", ¡capicúa!" : ""}`}
+        aria-label={`Extremos del tablero: izquierda ${board.left}, derecha ${board.right}${isCapicua ? ", ¡capicúa!" : ""}${totalRemaining !== null ? `, ${totalRemaining} fichas en juego` : ""}`}
       >
-        <EndBadge value={board.left} label="Izq" matchCount={leftMatches} isCapicua={isCapicua} />
-        <div className="flex flex-col items-center gap-0.5">
-          <AnimatePresence mode="wait">
-            {isCapicua ? (
-              <motion.div
-                key="capicua"
-                initial={{ opacity: 0, scale: 0.6 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.6 }}
-                transition={{ type: "spring", stiffness: 500, damping: 24 }}
-                className="flex flex-col items-center gap-0.5"
-              >
-                <motion.span
-                  className="text-[8px] font-black uppercase tracking-widest leading-none whitespace-nowrap"
-                  style={{ color: "#c9a84c", textShadow: "0 0 10px rgba(201,168,76,0.8)" }}
-                  animate={{ opacity: [1, 0.6, 1] }}
-                  transition={{ duration: 1.1, repeat: Infinity, ease: "easeInOut" }}
-                >
-                  ¡Capicúa!
-                </motion.span>
+        {/* End badges row */}
+        <div className="flex items-center gap-2">
+          <EndBadge value={board.left} label="Izq" matchCount={leftMatches} isCapicua={isCapicua} />
+          <div className="flex flex-col items-center gap-0.5">
+            <AnimatePresence mode="wait">
+              {isCapicua ? (
                 <motion.div
-                  className="h-px w-8 rounded-full"
-                  style={{ background: "linear-gradient(90deg, transparent, rgba(201,168,76,0.7), transparent)" }}
-                  animate={{ opacity: [0.5, 1, 0.5] }}
-                  transition={{ duration: 1.1, repeat: Infinity, ease: "easeInOut" }}
-                />
-              </motion.div>
-            ) : (
-              <motion.div
-                key="extremos"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="flex flex-col items-center gap-0.5"
-              >
-                <span className="text-[7px] uppercase tracking-widest text-[#a8c4a0]/30 leading-none">
-                  extremos
-                </span>
-                <div className="h-px w-4 bg-gradient-to-r from-transparent via-[#c9a84c]/30 to-transparent" />
-              </motion.div>
-            )}
-          </AnimatePresence>
+                  key="capicua"
+                  initial={{ opacity: 0, scale: 0.6 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.6 }}
+                  transition={{ type: "spring", stiffness: 500, damping: 24 }}
+                  className="flex flex-col items-center gap-0.5"
+                >
+                  <motion.span
+                    className="text-[8px] font-black uppercase tracking-widest leading-none whitespace-nowrap"
+                    style={{ color: "#c9a84c", textShadow: "0 0 10px rgba(201,168,76,0.8)" }}
+                    animate={{ opacity: [1, 0.6, 1] }}
+                    transition={{ duration: 1.1, repeat: Infinity, ease: "easeInOut" }}
+                  >
+                    ¡Capicúa!
+                  </motion.span>
+                  <motion.div
+                    className="h-px w-8 rounded-full"
+                    style={{ background: "linear-gradient(90deg, transparent, rgba(201,168,76,0.7), transparent)" }}
+                    animate={{ opacity: [0.5, 1, 0.5] }}
+                    transition={{ duration: 1.1, repeat: Infinity, ease: "easeInOut" }}
+                  />
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="extremos"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="flex flex-col items-center gap-0.5"
+                >
+                  <span className="text-[7px] uppercase tracking-widest text-[#a8c4a0]/30 leading-none">
+                    extremos
+                  </span>
+                  <div className="h-px w-4 bg-gradient-to-r from-transparent via-[#c9a84c]/30 to-transparent" />
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+          <EndBadge value={board.right} label="Der" matchCount={rightMatches} isCapicua={isCapicua} />
         </div>
-        <EndBadge value={board.right} label="Der" matchCount={rightMatches} isCapicua={isCapicua} />
+
+        {/* Tiles remaining counter */}
+        <AnimatePresence mode="wait">
+          {totalRemaining !== null && (
+            <motion.div
+              key={`tiles-${totalRemaining}`}
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.8 }}
+              transition={{ type: "spring", stiffness: 400, damping: 24 }}
+              className="flex items-center gap-1 rounded-full px-2 py-0.5"
+              style={{
+                background: isLowTiles ? "rgba(232,74,58,0.12)" : "rgba(0,0,0,0.25)",
+                border: `1px solid ${isLowTiles ? "rgba(232,74,58,0.4)" : "rgba(168,196,160,0.15)"}`,
+              }}
+              aria-hidden="true"
+            >
+              {/* Domino pip icon */}
+              <svg width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true">
+                <rect x="0.5" y="0.5" width="9" height="9" rx="2" stroke={isLowTiles ? "#e84a3a" : "rgba(168,196,160,0.5)"} strokeWidth="0.8" fill="none"/>
+                <circle cx="5" cy="5" r="1.5" fill={isLowTiles ? "#e84a3a" : "rgba(168,196,160,0.5)"}/>
+              </svg>
+              <motion.span
+                className="text-[8px] font-bold tabular-nums leading-none"
+                style={{ color: isLowTiles ? "#e84a3a" : "rgba(168,196,160,0.55)" }}
+                animate={isLowTiles ? { opacity: [1, 0.55, 1] } : {}}
+                transition={isLowTiles ? { duration: 0.85, repeat: Infinity, ease: "easeInOut" } : {}}
+              >
+                {totalRemaining} en juego
+              </motion.span>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </motion.div>
     </AnimatePresence>
   );
