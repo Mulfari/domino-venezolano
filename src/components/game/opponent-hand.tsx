@@ -92,6 +92,10 @@ export function OpponentHand({
     }
     return null;
   })();
+
+  const passCount = moveLog.filter(
+    (e) => e.round === currentRound && e.seat === seat && e.type === "pass"
+  ).length;
   const maxDisplay = isMobile ? (isVertical ? 3 : 5) : MAX_DISPLAY;
   const displayCount = Math.min(tileCount, maxDisplay);
 
@@ -260,6 +264,44 @@ export function OpponentHand({
         >
           {tileCount}
         </motion.div>
+
+        {/* Pass count badge — shows how many times this player has passed this round */}
+        <AnimatePresence>
+          {passCount > 0 && (
+            <motion.div
+              key={passCount}
+              initial={{ opacity: 0, scale: 0.6 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.6 }}
+              transition={{ type: "spring", stiffness: 500, damping: 24 }}
+              className="flex flex-col items-center gap-0.5 shrink-0"
+              title={`Pasó ${passCount} vez${passCount !== 1 ? "es" : ""} esta ronda`}
+              aria-label={`Pasó ${passCount} vez${passCount !== 1 ? "es" : ""} esta ronda`}
+            >
+              <span
+                className="text-[7px] uppercase tracking-widest leading-none font-semibold"
+                style={{ color: "rgba(251,146,60,0.6)" }}
+              >
+                pases
+              </span>
+              <motion.div
+                className="flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full font-black text-[10px] leading-none tabular-nums"
+                animate={passCount >= 3 ? { opacity: [1, 0.6, 1] } : {}}
+                transition={passCount >= 3 ? { duration: 0.85, repeat: Infinity, ease: "easeInOut" } : {}}
+                style={{
+                  background: passCount >= 3
+                    ? "rgba(232,74,58,0.18)"
+                    : "rgba(251,146,60,0.12)",
+                  border: `1px solid ${passCount >= 3 ? "rgba(232,74,58,0.65)" : "rgba(251,146,60,0.45)"}`,
+                  color: passCount >= 3 ? "#e84a3a" : "#fb923c",
+                  boxShadow: passCount >= 3 ? "0 0 8px rgba(232,74,58,0.4)" : undefined,
+                }}
+              >
+                {passCount}
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Last played tile — persistent mini domino showing opponent's most recent play */}
         <AnimatePresence mode="wait">
