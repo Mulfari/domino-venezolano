@@ -3,8 +3,10 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { DominoTile } from "./tile";
 import { PassIndicator } from "./pass-indicator";
+import { useGameStore } from "@/stores/game-store";
 import { useIsMobile } from "@/hooks/use-mobile";
 import type { Seat } from "@/lib/game/types";
+import type { Tile } from "@/lib/game/types";
 
 interface OpponentHandProps {
   seat: Seat;
@@ -19,6 +21,34 @@ interface OpponentHandProps {
 }
 
 const MAX_DISPLAY = 7;
+
+function MiniLastTile({ tile, teamColor }: { tile: Tile; teamColor: string }) {
+  const W = 26;
+  const H = 14;
+
+  function pips(val: number, xOffset: number) {
+    const cx = xOffset + W / 4;
+    const positions: [number, number][] = [];
+    if (val % 2 === 1) positions.push([cx, H / 2]);
+    if (val >= 2) { positions.push([cx - 2.5, H * 0.3]); positions.push([cx + 2.5, H * 0.7]); }
+    if (val >= 4) { positions.push([cx + 2.5, H * 0.3]); positions.push([cx - 2.5, H * 0.7]); }
+    if (val === 6) { positions.push([cx - 2.5, H / 2]); positions.push([cx + 2.5, H / 2]); }
+    return positions.map(([x, y], i) => (
+      <circle key={i} cx={x} cy={y} r={1.1} fill="#1a1a1a" />
+    ));
+  }
+
+  return (
+    <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`} aria-hidden="true" className="shrink-0">
+      <rect x="0.5" y="0.5" width={W - 1} height={H - 1} rx="2" fill="#f5f0e8" stroke={teamColor} strokeWidth="0.9" />
+      {/* 3D groove divider */}
+      <line x1={W / 2} y1="1.5" x2={W / 2} y2={H - 1.5} stroke="rgba(0,0,0,0.35)" strokeWidth="0.8" />
+      <line x1={W / 2 + 0.5} y1="1.5" x2={W / 2 + 0.5} y2={H - 1.5} stroke="rgba(255,255,255,0.55)" strokeWidth="0.5" />
+      {pips(tile[0], 0)}
+      {pips(tile[1], W / 2)}
+    </svg>
+  );
+}
 
 function getInitials(name: string): string {
   const parts = name.trim().split(/\s+/);
@@ -46,6 +76,18 @@ export function OpponentHand({
   const colors = TEAM_COLORS[team];
   const isVertical = position === "left" || position === "right";
   const isMobile = useIsMobile();
+  const moveLog = useGameStore((s) => s.moveLog);
+
+  // Find the last tile this opponent played in the current round
+  const lastPlayedTile: Tile | null = (() => {
+    for (let i = moveLog.length - 1; i >= 0; i--) {
+      const entry = moveLog[i];
+      if (entry.seat === seat && entry.type === "play" && entry.tile) {
+        return entry.tile;
+      }
+    }
+    return null;
+  })();
   const maxDisplay = isMobile ? (isVertical ? 3 : 5) : MAX_DISPLAY;
   const displayCount = Math.min(tileCount, maxDisplay);
 
@@ -188,6 +230,30 @@ export function OpponentHand({
         >
           {tileCount}
         </motion.div>
+
+        {/* Last played tile — persistent mini domino showing opponent's most recent play */}
+        <AnimatePresence mode="wait">
+          {lastPlayedTile && (
+            <motion.div
+              key={`${lastPlayedTile[0]}-${lastPlayedTile[1]}`}
+              initial={{ opacity: 0, scale: 0.5, x: -6 }}
+              animate={{ opacity: 1, scale: 1, x: 0 }}
+              exit={{ opacity: 0, scale: 0.5 }}
+              transition={{ type: "spring", stiffness: 480, damping: 24 }}
+              className="flex flex-col items-center gap-0.5 shrink-0"
+              title={`Última jugada: ${lastPlayedTile[0]}-${lastPlayedTile[1]}`}
+              aria-label={`Última ficha jugada: ${lastPlayedTile[0]}-${lastPlayedTile[1]}`}
+            >
+              <span
+                className="text-[7px] uppercase tracking-widest leading-none font-semibold"
+                style={{ color: `${colors.name}60` }}
+              >
+                última
+              </span>
+              <MiniLastTile tile={lastPlayedTile} teamColor={`${colors.name}70`} />
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       {/* Face-down tile stack */}
