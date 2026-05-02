@@ -151,6 +151,8 @@ export default function GamePage() {
   const [transitionWinner, setTransitionWinner] = useState<{ team: 0 | 1 | null; points: number; reason: string } | null>(null);
   const [transitionStarter, setTransitionStarter] = useState<{ name: string; isMe: boolean } | null>(null);
   const passTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [streakAlert, setStreakAlert] = useState<{ team: 0 | 1; streak: number; isMyTeam: boolean } | null>(null);
+  const streakTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   /* ---- Zustand store ---- */
   const mySeat = useGameStore((s) => s.mySeat);
@@ -521,7 +523,14 @@ export default function GamePage() {
               if (updatedHistory[i].winner_team === event.winner_team) streak++;
               else break;
             }
-            if (streak >= 3) playStreak();
+            if (streak >= 3) {
+              playStreak();
+              const streakTeam = event.winner_team as 0 | 1;
+              const isMyTeamStreak = currentSeat !== null && (currentSeat % 2) === streakTeam;
+              if (streakTimerRef.current) clearTimeout(streakTimerRef.current);
+              setStreakAlert({ team: streakTeam, streak, isMyTeam: isMyTeamStreak });
+              streakTimerRef.current = setTimeout(() => setStreakAlert(null), 3200);
+            }
           }
 
           if (event.reason === "domino") {
@@ -1567,6 +1576,75 @@ export default function GamePage() {
             </div>
           </motion.div>
         )}
+      </AnimatePresence>
+
+      {/* ¡Racha! toast — fires when a team wins 3+ consecutive rounds */}
+      <AnimatePresence>
+        {streakAlert && (() => {
+          const accentColor = streakAlert.isMyTeam ? "#c9a84c" : "#a8c4a0";
+          const accentRgb = streakAlert.isMyTeam ? "201,168,76" : "168,196,160";
+          const bgGradient = streakAlert.isMyTeam
+            ? "linear-gradient(135deg, #2a1600 0%, #1a0e00 100%)"
+            : "linear-gradient(135deg, #0e1a0e 0%, #081008 100%)";
+          const label = streakAlert.isMyTeam ? "¡Racha nuestra!" : "¡Racha rival!";
+          return (
+            <motion.div
+              key={`racha-${streakAlert.team}-${streakAlert.streak}`}
+              initial={{ opacity: 0, y: -28, scale: 0.82 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -18, scale: 0.9 }}
+              transition={{ type: "spring", stiffness: 440, damping: 24 }}
+              className="pointer-events-none"
+              role="status"
+              aria-live="polite"
+            >
+              <div
+                className="flex items-center gap-2.5 rounded-full px-5 py-2.5 backdrop-blur-sm"
+                style={{
+                  background: bgGradient,
+                  border: `1.5px solid rgba(${accentRgb},0.75)`,
+                  boxShadow: `0 0 32px 8px rgba(${accentRgb},0.3), 0 8px 24px rgba(0,0,0,0.8)`,
+                }}
+              >
+                {/* Flame icon */}
+                <motion.span
+                  className="text-xl leading-none"
+                  animate={{ scale: [1, 1.25, 1], rotate: [-6, 6, -6] }}
+                  transition={{ duration: 0.7, repeat: Infinity, ease: "easeInOut" }}
+                  aria-hidden="true"
+                >
+                  🔥
+                </motion.span>
+                <div className="flex flex-col leading-tight">
+                  <motion.span
+                    className="text-[13px] font-black uppercase tracking-widest leading-none"
+                    style={{ color: accentColor, textShadow: `0 0 12px rgba(${accentRgb},0.8)` }}
+                    animate={{ opacity: [1, 0.7, 1] }}
+                    transition={{ duration: 0.85, repeat: Infinity, ease: "easeInOut" }}
+                  >
+                    {label}
+                  </motion.span>
+                  <span className="text-[10px] text-[#f5f0e8]/60 leading-none mt-0.5">
+                    {streakAlert.streak} rondas seguidas
+                  </span>
+                </div>
+                {/* Streak count badge */}
+                <div
+                  className="flex items-center justify-center w-7 h-7 rounded-full font-black text-[14px] leading-none tabular-nums shrink-0"
+                  style={{
+                    background: `rgba(${accentRgb},0.18)`,
+                    border: `1.5px solid rgba(${accentRgb},0.55)`,
+                    color: accentColor,
+                    textShadow: `0 0 8px rgba(${accentRgb},0.7)`,
+                  }}
+                  aria-hidden="true"
+                >
+                  {streakAlert.streak}
+                </div>
+              </div>
+            </motion.div>
+          );
+        })()}
       </AnimatePresence>
 
       </ToastStack>
