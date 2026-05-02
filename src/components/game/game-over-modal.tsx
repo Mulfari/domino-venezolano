@@ -514,6 +514,78 @@ function RoundEndView({
           </div>
         </motion.div>
 
+        {/* Next round starter badge */}
+        {(() => {
+          let starterSeat: Seat | null = null;
+          let starterReason = "";
+
+          if (roundResult.reason === "domino") {
+            for (let i = moveLog.length - 1; i >= 0; i--) {
+              const entry = moveLog[i];
+              if (entry.round === round && entry.type === "play") {
+                starterSeat = entry.seat;
+                break;
+              }
+            }
+            starterReason = "dominó";
+          } else {
+            let minPips = Infinity;
+            ([0, 1, 2, 3] as const).forEach((seat) => {
+              const pips = (hands[seat] ?? []).reduce((s: number, [a, b]: [number, number]) => s + a + b, 0);
+              if (pips < minPips) { minPips = pips; starterSeat = seat; }
+            });
+            starterReason = "menos puntos";
+          }
+
+          if (starterSeat === null) return null;
+          const starterPlayer = players.find((p) => p.seat === starterSeat);
+          const starterName = starterPlayer?.displayName.split(" ")[0] ?? `J${(starterSeat ?? 0) + 1}`;
+          const starterTeam = ((starterSeat ?? 0) % 2) as 0 | 1;
+          const isMyTeamStarter = myTeam !== null && starterTeam === myTeam;
+
+          return (
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.62 }}
+              className="flex justify-center mb-4 px-5"
+              aria-label={`Próxima ronda: ${starterName} sale primero por ${starterReason}`}
+            >
+              <div
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border"
+                style={{
+                  background: isMyTeamStarter ? "rgba(201,168,76,0.08)" : "rgba(168,196,160,0.06)",
+                  borderColor: isMyTeamStarter ? "rgba(201,168,76,0.3)" : "rgba(168,196,160,0.2)",
+                }}
+              >
+                <span className="text-[10px] uppercase tracking-widest font-semibold" style={{ color: "rgba(168,196,160,0.5)" }}>
+                  Próxima ronda
+                </span>
+                <span className="text-[10px]" style={{ color: "rgba(168,196,160,0.4)" }}>▶</span>
+                <span
+                  className="text-[12px] font-black leading-none"
+                  style={{
+                    color: isMyTeamStarter ? "#c9a84c" : "#a8c4a0",
+                    textShadow: isMyTeamStarter ? "0 0 10px rgba(201,168,76,0.4)" : undefined,
+                  }}
+                >
+                  {starterName}
+                </span>
+                <span
+                  className="text-[9px] font-semibold uppercase tracking-widest px-1.5 py-0.5 rounded-full"
+                  style={{
+                    color: isMyTeamStarter ? "rgba(201,168,76,0.7)" : "rgba(168,196,160,0.5)",
+                    background: isMyTeamStarter ? "rgba(201,168,76,0.1)" : "rgba(168,196,160,0.08)",
+                    border: `1px solid ${isMyTeamStarter ? "rgba(201,168,76,0.25)" : "rgba(168,196,160,0.15)"}`,
+                  }}
+                >
+                  sale primero
+                </span>
+              </div>
+            </motion.div>
+          );
+        })()}
+
         {/* Round activity — tiles played and passes per player */}
         {(() => {
           const roundEntries = moveLog.filter((e) => e.round === round);
