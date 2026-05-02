@@ -693,6 +693,48 @@ export function Hand({ onPlayTile, onPass, disabled = false }: HandProps) {
               </motion.button>
             )}
           </AnimatePresence>
+
+          {/* Playable tile count badge — shows how many tiles in hand can be played this turn */}
+          <AnimatePresence>
+            {isMyTurn && validMoves.length > 0 && (() => {
+              const playableCount = new Set(
+                validMoves.map((m) => `${Math.min(m.tile[0], m.tile[1])}-${Math.max(m.tile[0], m.tile[1])}`)
+              ).size;
+              const isOne = playableCount === 1;
+              const color = isOne ? "#c9a84c" : "#38dca0";
+              const bg = isOne ? "rgba(201,168,76,0.10)" : "rgba(56,220,160,0.10)";
+              const border = isOne ? "rgba(201,168,76,0.38)" : "rgba(56,220,160,0.38)";
+              return (
+                <motion.div
+                  key={`playable-${playableCount}`}
+                  initial={{ opacity: 0, scale: 0.7 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.7 }}
+                  transition={{ type: "spring", stiffness: 420, damping: 24 }}
+                  className="flex items-center gap-1 rounded-full px-2 py-1"
+                  style={{ background: bg, border: `1px solid ${border}` }}
+                  aria-label={`${playableCount} ficha${playableCount !== 1 ? "s" : ""} jugable${playableCount !== 1 ? "s" : ""}`}
+                >
+                  <motion.span
+                    key={playableCount}
+                    initial={{ scale: 1.5 }}
+                    animate={{ scale: 1 }}
+                    transition={{ type: "spring", stiffness: 500, damping: 20 }}
+                    className="text-[11px] font-black tabular-nums leading-none"
+                    style={{ color }}
+                  >
+                    {playableCount}
+                  </motion.span>
+                  <span
+                    className="text-[8px] font-semibold uppercase tracking-widest leading-none"
+                    style={{ color: `${color}bb` }}
+                  >
+                    jugable{playableCount !== 1 ? "s" : ""}
+                  </span>
+                </motion.div>
+              );
+            })()}
+          </AnimatePresence>
         </div>
       )}
 
