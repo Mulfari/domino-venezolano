@@ -927,6 +927,31 @@ export function Board({ onPlaceEnd, clearing = false }: BoardProps) {
                           opacity={0.88}
                           style={{ filter: `drop-shadow(0 0 2px ${(pt.seat % 2) === 0 ? "rgba(201,168,76,0.9)" : "rgba(76,168,201,0.9)"})` }}
                         />
+                        {/* Opening tile star — marks the first play of the round */}
+                        {tileIdx === 0 && (
+                          <>
+                            <circle
+                              cx={pt.x - tw / 2 + (isMobile ? 3 : 4)}
+                              cy={pt.y - th / 2 + (isMobile ? 3 : 4)}
+                              r={isMobile ? 4 : 5}
+                              fill="rgba(201,168,76,0.9)"
+                              style={{ filter: "drop-shadow(0 0 4px rgba(201,168,76,0.85))" }}
+                            />
+                            <text
+                              x={pt.x - tw / 2 + (isMobile ? 3 : 4)}
+                              y={pt.y - th / 2 + (isMobile ? 6 : 7.5)}
+                              textAnchor="middle"
+                              fontSize={isMobile ? 5 : 6}
+                              fontWeight="bold"
+                              fill="#1a0e00"
+                              fontFamily="system-ui, -apple-system, sans-serif"
+                              style={{ userSelect: "none" }}
+                              aria-hidden="true"
+                            >
+                              ★
+                            </text>
+                          </>
+                        )}
                       </motion.g>
                     );
                   })}
