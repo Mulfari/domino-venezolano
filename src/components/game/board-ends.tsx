@@ -137,8 +137,12 @@ export function BoardEnds({ handCounts }: { handCounts?: number[] }) {
   const isCapicua = board.left === board.right && board.plays.length > 1;
 
   const totalRemaining = handCounts ? handCounts.reduce((a, b) => a + b, 0) : null;
+  const tilesOnBoard = board.plays.length;
+  const TOTAL_TILES = 28;
+  const boardPct = Math.min((tilesOnBoard / TOTAL_TILES) * 100, 100);
   // Warn when few tiles remain — game is close to locking
   const isLowTiles = totalRemaining !== null && totalRemaining <= 8;
+  const isHighBoard = tilesOnBoard >= 22; // board nearly full → lock risk
 
   return (
     <AnimatePresence>
@@ -149,7 +153,7 @@ export function BoardEnds({ handCounts }: { handCounts?: number[] }) {
         transition={{ duration: 0.25 }}
         className="flex flex-col items-center gap-1 pointer-events-none"
         role="status"
-        aria-label={`Extremos del tablero: izquierda ${board.left}, derecha ${board.right}${isCapicua ? ", ¡capicúa!" : ""}${totalRemaining !== null ? `, ${totalRemaining} fichas en juego` : ""}`}
+        aria-label={`Extremos del tablero: izquierda ${board.left}, derecha ${board.right}${isCapicua ? ", ¡capicúa!" : ""}. ${tilesOnBoard} de ${TOTAL_TILES} fichas en tablero${totalRemaining !== null ? `, ${totalRemaining} en mano` : ""}`}
       >
         {/* End badges row */}
         <div className="flex items-center gap-2">
@@ -199,38 +203,87 @@ export function BoardEnds({ handCounts }: { handCounts?: number[] }) {
           <EndBadge value={board.right} label="Der" matchCount={rightMatches} isCapicua={isCapicua} />
         </div>
 
-        {/* Tiles remaining counter */}
-        <AnimatePresence mode="wait">
-          {totalRemaining !== null && (
+        {/* Board progress bar + counters */}
+        <motion.div
+          key={`board-progress-${tilesOnBoard}`}
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ type: "spring", stiffness: 400, damping: 24 }}
+          className="flex flex-col items-center gap-0.5 w-full px-1"
+          aria-hidden="true"
+        >
+          {/* Progress bar */}
+          <div
+            className="w-20 h-1 rounded-full overflow-hidden"
+            style={{ background: "rgba(0,0,0,0.35)" }}
+          >
             <motion.div
-              key={`tiles-${totalRemaining}`}
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.8 }}
-              transition={{ type: "spring", stiffness: 400, damping: 24 }}
-              className="flex items-center gap-1 rounded-full px-2 py-0.5"
+              className="h-full rounded-full"
+              initial={false}
+              animate={{ width: `${boardPct}%` }}
+              transition={{ duration: 0.5, ease: "easeOut" }}
               style={{
-                background: isLowTiles ? "rgba(232,74,58,0.12)" : "rgba(0,0,0,0.25)",
-                border: `1px solid ${isLowTiles ? "rgba(232,74,58,0.4)" : "rgba(168,196,160,0.15)"}`,
+                background: isHighBoard
+                  ? "linear-gradient(90deg, #e84a3a, #ff6b5a)"
+                  : "linear-gradient(90deg, #4a8c6a, #a8c4a0)",
               }}
-              aria-hidden="true"
+            />
+          </div>
+
+          {/* Counters row */}
+          <div className="flex items-center gap-2">
+            {/* Board tiles */}
+            <div
+              className="flex items-center gap-1 rounded-full px-1.5 py-0.5"
+              style={{
+                background: isHighBoard ? "rgba(232,74,58,0.12)" : "rgba(0,0,0,0.22)",
+                border: `1px solid ${isHighBoard ? "rgba(232,74,58,0.4)" : "rgba(168,196,160,0.15)"}`,
+              }}
             >
-              {/* Domino pip icon */}
-              <svg width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true">
-                <rect x="0.5" y="0.5" width="9" height="9" rx="2" stroke={isLowTiles ? "#e84a3a" : "rgba(168,196,160,0.5)"} strokeWidth="0.8" fill="none"/>
-                <circle cx="5" cy="5" r="1.5" fill={isLowTiles ? "#e84a3a" : "rgba(168,196,160,0.5)"}/>
+              {/* Board icon */}
+              <svg width="8" height="8" viewBox="0 0 8 8" fill="none" aria-hidden="true">
+                <rect x="0.5" y="0.5" width="7" height="7" rx="1.5"
+                  stroke={isHighBoard ? "#e84a3a" : "rgba(168,196,160,0.5)"} strokeWidth="0.8" fill="none"/>
+                <line x1="4" y1="0.5" x2="4" y2="7.5"
+                  stroke={isHighBoard ? "#e84a3a" : "rgba(168,196,160,0.4)"} strokeWidth="0.7"/>
               </svg>
               <motion.span
                 className="text-[8px] font-bold tabular-nums leading-none"
-                style={{ color: isLowTiles ? "#e84a3a" : "rgba(168,196,160,0.55)" }}
-                animate={isLowTiles ? { opacity: [1, 0.55, 1] } : {}}
-                transition={isLowTiles ? { duration: 0.85, repeat: Infinity, ease: "easeInOut" } : {}}
+                style={{ color: isHighBoard ? "#e84a3a" : "rgba(168,196,160,0.55)" }}
+                animate={isHighBoard ? { opacity: [1, 0.55, 1] } : {}}
+                transition={isHighBoard ? { duration: 0.85, repeat: Infinity, ease: "easeInOut" } : {}}
               >
-                {totalRemaining} en juego
+                {tilesOnBoard}/{TOTAL_TILES}
               </motion.span>
-            </motion.div>
-          )}
-        </AnimatePresence>
+            </div>
+
+            {/* Hand tiles */}
+            {totalRemaining !== null && (
+              <div
+                className="flex items-center gap-1 rounded-full px-1.5 py-0.5"
+                style={{
+                  background: isLowTiles ? "rgba(232,74,58,0.12)" : "rgba(0,0,0,0.22)",
+                  border: `1px solid ${isLowTiles ? "rgba(232,74,58,0.4)" : "rgba(168,196,160,0.15)"}`,
+                }}
+              >
+                <svg width="8" height="8" viewBox="0 0 8 8" fill="none" aria-hidden="true">
+                  <rect x="0.5" y="0.5" width="7" height="7" rx="1.5"
+                    stroke={isLowTiles ? "#e84a3a" : "rgba(168,196,160,0.5)"} strokeWidth="0.8" fill="none"/>
+                  <circle cx="4" cy="4" r="1.2"
+                    fill={isLowTiles ? "#e84a3a" : "rgba(168,196,160,0.5)"}/>
+                </svg>
+                <motion.span
+                  className="text-[8px] font-bold tabular-nums leading-none"
+                  style={{ color: isLowTiles ? "#e84a3a" : "rgba(168,196,160,0.55)" }}
+                  animate={isLowTiles ? { opacity: [1, 0.55, 1] } : {}}
+                  transition={isLowTiles ? { duration: 0.85, repeat: Infinity, ease: "easeInOut" } : {}}
+                >
+                  {totalRemaining} mano
+                </motion.span>
+              </div>
+            )}
+          </div>
+        </motion.div>
       </motion.div>
     </AnimatePresence>
   );
