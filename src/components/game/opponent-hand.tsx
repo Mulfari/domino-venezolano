@@ -78,6 +78,8 @@ export function OpponentHand({
   const isMobile = useIsMobile();
   const moveLog = useGameStore((s) => s.moveLog);
   const currentRound = useGameStore((s) => s.round);
+  const board = useGameStore((s) => s.board);
+  const isMano = board.plays.length > 0 && board.plays[0].seat === seat;
 
   // Find the last tile this opponent played in the current round only
   const lastPlayedTile: Tile | null = (() => {
@@ -210,6 +212,32 @@ export function OpponentHand({
         >
           {isPartner ? "Compa" : "Rival"}
         </span>
+
+        {/* Mano badge — shown when this player opened the round */}
+        <AnimatePresence>
+          {isMano && (
+            <motion.span
+              key="mano-badge"
+              initial={{ opacity: 0, scale: 0.5 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.5 }}
+              transition={{ type: "spring", stiffness: 500, damping: 24 }}
+              className={`shrink-0 text-[8px] font-black uppercase tracking-widest px-1 py-0.5 rounded leading-none ${
+                isVertical ? "hidden sm:inline" : ""
+              }`}
+              style={{
+                color: "#c9a84c",
+                backgroundColor: "rgba(201,168,76,0.15)",
+                border: "1px solid rgba(201,168,76,0.5)",
+                textShadow: "0 0 6px rgba(201,168,76,0.6)",
+              }}
+              title="Salió primero esta ronda"
+              aria-label="Mano: salió primero esta ronda"
+            >
+              ♟ mano
+            </motion.span>
+          )}
+        </AnimatePresence>
 
         {/* Tile count pill — always visible next to name */}
         <motion.div

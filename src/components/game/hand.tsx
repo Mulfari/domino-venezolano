@@ -90,6 +90,7 @@ export function Hand({ onPlayTile, onPass, disabled = false }: HandProps) {
 
   const myTeam = mySeat !== null ? ((mySeat % 2) as 0 | 1) : 0;
   const myName = players.find((p) => p.seat === mySeat)?.displayName ?? "Tú";
+  const isMano = mySeat !== null && board.plays.length > 0 && board.plays[0].seat === mySeat;
   const teamColors = TEAM_COLORS[myTeam];
   const [showShortcuts, setShowShortcuts] = useState(false);
   const shortcutsRef = useRef<HTMLDivElement>(null);
@@ -526,6 +527,30 @@ export function Hand({ onPlayTile, onPass, disabled = false }: HandProps) {
           >
             tú
           </span>
+
+          {/* Mano badge — shown when local player opened the round */}
+          <AnimatePresence>
+            {isMano && (
+              <motion.span
+                key="mano-badge-local"
+                initial={{ opacity: 0, scale: 0.5 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.5 }}
+                transition={{ type: "spring", stiffness: 500, damping: 24 }}
+                className="text-[8px] font-black uppercase tracking-widest leading-none px-1 py-0.5 rounded"
+                style={{
+                  color: "#c9a84c",
+                  backgroundColor: "rgba(201,168,76,0.15)",
+                  border: "1px solid rgba(201,168,76,0.5)",
+                  textShadow: "0 0 6px rgba(201,168,76,0.6)",
+                }}
+                title="Saliste primero esta ronda"
+                aria-label="Mano: saliste primero esta ronda"
+              >
+                ♟ mano
+              </motion.span>
+            )}
+          </AnimatePresence>
         </div>
 
         {/* Pip count badge — always visible, escalates when trancado is imminent */}
