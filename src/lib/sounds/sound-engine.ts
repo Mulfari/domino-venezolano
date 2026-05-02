@@ -567,6 +567,39 @@ export function playVaADominar() {
   });
 }
 
+export function playCerca() {
+  if (_muted) return;
+  const ctx = getCtx();
+  // Tense ascending 3-note arpeggio: E4 → G4 → B4, sawtooth for urgency
+  const notes = [330, 392, 494];
+  notes.forEach((freq, i) => {
+    const t = ctx.currentTime + i * 0.14;
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0.22 * _volume, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.18);
+    const osc = ctx.createOscillator();
+    osc.type = "sawtooth";
+    osc.frequency.value = freq;
+    osc.connect(g);
+    g.connect(ctx.destination);
+    osc.start(t);
+    osc.stop(t + 0.19);
+  });
+  // Low thud accent after the arpeggio
+  const thudT = ctx.currentTime + 0.48;
+  const tg = ctx.createGain();
+  tg.gain.setValueAtTime(0.28 * _volume, thudT);
+  tg.gain.exponentialRampToValueAtTime(0.001, thudT + 0.22);
+  const tosc = ctx.createOscillator();
+  tosc.type = "triangle";
+  tosc.frequency.setValueAtTime(110, thudT);
+  tosc.frequency.exponentialRampToValueAtTime(55, thudT + 0.22);
+  tosc.connect(tg);
+  tg.connect(ctx.destination);
+  tosc.start(thudT);
+  tosc.stop(thudT + 0.23);
+}
+
 export function playChatReceived() {
   if (_muted) return;
   const ctx = getCtx();

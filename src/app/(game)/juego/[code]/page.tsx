@@ -27,7 +27,7 @@ import { PassMeter } from "@/components/game/pass-meter";
 import { ToastStack } from "@/components/game/toast-stack";
 import { useGameChannel } from "@/hooks/use-game-channel";
 import { useGameStore } from "@/stores/game-store";
-import { playTilePlace, playPass, playYourTurn, playVictory, playDefeat, playGameOver, playGameOverDefeat, playCapicua, playUnaFicha, playDosFichas, playShuffle, playDouble, playStreak, playCochina, playTimeout, playTrancado, playVaADominar } from "@/lib/sounds/sound-engine";
+import { playTilePlace, playPass, playYourTurn, playVictory, playDefeat, playGameOver, playGameOverDefeat, playCapicua, playUnaFicha, playDosFichas, playShuffle, playDouble, playStreak, playCochina, playTimeout, playTrancado, playVaADominar, playCerca } from "@/lib/sounds/sound-engine";
 import { requestNotificationPermission, notifyTurn } from "@/lib/notifications/turn-notification";
 import type { GameEvent } from "@/lib/realtime/events";
 import type { Tile, Seat } from "@/lib/game/types";
@@ -514,6 +514,17 @@ export default function GamePage() {
             reason: event.reason,
             is_capicua: isCapicuaRound || undefined,
           });
+
+          // Play cerca sound when a team just enters the danger zone (≤20 pts from target)
+          if (!isGameOver) {
+            const target = useGameStore.getState().targetScore;
+            const CERCA = 20;
+            const newScores = { 0: event.scores.team0, 1: event.scores.team1 } as const;
+            const justEnteredCerca = ([0, 1] as const).some(
+              (t) => target - newScores[t] <= CERCA && target - prevScores[t] > CERCA
+            );
+            if (justEnteredCerca) playCerca();
+          }
 
           // Play streak sound when a team wins 3+ consecutive rounds
           if (event.winner_team !== null) {
