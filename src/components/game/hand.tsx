@@ -628,6 +628,74 @@ export function Hand({ onPlayTile, onPass, disabled = false }: HandProps) {
         </AnimatePresence>
       </div>
 
+      {/* Sort + Hint toolbar — always visible so mobile players can access these features */}
+      {myHand.length >= 2 && (
+        <div className="flex items-center gap-1.5" role="toolbar" aria-label="Opciones de mano">
+          {/* Sort cycle button */}
+          <motion.button
+            whileTap={{ scale: 0.9 }}
+            onClick={() => setSortMode((v) => {
+              const next = v === "original" ? "pips" : v === "pips" ? "suit" : "original";
+              localStorage.setItem("domino-sort-mode", next);
+              return next;
+            })}
+            aria-label={`Ordenar fichas — modo actual: ${sortMode === "original" ? "original" : sortMode === "pips" ? "por puntos" : "por palo"}`}
+            className="flex items-center gap-1 rounded-full px-2.5 py-1 transition-colors"
+            style={{
+              background: sortMode !== "original" ? "rgba(201,168,76,0.12)" : "rgba(0,0,0,0.22)",
+              border: `1px solid ${sortMode !== "original" ? "rgba(201,168,76,0.4)" : "rgba(245,240,232,0.12)"}`,
+            }}
+          >
+            {/* Sort icon */}
+            <svg width="11" height="11" viewBox="0 0 11 11" fill="none" aria-hidden="true">
+              <line x1="1" y1="2.5" x2="10" y2="2.5" stroke={sortMode !== "original" ? "#c9a84c" : "rgba(245,240,232,0.45)"} strokeWidth="1.2" strokeLinecap="round"/>
+              <line x1="1" y1="5.5" x2="7.5" y2="5.5" stroke={sortMode !== "original" ? "#c9a84c" : "rgba(245,240,232,0.45)"} strokeWidth="1.2" strokeLinecap="round"/>
+              <line x1="1" y1="8.5" x2="5" y2="8.5" stroke={sortMode !== "original" ? "#c9a84c" : "rgba(245,240,232,0.45)"} strokeWidth="1.2" strokeLinecap="round"/>
+            </svg>
+            <span
+              className="text-[9px] font-semibold uppercase tracking-widest leading-none"
+              style={{ color: sortMode !== "original" ? "#c9a84c" : "rgba(245,240,232,0.4)" }}
+            >
+              {sortMode === "original" ? "orden" : sortMode === "pips" ? "puntos" : "palo"}
+            </span>
+          </motion.button>
+
+          {/* Hint button — only when it's my turn and there are multiple valid moves */}
+          <AnimatePresence>
+            {isMyTurn && validMoves.length >= 2 && (
+              <motion.button
+                key="hint-btn"
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.8 }}
+                transition={{ type: "spring", stiffness: 400, damping: 24 }}
+                whileTap={{ scale: 0.9 }}
+                onClick={handleHint}
+                aria-label="Sugerir mejor jugada"
+                className="flex items-center gap-1 rounded-full px-2.5 py-1 transition-colors"
+                style={{
+                  background: hintTile ? "rgba(56,220,180,0.12)" : "rgba(0,0,0,0.22)",
+                  border: `1px solid ${hintTile ? "rgba(56,220,180,0.45)" : "rgba(245,240,232,0.12)"}`,
+                }}
+              >
+                {/* Lightbulb icon */}
+                <svg width="11" height="11" viewBox="0 0 11 11" fill="none" aria-hidden="true">
+                  <path d="M5.5 1.5C3.84 1.5 2.5 2.84 2.5 4.5c0 1.1.57 2.06 1.42 2.6V8h3.16V7.1C7.93 6.56 8.5 5.6 8.5 4.5c0-1.66-1.34-3-3-3z"
+                    stroke={hintTile ? "rgba(56,220,180,0.9)" : "rgba(245,240,232,0.45)"} strokeWidth="0.9" fill="none"/>
+                  <line x1="3.92" y1="9" x2="7.08" y2="9" stroke={hintTile ? "rgba(56,220,180,0.9)" : "rgba(245,240,232,0.45)"} strokeWidth="0.9" strokeLinecap="round"/>
+                </svg>
+                <span
+                  className="text-[9px] font-semibold uppercase tracking-widest leading-none"
+                  style={{ color: hintTile ? "rgba(56,220,180,0.9)" : "rgba(245,240,232,0.4)" }}
+                >
+                  pista
+                </span>
+              </motion.button>
+            )}
+          </AnimatePresence>
+        </div>
+      )}
+
       {/* End-selection buttons — shown when a tile is selected and both ends are valid */}
       <AnimatePresence>
         {awaitingEndChoice && selectedTile && (
