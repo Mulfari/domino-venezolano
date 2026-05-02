@@ -326,10 +326,28 @@ export function Hand({ onPlayTile, onPass, disabled = false }: HandProps) {
   }
 
   return (
-    <div
-      className="flex flex-col items-center gap-2 sm:gap-3 pb-[max(8px,env(safe-area-inset-bottom))] sm:pb-4 px-1 sm:px-2"
+    <motion.div
+      className="flex flex-col items-center gap-2 sm:gap-3 pb-[max(8px,env(safe-area-inset-bottom))] sm:pb-4 px-1 sm:px-2 rounded-2xl"
       role="region"
       aria-label="Tu mano"
+      animate={
+        isMyTurn
+          ? {
+              boxShadow: [
+                `0 0 0px ${teamColors.glow}`,
+                `0 0 28px ${teamColors.glow}`,
+                `0 0 8px ${teamColors.glow}`,
+                `0 0 28px ${teamColors.glow}`,
+                `0 0 0px ${teamColors.glow}`,
+              ],
+            }
+          : { boxShadow: "0 0 0px rgba(0,0,0,0)" }
+      }
+      transition={
+        isMyTurn
+          ? { duration: 2.4, repeat: Infinity, ease: "easeInOut" }
+          : { duration: 0.5 }
+      }
     >
       {/* ¡Solo una jugada! hint — auto-selected tile */}
       <AnimatePresence>
@@ -1021,6 +1039,6 @@ export function Hand({ onPlayTile, onPass, disabled = false }: HandProps) {
         </AnimatePresence>
       </div>
 
-    </div>
+    </motion.div>
   );
 }
