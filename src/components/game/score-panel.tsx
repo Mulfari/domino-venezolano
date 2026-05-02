@@ -338,6 +338,110 @@ function RoundHistory({ history, myTeam, className = "mt-2 pt-2 border-t border-
   );
 }
 
+function PipBalance({ team0Pips, team1Pips, myTeam }: { team0Pips: number; team1Pips: number; myTeam: 0 | 1 | null }) {
+  const total = team0Pips + team1Pips;
+  if (total === 0) return null;
+
+  const team0Pct = (team0Pips / total) * 100;
+  const winning: 0 | 1 | null = team0Pips < team1Pips ? 0 : team1Pips < team0Pips ? 1 : null;
+  const tied = winning === null;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, scaleY: 0.6 }}
+      animate={{ opacity: 1, scaleY: 1 }}
+      exit={{ opacity: 0, scaleY: 0.6 }}
+      transition={{ duration: 0.3, ease: "easeOut" }}
+      className="flex flex-col gap-1 px-1"
+      aria-label={`Puntos en mano: equipo 1 tiene ${team0Pips}, equipo 2 tiene ${team1Pips}${tied ? ", empate" : `, equipo ${(winning ?? 0) + 1} lleva ventaja`}`}
+    >
+      <div className="flex items-center justify-between">
+        <span className="text-[7px] uppercase tracking-widest font-semibold" style={{ color: "rgba(168,196,160,0.4)" }}>
+          puntos en mano
+        </span>
+        {!tied && (
+          <motion.span
+            key={winning}
+            initial={{ opacity: 0, scale: 0.7 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ type: "spring", stiffness: 500, damping: 24 }}
+            className="text-[7px] font-black uppercase tracking-widest leading-none"
+            style={{
+              color: winning === 0 ? "rgba(201,168,76,0.8)" : "rgba(76,168,201,0.8)",
+              textShadow: winning === 0 ? "0 0 6px rgba(201,168,76,0.5)" : "0 0 6px rgba(76,168,201,0.5)",
+            }}
+          >
+            {winning === myTeam ? "ventaja" : "desventaja"}
+          </motion.span>
+        )}
+      </div>
+
+      {/* Tug-of-war bar */}
+      <div className="relative h-3 rounded-full overflow-hidden" style={{ background: "rgba(0,0,0,0.35)" }}>
+        {/* Team 0 fill (left) */}
+        <motion.div
+          className="absolute left-0 top-0 h-full rounded-l-full"
+          initial={false}
+          animate={{ width: `${team0Pct}%` }}
+          transition={{ duration: 0.55, ease: "easeOut" }}
+          style={{
+            background: winning === 0
+              ? "linear-gradient(90deg, #a07830 0%, #c9a84c 100%)"
+              : "linear-gradient(90deg, rgba(201,168,76,0.35) 0%, rgba(201,168,76,0.5) 100%)",
+          }}
+        />
+        {/* Team 1 fill (right) */}
+        <motion.div
+          className="absolute right-0 top-0 h-full rounded-r-full"
+          initial={false}
+          animate={{ width: `${100 - team0Pct}%` }}
+          transition={{ duration: 0.55, ease: "easeOut" }}
+          style={{
+            background: winning === 1
+              ? "linear-gradient(90deg, #4ca8c9 0%, #6ac8e8 100%)"
+              : "linear-gradient(90deg, rgba(76,168,201,0.5) 0%, rgba(76,168,201,0.35) 100%)",
+          }}
+        />
+        {/* Center divider */}
+        <div className="absolute left-1/2 top-0 h-full w-px -translate-x-px" style={{ background: "rgba(0,0,0,0.5)" }} />
+      </div>
+
+      {/* Pip counts */}
+      <div className="flex items-center justify-between">
+        <motion.span
+          key={team0Pips}
+          initial={{ scale: 1.3 }}
+          animate={{ scale: 1 }}
+          transition={{ type: "spring", stiffness: 500, damping: 20 }}
+          className="text-[9px] font-black tabular-nums leading-none"
+          style={{
+            color: winning === 0 ? "#c9a84c" : "rgba(201,168,76,0.45)",
+            textShadow: winning === 0 ? "0 0 6px rgba(201,168,76,0.5)" : undefined,
+          }}
+        >
+          {team0Pips}
+        </motion.span>
+        <span className="text-[7px] uppercase tracking-widest" style={{ color: "rgba(168,196,160,0.25)" }}>
+          {tied ? "iguales" : "pts"}
+        </span>
+        <motion.span
+          key={team1Pips}
+          initial={{ scale: 1.3 }}
+          animate={{ scale: 1 }}
+          transition={{ type: "spring", stiffness: 500, damping: 20 }}
+          className="text-[9px] font-black tabular-nums leading-none"
+          style={{
+            color: winning === 1 ? "#4ca8c9" : "rgba(76,168,201,0.45)",
+            textShadow: winning === 1 ? "0 0 6px rgba(76,168,201,0.5)" : undefined,
+          }}
+        >
+          {team1Pips}
+        </motion.span>
+      </div>
+    </motion.div>
+  );
+}
+
 export function ScorePanel() {
   const scores = useGameStore((s) => s.scores);
   const round = useGameStore((s) => s.round);
@@ -346,11 +450,19 @@ export function ScorePanel() {
   const players = useGameStore((s) => s.players);
   const board = useGameStore((s) => s.board);
   const roundHistory = useGameStore((s) => s.roundHistory);
+  const hands = useGameStore((s) => s.hands);
+  const status = useGameStore((s) => s.status);
 
   const myTeam = mySeat !== null ? ((mySeat % 2) as 0 | 1) : null;
   const firstSeat = (board.plays[0]?.seat ?? null) as Seat | null;
   const firstPlayer = firstSeat !== null ? players.find((p) => p.seat === firstSeat) : null;
   const firstPlayerName = firstPlayer?.displayName.split(" ")[0] ?? null;
+
+  const team0Pips = (hands[0] ?? []).reduce((s, [a, b]) => s + a + b, 0)
+                  + (hands[2] ?? []).reduce((s, [a, b]) => s + a + b, 0);
+  const team1Pips = (hands[1] ?? []).reduce((s, [a, b]) => s + a + b, 0)
+                  + (hands[3] ?? []).reduce((s, [a, b]) => s + a + b, 0);
+  const showPipBalance = status === "playing" && board.plays.length > 0 && (team0Pips + team1Pips) > 0;
 
   return (
     <>
@@ -490,6 +602,12 @@ export function ScorePanel() {
               streak={getStreak(roundHistory, teamIdx)}
             />
           ))}
+
+          <AnimatePresence>
+            {showPipBalance && (
+              <PipBalance team0Pips={team0Pips} team1Pips={team1Pips} myTeam={myTeam} />
+            )}
+          </AnimatePresence>
 
           <RoundHistory history={roundHistory} myTeam={myTeam} />
         </div>
