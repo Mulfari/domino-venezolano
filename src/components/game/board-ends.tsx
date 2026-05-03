@@ -163,6 +163,11 @@ export function BoardEnds({ handCounts }: { handCounts?: number[] }) {
   const totalRemaining = handCounts ? handCounts.reduce((a, b) => a + b, 0) : null;
   const tilesOnBoard = board.plays.length;
   const TOTAL_TILES = 28;
+  // Sum of all pips on the board — useful for deduction: 168 (full set) − boardPips − myHandPips = hidden pips
+  const boardPips = board.plays.reduce((sum, p) => sum + p.tile[0] + p.tile[1], 0);
+  const myHandPips = myHand.reduce((sum, [a, b]) => sum + a + b, 0);
+  const TOTAL_PIPS = 168;
+  const hiddenPips = TOTAL_PIPS - boardPips - myHandPips;
   const boardPct = Math.min((tilesOnBoard / TOTAL_TILES) * 100, 100);
   // Warn when few tiles remain — game is close to locking
   const isLowTiles = totalRemaining !== null && totalRemaining <= 8;
@@ -341,6 +346,39 @@ export function BoardEnds({ handCounts }: { handCounts?: number[] }) {
                   {totalRemaining} mano
                 </motion.span>
               </div>
+            )}
+
+            {/* Board pip total — lets players deduce hidden pip load: 168 − boardPips − myHandPips */}
+            {tilesOnBoard >= 2 && mySeat !== null && (
+              <motion.div
+                key={boardPips}
+                initial={{ scale: 1.2, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ type: "spring", stiffness: 420, damping: 24 }}
+                className="flex items-center gap-1 rounded-full px-1.5 py-0.5"
+                style={{
+                  background: "rgba(0,0,0,0.22)",
+                  border: "1px solid rgba(201,168,76,0.18)",
+                }}
+                title={`Puntos en tablero: ${boardPips} · Tuyos: ${myHandPips} · Ocultos: ${hiddenPips}`}
+                aria-label={`Puntos en tablero: ${boardPips}. Puntos ocultos en manos rivales: ${hiddenPips}`}
+              >
+                {/* Pip dot icon */}
+                <svg width="8" height="8" viewBox="0 0 8 8" fill="none" aria-hidden="true">
+                  <circle cx="4" cy="4" r="3" stroke="rgba(201,168,76,0.5)" strokeWidth="0.8" fill="none"/>
+                  <circle cx="4" cy="4" r="1.3" fill="rgba(201,168,76,0.6)"/>
+                </svg>
+                <motion.span
+                  key={boardPips}
+                  initial={{ scale: 1.3 }}
+                  animate={{ scale: 1 }}
+                  transition={{ type: "spring", stiffness: 500, damping: 20 }}
+                  className="text-[8px] font-bold tabular-nums leading-none"
+                  style={{ color: "rgba(201,168,76,0.6)" }}
+                >
+                  {boardPips}pts
+                </motion.span>
+              </motion.div>
             )}
           </div>
         </motion.div>
