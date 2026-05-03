@@ -247,6 +247,8 @@ export default function GamePage() {
   const [cercaAlert, setCercaAlert] = useState<{ team: 0 | 1; remaining: number; isMyTeam: boolean } | null>(null);
   const cercaTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [incomingEmoji, setIncomingEmoji] = useState<{ id: string; seat: number; emoji: string } | null>(null);
+  const [reconnectAlert, setReconnectAlert] = useState<{ name: string; seat: Seat } | null>(null);
+  const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const autoPlaceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   // Ref so the auto-place effect can call handlePlayTile (defined later in the component)
   const handlePlayTileRef = useRef<((tile: Tile, end: "left" | "right") => Promise<void>) | null>(null);
@@ -713,7 +715,14 @@ export default function GamePage() {
         }
 
         case "player_connected": {
+          const wasDisconnected = !useGameStore.getState().players.find((p) => p.seat === event.seat)?.connected;
           updatePlayerConnection(event.seat as Seat, true);
+          if (wasDisconnected && event.seat !== currentSeat) {
+            const reconnName = useGameStore.getState().players.find((p) => p.seat === event.seat)?.displayName ?? `Jugador ${event.seat + 1}`;
+            if (reconnectTimerRef.current) clearTimeout(reconnectTimerRef.current);
+            setReconnectAlert({ name: reconnName, seat: event.seat as Seat });
+            reconnectTimerRef.current = setTimeout(() => setReconnectAlert(null), 3000);
+          }
           break;
         }
 
@@ -1959,6 +1968,57 @@ export default function GamePage() {
                 aria-hidden="true"
               >
                 {cercaAlert.remaining}
+              </div>
+            </motion.div>
+          );
+        })()}
+      </AnimatePresence>
+
+      {/* Reconnection toast — fires when a disconnected player comes back online */}
+      <AnimatePresence>
+        {reconnectAlert && (() => {
+          const isPartner = mySeat !== null && (reconnectAlert.seat % 2) === (mySeat % 2);
+          const accentColor = isPartner ? "#4caf50" : "#a8c4a0";
+          const accentRgb = isPartner ? "76,175,80" : "168,196,160";
+          const bgGradient = isPartner
+            ? "linear-gradient(135deg, #0a2a0e 0%, #061a08 100%)"
+            : "linear-gradient(135deg, #0e1a0e 0%, #081008 100%)";
+          const label = isPartner ? "¡Compañero de vuelta!" : "Rival reconectado";
+          return (
+            <motion.div
+              key={`reconn-${reconnectAlert.seat}`}
+              initial={{ opacity: 0, y: -24, scale: 0.85 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -16, scale: 0.9 }}
+              transition={{ type: "spring", stiffness: 420, damping: 24 }}
+              className="pointer-events-none"
+              role="status"
+              aria-live="polite"
+            >
+              <div
+                className="flex items-center gap-2.5 rounded-full px-5 py-2.5 backdrop-blur-sm"
+                style={{
+                  background: bgGradient,
+                  border: `1.5px solid rgba(${accentRgb},0.6)`,
+                  boxShadow: `0 0 24px 6px rgba(${accentRgb},0.2), 0 8px 24px rgba(0,0,0,0.8)`,
+                }}
+              >
+                {/* Connection icon */}
+                <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+                  <circle cx="9" cy="9" r="7" stroke={accentColor} strokeWidth="1.5" fill="none"/>
+                  <path d="M6 9.5l2 2 4-4.5" stroke={accentColor} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+                </svg>
+                <div className="flex flex-col leading-tight">
+                  <span
+                    className="text-[13px] font-black uppercase tracking-widest leading-none"
+                    style={{ color: accentColor, textShadow: `0 0 10px rgba(${accentRgb},0.7)` }}
+                  >
+                    {label}
+                  </span>
+                  <span className="text-[10px] text-[#f5f0e8]/60 leading-none mt-0.5 truncate max-w-[140px]">
+                    {reconnectAlert.name} está en línea
+                  </span>
+                </div>
               </div>
             </motion.div>
           );
