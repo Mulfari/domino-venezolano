@@ -901,6 +901,7 @@ export function Hand({ onPlayTile, onPass, disabled = false }: HandProps) {
             const playable = isMyTurn && isTilePlayable(tile);
             const selected = isTileSelected(tile);
             const cochina = isCochina(tile);
+            const capicua = isCapicuaTile(tile);
             const isDouble = tile[0] === tile[1] && !cochina;
             const planningMatch = isPlanningMatch(tile);
 
@@ -926,11 +927,13 @@ export function Hand({ onPlayTile, onPass, disabled = false }: HandProps) {
                   filter: "grayscale(0.7) brightness(0.5) saturate(0.2)",
                 } : {
                   opacity: isMyTurn && !playable && !cochina ? 0.38 : 1,
-                  y: cochina ? -8 : selected ? -16 : 0,
+                  y: cochina ? -8 : capicua && playable ? -6 : selected ? -16 : 0,
                   scale: cochina ? 1.1 : selected ? 1.08 : 1,
                   filter:
                     isMyTurn && !playable && !cochina
                       ? "grayscale(0.7) brightness(0.5) saturate(0.2)"
+                      : selected && capicua
+                      ? "drop-shadow(0 8px 16px rgba(0,0,0,0.65)) drop-shadow(0 0 18px rgba(168,85,247,0.75))"
                       : selected
                       ? "drop-shadow(0 8px 16px rgba(0,0,0,0.65)) drop-shadow(0 0 14px rgba(201,168,76,0.65))"
                       : "drop-shadow(0 2px 5px rgba(0,0,0,0.4))",
@@ -940,7 +943,9 @@ export function Hand({ onPlayTile, onPass, disabled = false }: HandProps) {
                     ? {
                         y: cochina ? -22 : selected ? -24 : -18,
                         scale: cochina ? 1.18 : 1.13,
-                        filter: "drop-shadow(0 18px 28px rgba(0,0,0,0.75)) drop-shadow(0 0 20px rgba(201,168,76,0.7))",
+                        filter: capicua
+                          ? "drop-shadow(0 18px 28px rgba(0,0,0,0.75)) drop-shadow(0 0 24px rgba(168,85,247,0.8))"
+                          : "drop-shadow(0 18px 28px rgba(0,0,0,0.75)) drop-shadow(0 0 20px rgba(201,168,76,0.7))",
                         transition: { type: "spring", stiffness: 600, damping: 18 },
                       }
                     : undefined
@@ -972,6 +977,37 @@ export function Hand({ onPlayTile, onPass, disabled = false }: HandProps) {
                       transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }}
                     >
                       ¡Cochina!
+                    </motion.div>
+                  </>
+                )}
+
+                {/* Capicúa: purple glow when playing this tile would score double points */}
+                {capicua && playable && !cochina && (
+                  <>
+                    <motion.div
+                      className="absolute -inset-3 rounded-xl pointer-events-none z-10"
+                      style={{ background: "radial-gradient(ellipse, rgba(168,85,247,0.45) 0%, transparent 65%)" }}
+                      animate={{ opacity: [0.4, 0.95, 0.4], scale: [0.95, 1.05, 0.95] }}
+                      transition={{ duration: 1.2, repeat: Infinity, ease: "easeInOut" }}
+                    />
+                    <motion.div
+                      className="absolute -inset-0.5 rounded-lg border-2 pointer-events-none z-10"
+                      style={{ borderColor: "rgba(192,132,252,0.9)" }}
+                      animate={{ opacity: [0.6, 1, 0.6] }}
+                      transition={{ duration: 1.2, repeat: Infinity, ease: "easeInOut" }}
+                    />
+                    <motion.div
+                      className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-widest whitespace-nowrap pointer-events-none z-20"
+                      style={{
+                        color: "rgba(216,180,254,1)",
+                        backgroundColor: "rgba(10,4,20,0.9)",
+                        border: "1px solid rgba(168,85,247,0.6)",
+                        textShadow: "0 0 8px rgba(168,85,247,0.8)",
+                      }}
+                      animate={{ opacity: [0.8, 1, 0.8] }}
+                      transition={{ duration: 1.2, repeat: Infinity, ease: "easeInOut" }}
+                    >
+                      ✦ capicúa
                     </motion.div>
                   </>
                 )}
