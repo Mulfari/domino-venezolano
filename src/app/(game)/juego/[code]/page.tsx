@@ -17,6 +17,7 @@ import { ChatPanel } from "@/components/chat/chat-panel";
 import { SoundToggle } from "@/components/game/sound-toggle";
 import { TileTracker } from "@/components/game/tile-tracker";
 import { MoveLog } from "@/components/game/move-log";
+import { RulesPanel } from "@/components/game/rules-panel";
 import { BoardEnds } from "@/components/game/board-ends";
 import { LandscapePrompt } from "@/components/game/landscape-prompt";
 import { DominoSplash } from "@/components/game/domino-splash";
@@ -913,6 +914,7 @@ export default function GamePage() {
         <div className="min-w-0 sm:min-w-[160px] flex items-center justify-end gap-1 sm:gap-2">
           <MoveLog />
           <TileTracker />
+          <RulesPanel />
           <SoundToggle />
           {roomCode && (
             <motion.button
