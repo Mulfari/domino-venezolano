@@ -20,6 +20,7 @@ import { MoveLog } from "@/components/game/move-log";
 import { RulesPanel } from "@/components/game/rules-panel";
 import { BoardEnds } from "@/components/game/board-ends";
 import { LandscapePrompt } from "@/components/game/landscape-prompt";
+import { DealingOverlay } from "@/components/game/dealing-overlay";
 import { DominoSplash } from "@/components/game/domino-splash";
 import { CapicuaSplash } from "@/components/game/capicua-splash";
 import { CochinaSplash } from "@/components/game/cochina-splash";
@@ -1202,8 +1203,9 @@ export default function GamePage() {
           filter: boardTransitioning ? "blur(6px)" : "blur(0px)",
         }}
         transition={{ duration: 0.35, ease: "easeInOut" }}
-        className="flex flex-col flex-1 min-h-0"
+        className="relative flex flex-col flex-1 min-h-0"
       >
+      <DealingOverlay />
       {/* Partner (top) */}
       <motion.div
         className="flex justify-center shrink-0 pb-0.5 sm:pb-2 rounded-xl"
