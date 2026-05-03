@@ -31,12 +31,32 @@ export function Board({ onPlaceEnd, clearing = false }: BoardProps) {
   const [size, setSize] = useState({ w: 400, h: 400 });
   const [hoveredEnd, setHoveredEnd] = useState<"left" | "right" | null>(null);
   const [focusedEnd, setFocusedEnd] = useState<"left" | "right" | null>(null);
+  const [inspectedIdx, setInspectedIdx] = useState<number | null>(null);
+  const inspectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isMobile = useIsMobile();
   const dims = isMobile ? DIMS_MOBILE : DIMS_DESKTOP;
 
   const isMyTurn = isMyTurnFn();
   const validMoves = validMovesFn();
   const showPlacementOptions = selectedTile !== null && isMyTurn && board.plays.length > 0;
+
+  // Dismiss inspect popup when board changes or placement mode activates
+  useEffect(() => {
+    setInspectedIdx(null);
+    if (inspectTimerRef.current) clearTimeout(inspectTimerRef.current);
+  }, [board.plays.length, showPlacementOptions]);
+
+  function handleInspectTile(idx: number) {
+    if (showPlacementOptions) return;
+    if (inspectedIdx === idx) {
+      setInspectedIdx(null);
+      if (inspectTimerRef.current) clearTimeout(inspectTimerRef.current);
+      return;
+    }
+    setInspectedIdx(idx);
+    if (inspectTimerRef.current) clearTimeout(inspectTimerRef.current);
+    inspectTimerRef.current = setTimeout(() => setInspectedIdx(null), 4000);
+  }
 
   useEffect(() => {
     const el = containerRef.current;
@@ -858,11 +878,24 @@ export function Board({ onPlaceEnd, clearing = false }: BoardProps) {
                             />
                           </>
                         )}
+                        {/* Invisible hit area for tap-to-inspect */}
+                        {!isEndTile && !showPlacementOptions && (
+                          <rect
+                            x={pt.x - tw / 2 - 3}
+                            y={pt.y - th / 2 - 3}
+                            width={tw + 6}
+                            height={th + 6}
+                            fill="transparent"
+                            style={{ cursor: "pointer" }}
+                            onClick={(e) => { e.stopPropagation(); handleInspectTile(tileIdx); }}
+                          />
+                        )}
                         <foreignObject
                           x={pt.x - tw / 2}
                           y={pt.y - th / 2}
                           width={tw}
                           height={th}
+                          style={{ pointerEvents: "none" }}
                         >
                           <DominoTile
                             tile={pt.tile}
@@ -877,7 +910,7 @@ export function Board({ onPlaceEnd, clearing = false }: BoardProps) {
                           r={isMobile ? 1.8 : 2.2}
                           fill={(pt.seat % 2) === 0 ? "#c9a84c" : "#4ca8c9"}
                           opacity={0.88}
-                          style={{ filter: `drop-shadow(0 0 2px ${(pt.seat % 2) === 0 ? "rgba(201,168,76,0.9)" : "rgba(76,168,201,0.9)"})` }}
+                          style={{ filter: `drop-shadow(0 0 2px ${(pt.seat % 2) === 0 ? "rgba(201,168,76,0.9)" : "rgba(76,168,201,0.9)"})`, pointerEvents: "none" }}
                         />
                         {/* Opening tile star — marks the first play of the round */}
                         {tileIdx === 0 && (
@@ -887,7 +920,7 @@ export function Board({ onPlaceEnd, clearing = false }: BoardProps) {
                               cy={pt.y - th / 2 + (isMobile ? 3 : 4)}
                               r={isMobile ? 4 : 5}
                               fill="rgba(201,168,76,0.9)"
-                              style={{ filter: "drop-shadow(0 0 4px rgba(201,168,76,0.85))" }}
+                              style={{ filter: "drop-shadow(0 0 4px rgba(201,168,76,0.85))", pointerEvents: "none" }}
                             />
                             <text
                               x={pt.x - tw / 2 + (isMobile ? 3 : 4)}
@@ -897,13 +930,73 @@ export function Board({ onPlaceEnd, clearing = false }: BoardProps) {
                               fontWeight="bold"
                               fill="#1a0e00"
                               fontFamily="system-ui, -apple-system, sans-serif"
-                              style={{ userSelect: "none" }}
+                              style={{ userSelect: "none", pointerEvents: "none" }}
                               aria-hidden="true"
                             >
                               ★
                             </text>
                           </>
                         )}
+                        {/* Inspect popup — shows who played this tile and move number */}
+                        {inspectedIdx === tileIdx && (() => {
+                          const inspPlayer = players.find((p) => p.seat === pt.seat);
+                          const inspName = inspPlayer?.displayName?.split(" ")[0] ?? `J${pt.seat + 1}`;
+                          const inspTeam = (pt.seat % 2) as 0 | 1;
+                          const inspColor = inspTeam === 0 ? "#c9a84c" : "#4ca8c9";
+                          const inspBg = inspTeam === 0 ? "rgba(42,26,8,0.95)" : "rgba(8,26,42,0.95)";
+                          const inspBorder = inspTeam === 0 ? "rgba(201,168,76,0.75)" : "rgba(76,168,201,0.75)";
+                          const popW = isMobile ? 62 : 76;
+                          const popH = isMobile ? 28 : 32;
+                          const popX = pt.x - popW / 2;
+                          const popY = pt.y - th / 2 - popH - 5;
+                          const clampedX = Math.max(4, Math.min(popX, BOARD_SIZE - popW - 4));
+                          const clampedY = popY < 4 ? pt.y + th / 2 + 5 : popY;
+                          return (
+                            <motion.g
+                              initial={{ opacity: 0, y: 4 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              exit={{ opacity: 0 }}
+                              transition={{ duration: 0.15 }}
+                              style={{ pointerEvents: "none" }}
+                            >
+                              <rect
+                                x={clampedX}
+                                y={clampedY}
+                                width={popW}
+                                height={popH}
+                                rx={isMobile ? 5 : 6}
+                                fill={inspBg}
+                                stroke={inspBorder}
+                                strokeWidth={1.2}
+                                style={{ filter: `drop-shadow(0 2px 6px rgba(0,0,0,0.7))` }}
+                              />
+                              <text
+                                x={clampedX + popW / 2}
+                                y={clampedY + (isMobile ? 11 : 13)}
+                                textAnchor="middle"
+                                fontSize={isMobile ? 7.5 : 9}
+                                fontWeight="800"
+                                fill={inspColor}
+                                fontFamily="system-ui, -apple-system, sans-serif"
+                                style={{ userSelect: "none" }}
+                              >
+                                {inspName}
+                              </text>
+                              <text
+                                x={clampedX + popW / 2}
+                                y={clampedY + (isMobile ? 21 : 25)}
+                                textAnchor="middle"
+                                fontSize={isMobile ? 6.5 : 7.5}
+                                fontWeight="600"
+                                fill="rgba(245,240,232,0.5)"
+                                fontFamily="system-ui, -apple-system, sans-serif"
+                                style={{ userSelect: "none" }}
+                              >
+                                jugada #{tileIdx + 1} · {pt.tile[0]}·{pt.tile[1]}
+                              </text>
+                            </motion.g>
+                          );
+                        })()}
                       </motion.g>
                     );
                   })}
