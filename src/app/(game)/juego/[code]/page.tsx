@@ -528,7 +528,8 @@ export default function GamePage() {
           hapticPass();
           showPassIndicator(event.seat as Seat);
           const passedName = useGameStore.getState().players.find((p) => p.seat === event.seat)?.displayName ?? `Jugador ${event.seat + 1}`;
-          addMoveLog({ seat: event.seat as Seat, playerName: passedName, type: "pass", round: roundRef.current });
+          const passedBoard = useGameStore.getState().board;
+          addMoveLog({ seat: event.seat as Seat, playerName: passedName, type: "pass", round: roundRef.current, passedOnLeft: passedBoard.left, passedOnRight: passedBoard.right });
           if (currentSeat !== null && event.seat === currentSeat) {
             break;
           }
@@ -839,7 +840,8 @@ export default function GamePage() {
 
     // Log own pass
     if (mySeat !== null) {
-      addMoveLog({ seat: mySeat, playerName: displayName, type: "pass", round: roundRef.current });
+      const ownPassBoard = useGameStore.getState().board;
+      addMoveLog({ seat: mySeat, playerName: displayName, type: "pass", round: roundRef.current, passedOnLeft: ownPassBoard.left, passedOnRight: ownPassBoard.right });
     }
 
     // Optimistic update

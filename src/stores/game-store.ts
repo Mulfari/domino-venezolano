@@ -26,6 +26,9 @@ export interface MoveLogEntry {
   tile?: Tile;
   end?: "left" | "right";
   round: number;
+  // Board ends at the moment of a pass — used to infer which pips the passer lacks
+  passedOnLeft?: number | null;
+  passedOnRight?: number | null;
 }
 
 /** Serializable version of GameState for the store (no Map). */
