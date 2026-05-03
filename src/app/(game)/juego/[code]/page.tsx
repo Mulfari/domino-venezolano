@@ -20,6 +20,7 @@ import { MoveLog } from "@/components/game/move-log";
 import { EmojiReactions } from "@/components/game/emoji-reactions";
 import { RulesPanel } from "@/components/game/rules-panel";
 import { BoardEnds } from "@/components/game/board-ends";
+import { LastAction } from "@/components/game/last-action";
 import { LandscapePrompt } from "@/components/game/landscape-prompt";
 import { DealingOverlay } from "@/components/game/dealing-overlay";
 import { DominoSplash } from "@/components/game/domino-splash";
@@ -27,6 +28,7 @@ import { CapicuaSplash } from "@/components/game/capicua-splash";
 import { CochinaSplash } from "@/components/game/cochina-splash";
 import { TurnFlash } from "@/components/game/turn-flash";
 import { PassMeter } from "@/components/game/pass-meter";
+import { ToolbarMenu } from "@/components/game/toolbar-menu";
 import { ToastStack } from "@/components/game/toast-stack";
 import { useGameChannel } from "@/hooks/use-game-channel";
 import { useGameStore } from "@/stores/game-store";
@@ -266,6 +268,7 @@ export default function GamePage() {
   const addRoundHistory = useGameStore((s) => s.addRoundHistory);
   const addMoveLog = useGameStore((s) => s.addMoveLog);
   const updatePlayerConnection = useGameStore((s) => s.updatePlayerConnection);
+  const setHandCountsStore = useGameStore((s) => s.setHandCounts);
   const playTile = useGameStore((s) => s.playTile);
   const passTurn = useGameStore((s) => s.passTurn);
   const reset = useGameStore((s) => s.reset);
@@ -1014,22 +1017,24 @@ export default function GamePage() {
           <TurnIndicator tileCount={handCounts[currentTurn] ?? undefined} />
           <TurnTimer onAutoPass={handlePass} onAutoPlay={handleAutoPlay} onTimeout={handleTimeout} />
         </div>
-        {/* Room code badge + sound */}
+        {/* Room code badge + tools */}
         <div className="min-w-0 sm:min-w-[160px] flex items-center justify-end gap-1 sm:gap-2">
-          <MoveLog />
-          <TileTracker />
-          <RulesPanel />
-          <EmojiReactions
-            mySeat={mySeat}
-            players={players.map((p) => ({ seat: p.seat, displayName: p.displayName }))}
-            onSend={(emoji) => {
-              const id = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
-              broadcast({ type: "emoji_reaction", seat: mySeat!, emoji, id });
-              setIncomingEmoji({ id, seat: mySeat!, emoji });
-            }}
-            incoming={incomingEmoji}
-          />
-          <SoundToggle />
+          <ToolbarMenu>
+            <MoveLog />
+            <TileTracker />
+            <RulesPanel />
+            <EmojiReactions
+              mySeat={mySeat}
+              players={players.map((p) => ({ seat: p.seat, displayName: p.displayName }))}
+              onSend={(emoji) => {
+                const id = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+                broadcast({ type: "emoji_reaction", seat: mySeat!, emoji, id });
+                setIncomingEmoji({ id, seat: mySeat!, emoji });
+              }}
+              incoming={incomingEmoji}
+            />
+            <SoundToggle />
+          </ToolbarMenu>
           {roomCode && (
             <motion.button
               onClick={handleCopyCode}
@@ -1377,8 +1382,9 @@ export default function GamePage() {
             <PassMeter />
           </div>
           <Board onPlaceEnd={handlePlaceEnd} clearing={boardTransitioning} />
-          <div className="absolute bottom-1 left-1/2 -translate-x-1/2 z-20">
+          <div className="absolute bottom-1 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-0.5">
             <BoardEnds handCounts={handCounts} />
+            <LastAction />
           </div>
         </div>
 
