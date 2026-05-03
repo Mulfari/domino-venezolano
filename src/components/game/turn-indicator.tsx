@@ -84,6 +84,14 @@ export function TurnIndicator({ tileCount }: TurnIndicatorProps = {}) {
   const arrow = position ? POSITION_ARROW[position] : null;
   const posLabel = position ? POSITION_LABEL[position] : null;
 
+  // Next player (clockwise)
+  const nextSeat = ((currentTurn + 1) % 4) as Seat;
+  const nextPlayer = players.find((p) => p.seat === nextSeat);
+  const nextName = (nextPlayer?.displayName ?? `Jugador ${nextSeat + 1}`).split(" ")[0];
+  const nextTeam = teamForSeat(nextSeat);
+  const nextColors = TEAM_COLORS[nextTeam];
+  const isNextMe = mySeat === nextSeat;
+
   return (
     <AnimatePresence mode="wait">
       <motion.div
@@ -277,6 +285,42 @@ export function TurnIndicator({ tileCount }: TurnIndicatorProps = {}) {
             )}
           </AnimatePresence>
         </div>
+
+        {/* Next player badge — desktop only, shows who plays after current */}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={`next-${nextSeat}`}
+            initial={{ opacity: 0, x: 6 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -6 }}
+            transition={{ duration: 0.22, ease: "easeOut" }}
+            className="hidden sm:flex flex-col items-center gap-0.5 pl-2 border-l border-white/8 shrink-0"
+            aria-label={`Próximo: ${nextPlayer?.displayName ?? `Jugador ${nextSeat + 1}`}`}
+          >
+            <span className="text-[7px] uppercase tracking-widest font-semibold leading-none" style={{ color: "rgba(168,196,160,0.35)" }}>
+              próximo
+            </span>
+            <div className="flex items-center gap-1">
+              <div
+                className="flex h-5 w-5 items-center justify-center rounded-full text-[8px] font-bold leading-none"
+                style={{
+                  backgroundColor: isNextMe ? nextColors.subtle : "rgba(0,0,0,0.3)",
+                  color: isNextMe ? nextColors.bg : `${nextColors.glow}99`,
+                  border: `1px solid ${isNextMe ? nextColors.border : `${nextColors.glow}30`}`,
+                }}
+                aria-hidden="true"
+              >
+                {initials(nextPlayer?.displayName ?? `J${nextSeat + 1}`)}
+              </div>
+              <span
+                className="text-[9px] font-semibold leading-none truncate max-w-[44px]"
+                style={{ color: isNextMe ? nextColors.bg : `${nextColors.glow}80` }}
+              >
+                {isNextMe ? "tú" : nextName}
+              </span>
+            </div>
+          </motion.div>
+        </AnimatePresence>
       </motion.div>
     </AnimatePresence>
   );
