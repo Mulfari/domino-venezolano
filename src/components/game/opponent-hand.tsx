@@ -159,7 +159,9 @@ export function OpponentHand({
       </AnimatePresence>
 
       {/* Player name + avatar */}
-      <div className="flex items-center gap-1 sm:gap-1.5">
+      <div className={`flex items-center gap-1 sm:gap-1.5 ${
+        isMobile && isVertical ? "flex-col" : ""
+      }`}>
         {/* Avatar circle with initials */}
         <motion.div
           className="relative flex-shrink-0 flex items-center justify-center rounded-full font-black leading-none select-none"
@@ -180,7 +182,6 @@ export function OpponentHand({
           aria-label={connected ? `${playerName} conectado` : `${playerName} desconectado`}
         >
           {isBot ? (
-            /* Robot icon for bots */
             <svg width={isMobile ? 12 : 14} height={isMobile ? 12 : 14} viewBox="0 0 14 14" fill="none" aria-hidden="true">
               <rect x="2" y="4" width="10" height="7" rx="2" stroke="currentColor" strokeWidth="1.2" fill="none"/>
               <rect x="4.5" y="6" width="2" height="2" rx="0.5" fill="currentColor"/>
@@ -202,58 +203,126 @@ export function OpponentHand({
           />
         </motion.div>
 
-        <span
-          className={`text-[10px] sm:text-xs font-medium truncate max-w-[60px] sm:max-w-[100px] ${
-            isVertical ? "hidden sm:inline" : ""
-          }`}
-          style={{ color: isCurrentTurn ? colors.name : "#a8c4a0" }}
-        >
-          {playerName}
-        </span>
-
-        {/* Partner / Rival badge */}
-        <span
-          className={`shrink-0 text-[8px] font-bold uppercase tracking-widest px-1 py-0.5 rounded leading-none ${
-            isVertical ? "hidden sm:inline" : ""
-          }`}
-          style={isPartner ? {
-            color: "#c9a84c",
-            backgroundColor: "rgba(201,168,76,0.12)",
-            border: "1px solid rgba(201,168,76,0.35)",
-          } : {
-            color: "rgba(239,68,68,0.75)",
-            backgroundColor: "rgba(239,68,68,0.08)",
-            border: "1px solid rgba(239,68,68,0.25)",
-          }}
-        >
-          {isPartner ? "Compa" : "Rival"}
-        </span>
-
-        {/* Mano badge — shown when this player opened the round */}
-        <AnimatePresence>
-          {isMano && (
-            <motion.span
-              key="mano-badge"
-              initial={{ opacity: 0, scale: 0.5 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.5 }}
-              transition={{ type: "spring", stiffness: 500, damping: 24 }}
-              className={`shrink-0 text-[8px] font-black uppercase tracking-widest px-1 py-0.5 rounded leading-none ${
-                isVertical ? "hidden sm:inline" : ""
-              }`}
-              style={{
+        {/* Mobile compact info column for vertical (left/right) opponents */}
+        {isMobile && isVertical ? (
+          <div className="flex flex-col items-center gap-0.5 max-w-[48px]">
+            <span
+              className="text-[8px] font-semibold truncate max-w-[48px] text-center leading-tight"
+              style={{ color: isCurrentTurn ? colors.name : "#a8c4a0" }}
+            >
+              {playerName.split(/\s+/)[0]}
+            </span>
+            <span
+              className="text-[7px] font-bold uppercase tracking-wider leading-none px-1 py-px rounded"
+              style={isPartner ? {
                 color: "#c9a84c",
                 backgroundColor: "rgba(201,168,76,0.15)",
-                border: "1px solid rgba(201,168,76,0.5)",
-                textShadow: "0 0 6px rgba(201,168,76,0.6)",
+                border: "1px solid rgba(201,168,76,0.35)",
+              } : {
+                color: "rgba(239,68,68,0.75)",
+                backgroundColor: "rgba(239,68,68,0.10)",
+                border: "1px solid rgba(239,68,68,0.25)",
               }}
-              title="Salió primero esta ronda"
-              aria-label="Mano: salió primero esta ronda"
             >
-              ♟ mano
-            </motion.span>
-          )}
-        </AnimatePresence>
+              {isPartner ? "Compa" : "Rival"}
+            </span>
+            {isMano && (
+              <span
+                className="text-[7px] font-black uppercase tracking-wider leading-none px-1 py-px rounded"
+                style={{
+                  color: "#c9a84c",
+                  backgroundColor: "rgba(201,168,76,0.15)",
+                  border: "1px solid rgba(201,168,76,0.5)",
+                }}
+              >
+                ♟
+              </span>
+            )}
+            {/* Compact inline row: pass count + missing pips */}
+            {(passCount > 0 || knownMissingPips.length > 0) && (
+              <div className="flex items-center gap-0.5 flex-wrap justify-center">
+                {passCount > 0 && (
+                  <span
+                    className="text-[7px] font-black tabular-nums leading-none px-1 py-px rounded-full"
+                    style={{
+                      background: passCount >= 3 ? "rgba(232,74,58,0.18)" : "rgba(251,146,60,0.12)",
+                      border: `1px solid ${passCount >= 3 ? "rgba(232,74,58,0.65)" : "rgba(251,146,60,0.45)"}`,
+                      color: passCount >= 3 ? "#e84a3a" : "#fb923c",
+                    }}
+                    title={`Pasó ${passCount} vez${passCount !== 1 ? "es" : ""}`}
+                  >
+                    P{passCount}
+                  </span>
+                )}
+                {knownMissingPips.map((pip) => (
+                  <span
+                    key={pip}
+                    className="flex items-center justify-center rounded-full font-black tabular-nums leading-none"
+                    style={{
+                      width: 12,
+                      height: 12,
+                      fontSize: 7,
+                      background: "rgba(239,68,68,0.12)",
+                      border: "1px solid rgba(239,68,68,0.45)",
+                      color: "rgba(239,68,68,0.85)",
+                    }}
+                  >
+                    {pip}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+        ) : (
+          <>
+            <span
+              className="text-[10px] sm:text-xs font-medium truncate max-w-[60px] sm:max-w-[100px]"
+              style={{ color: isCurrentTurn ? colors.name : "#a8c4a0" }}
+            >
+              {playerName}
+            </span>
+
+            {/* Partner / Rival badge */}
+            <span
+              className="shrink-0 text-[8px] font-bold uppercase tracking-widest px-1 py-0.5 rounded leading-none"
+              style={isPartner ? {
+                color: "#c9a84c",
+                backgroundColor: "rgba(201,168,76,0.12)",
+                border: "1px solid rgba(201,168,76,0.35)",
+              } : {
+                color: "rgba(239,68,68,0.75)",
+                backgroundColor: "rgba(239,68,68,0.08)",
+                border: "1px solid rgba(239,68,68,0.25)",
+              }}
+            >
+              {isPartner ? "Compa" : "Rival"}
+            </span>
+
+            {/* Mano badge */}
+            <AnimatePresence>
+              {isMano && (
+                <motion.span
+                  key="mano-badge"
+                  initial={{ opacity: 0, scale: 0.5 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.5 }}
+                  transition={{ type: "spring", stiffness: 500, damping: 24 }}
+                  className="shrink-0 text-[8px] font-black uppercase tracking-widest px-1 py-0.5 rounded leading-none"
+                  style={{
+                    color: "#c9a84c",
+                    backgroundColor: "rgba(201,168,76,0.15)",
+                    border: "1px solid rgba(201,168,76,0.5)",
+                    textShadow: "0 0 6px rgba(201,168,76,0.6)",
+                  }}
+                  title="Salió primero esta ronda"
+                  aria-label="Mano: salió primero esta ronda"
+                >
+                  ♟ mano
+                </motion.span>
+              )}
+            </AnimatePresence>
+          </>
+        )}
 
         {/* Tile count pill — always visible next to name */}
         <motion.div
@@ -277,88 +346,92 @@ export function OpponentHand({
           {tileCount}
         </motion.div>
 
-        {/* Pass count badge — shows how many times this player has passed this round */}
-        <AnimatePresence>
-          {passCount > 0 && (
-            <motion.div
-              key={passCount}
-              initial={{ opacity: 0, scale: 0.6 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.6 }}
-              transition={{ type: "spring", stiffness: 500, damping: 24 }}
-              className="flex flex-col items-center gap-0.5 shrink-0"
-              title={`Pasó ${passCount} vez${passCount !== 1 ? "es" : ""} esta ronda`}
-              aria-label={`Pasó ${passCount} vez${passCount !== 1 ? "es" : ""} esta ronda`}
-            >
-              <span
-                className="text-[7px] uppercase tracking-widest leading-none font-semibold"
-                style={{ color: "rgba(251,146,60,0.6)" }}
-              >
-                pases
-              </span>
+        {/* Pass count badge — desktop/horizontal only (mobile vertical uses compact column above) */}
+        {!(isMobile && isVertical) && (
+          <AnimatePresence>
+            {passCount > 0 && (
               <motion.div
-                className="flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full font-black text-[10px] leading-none tabular-nums"
-                animate={passCount >= 3 ? { opacity: [1, 0.6, 1] } : {}}
-                transition={passCount >= 3 ? { duration: 0.85, repeat: Infinity, ease: "easeInOut" } : {}}
-                style={{
-                  background: passCount >= 3
-                    ? "rgba(232,74,58,0.18)"
-                    : "rgba(251,146,60,0.12)",
-                  border: `1px solid ${passCount >= 3 ? "rgba(232,74,58,0.65)" : "rgba(251,146,60,0.45)"}`,
-                  color: passCount >= 3 ? "#e84a3a" : "#fb923c",
-                  boxShadow: passCount >= 3 ? "0 0 8px rgba(232,74,58,0.4)" : undefined,
-                }}
+                key={passCount}
+                initial={{ opacity: 0, scale: 0.6 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.6 }}
+                transition={{ type: "spring", stiffness: 500, damping: 24 }}
+                className="flex flex-col items-center gap-0.5 shrink-0"
+                title={`Pasó ${passCount} vez${passCount !== 1 ? "es" : ""} esta ronda`}
+                aria-label={`Pasó ${passCount} vez${passCount !== 1 ? "es" : ""} esta ronda`}
               >
-                {passCount}
+                <span
+                  className="text-[7px] uppercase tracking-widest leading-none font-semibold"
+                  style={{ color: "rgba(251,146,60,0.6)" }}
+                >
+                  pases
+                </span>
+                <motion.div
+                  className="flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full font-black text-[10px] leading-none tabular-nums"
+                  animate={passCount >= 3 ? { opacity: [1, 0.6, 1] } : {}}
+                  transition={passCount >= 3 ? { duration: 0.85, repeat: Infinity, ease: "easeInOut" } : {}}
+                  style={{
+                    background: passCount >= 3
+                      ? "rgba(232,74,58,0.18)"
+                      : "rgba(251,146,60,0.12)",
+                    border: `1px solid ${passCount >= 3 ? "rgba(232,74,58,0.65)" : "rgba(251,146,60,0.45)"}`,
+                    color: passCount >= 3 ? "#e84a3a" : "#fb923c",
+                    boxShadow: passCount >= 3 ? "0 0 8px rgba(232,74,58,0.4)" : undefined,
+                  }}
+                >
+                  {passCount}
+                </motion.div>
               </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+            )}
+          </AnimatePresence>
+        )}
 
-        {/* Known missing pips — pip values this opponent is confirmed to lack from their passes */}
-        <AnimatePresence>
-          {knownMissingPips.length > 0 && (
-            <motion.div
-              key={knownMissingPips.join(",")}
-              initial={{ opacity: 0, scale: 0.7 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.7 }}
-              transition={{ type: "spring", stiffness: 480, damping: 24 }}
-              className="flex flex-col items-center gap-0.5 shrink-0"
-              title={`No tiene: ${knownMissingPips.join(", ")}`}
-              aria-label={`Pips que no tiene: ${knownMissingPips.join(", ")}`}
-            >
-              <span
-                className="text-[7px] uppercase tracking-widest leading-none font-semibold"
-                style={{ color: "rgba(239,68,68,0.55)" }}
+        {/* Known missing pips — desktop/horizontal only (mobile vertical uses compact column above) */}
+        {!(isMobile && isVertical) && (
+          <AnimatePresence>
+            {knownMissingPips.length > 0 && (
+              <motion.div
+                key={knownMissingPips.join(",")}
+                initial={{ opacity: 0, scale: 0.7 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.7 }}
+                transition={{ type: "spring", stiffness: 480, damping: 24 }}
+                className="flex flex-col items-center gap-0.5 shrink-0"
+                title={`No tiene: ${knownMissingPips.join(", ")}`}
+                aria-label={`Pips que no tiene: ${knownMissingPips.join(", ")}`}
               >
-                sin
-              </span>
-              <div className="flex items-center gap-0.5">
-                {knownMissingPips.map((pip) => (
-                  <motion.div
-                    key={pip}
-                    initial={{ opacity: 0, scale: 0.5 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ type: "spring", stiffness: 500, damping: 22 }}
-                    className="flex items-center justify-center rounded-full font-black tabular-nums leading-none"
-                    style={{
-                      width: isMobile ? 13 : 15,
-                      height: isMobile ? 13 : 15,
-                      fontSize: isMobile ? 7 : 8,
-                      background: "rgba(239,68,68,0.12)",
-                      border: "1px solid rgba(239,68,68,0.45)",
-                      color: "rgba(239,68,68,0.85)",
-                    }}
-                    aria-hidden="true"
-                  >
-                    {pip}
-                  </motion.div>
-                ))}
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+                <span
+                  className="text-[7px] uppercase tracking-widest leading-none font-semibold"
+                  style={{ color: "rgba(239,68,68,0.55)" }}
+                >
+                  sin
+                </span>
+                <div className="flex items-center gap-0.5">
+                  {knownMissingPips.map((pip) => (
+                    <motion.div
+                      key={pip}
+                      initial={{ opacity: 0, scale: 0.5 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ type: "spring", stiffness: 500, damping: 22 }}
+                      className="flex items-center justify-center rounded-full font-black tabular-nums leading-none"
+                      style={{
+                        width: isMobile ? 13 : 15,
+                        height: isMobile ? 13 : 15,
+                        fontSize: isMobile ? 7 : 8,
+                        background: "rgba(239,68,68,0.12)",
+                        border: "1px solid rgba(239,68,68,0.45)",
+                        color: "rgba(239,68,68,0.85)",
+                      }}
+                      aria-hidden="true"
+                    >
+                      {pip}
+                    </motion.div>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        )}
 
         {/* Last played tile — persistent mini domino showing opponent's most recent play */}
         <AnimatePresence mode="wait">
