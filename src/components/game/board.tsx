@@ -142,7 +142,53 @@ export function Board({ onPlaceEnd, clearing = false }: BoardProps) {
   const leftEndTile = placedTiles.length > 0 ? placedTiles[0] : null;
   const rightEndTile = placedTiles.length > 0 ? placedTiles[placedTiles.length - 1] : null;
 
-  const viewBox = `0 0 ${BOARD_SIZE} ${BOARD_SIZE}`;
+  // Dynamic viewBox: zoom into the bounding box of placed tiles so they appear larger
+  const dynamicViewBox = useMemo(() => {
+    const allTiles = [...placedTiles];
+    // Include ghost tiles so the viewBox doesn't jump when placement options appear
+    if (ghostTiles["left"]) allTiles.push(ghostTiles["left"]);
+    if (ghostTiles["right"]) allTiles.push(ghostTiles["right"]);
+
+    if (allTiles.length === 0) return `0 0 ${BOARD_SIZE} ${BOARD_SIZE}`;
+
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    for (const pt of allTiles) {
+      const isH = pt.orientation === "horizontal";
+      const tw = isH
+        ? (pt.isDouble ? dims.doubleH : dims.horizW)
+        : (pt.isDouble ? dims.doubleW : dims.horizH);
+      const th = isH
+        ? (pt.isDouble ? dims.doubleW : dims.horizH)
+        : (pt.isDouble ? dims.doubleH : dims.horizW);
+      minX = Math.min(minX, pt.x - tw / 2);
+      minY = Math.min(minY, pt.y - th / 2);
+      maxX = Math.max(maxX, pt.x + tw / 2);
+      maxY = Math.max(maxY, pt.y + th / 2);
+    }
+
+    const pad = isMobile ? 40 : 50;
+    minX -= pad;
+    minY -= pad;
+    maxX += pad;
+    maxY += pad;
+
+    let vbW = maxX - minX;
+    let vbH = maxY - minY;
+
+    // Keep aspect ratio square (matches the 1:1 board)
+    const side = Math.max(vbW, vbH);
+    const cx = (minX + maxX) / 2;
+    const cy = (minY + maxY) / 2;
+
+    // Clamp: never zoom in more than 45% of board, never exceed full board
+    const minSide = BOARD_SIZE * 0.45;
+    const clampedSide = Math.max(minSide, Math.min(side, BOARD_SIZE));
+
+    const vbX = Math.max(0, Math.min(cx - clampedSide / 2, BOARD_SIZE - clampedSide));
+    const vbY = Math.max(0, Math.min(cy - clampedSide / 2, BOARD_SIZE - clampedSide));
+
+    return `${vbX} ${vbY} ${clampedSide} ${clampedSide}`;
+  }, [placedTiles, ghostTiles, BOARD_SIZE, dims, isMobile]);
 
   const boardDescription = board.plays.length === 0
     ? (isMyTurn ? "Tablero vacío. Es tu turno, juega la primera ficha." : "Tablero vacío. Esperando la primera jugada.")
@@ -748,7 +794,7 @@ export function Board({ onPlaceEnd, clearing = false }: BoardProps) {
               <svg
                 width="100%"
                 height="100%"
-                viewBox={viewBox}
+                viewBox={dynamicViewBox}
                 preserveAspectRatio="xMidYMid meet"
                 className="absolute inset-0"
                 aria-hidden="true"
