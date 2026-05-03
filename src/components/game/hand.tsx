@@ -1181,8 +1181,8 @@ export function Hand({ onPlayTile, onPass, disabled = false }: HandProps) {
                   );
                 })()}
 
-                {/* Double tile badge — hidden when hint badge already occupies the same slot */}
-                {isDouble && !isHintTile(tile) && (
+                {/* Double tile badge — hidden when hint or capicúa badge already occupies the same slot */}
+                {isDouble && !isHintTile(tile) && !capicua && (
                   <div
                     className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-widest whitespace-nowrap pointer-events-none z-10"
                     style={{
