@@ -34,6 +34,7 @@ import { ToastStack } from "@/components/game/toast-stack";
 import { SeatMap } from "@/components/game/seat-map";
 import { RoundProgress } from "@/components/game/round-progress";
 import { PlayerSeat } from "@/components/game/player-seat";
+import { MatchPointAnnouncement } from "@/components/game/match-point-announcement";
 import { useGameChannel } from "@/hooks/use-game-channel";
 import { useDocumentTitle } from "@/hooks/use-document-title";
 import { useGameStore } from "@/stores/game-store";
@@ -2064,6 +2065,9 @@ export default function GamePage() {
 
       {/* ¡Tu turno! center flash */}
       <TurnFlash />
+
+      {/* Match point announcement — fires at start of rounds where a team could win */}
+      <MatchPointAnnouncement />
 
       {/* ¡Dominó! splash */}
       {dominoSplash && (
