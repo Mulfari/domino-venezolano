@@ -29,6 +29,7 @@ import { ToastStack } from "@/components/game/toast-stack";
 import { useGameChannel } from "@/hooks/use-game-channel";
 import { useGameStore } from "@/stores/game-store";
 import { playTilePlace, playPass, playYourTurn, playVictory, playDefeat, playGameOver, playGameOverDefeat, playCapicua, playUnaFicha, playDosFichas, playShuffle, playDouble, playStreak, playCochina, playTimeout, playTrancado, playVaADominar, playCerca } from "@/lib/sounds/sound-engine";
+import { hapticYourTurn, hapticPlay, hapticPass, hapticVictory, hapticDefeat, hapticCapicua, hapticCochina, hapticGameOverWin, hapticGameOverLoss } from "@/lib/haptics/haptics";
 import { requestNotificationPermission, notifyTurn } from "@/lib/notifications/turn-notification";
 import type { GameEvent } from "@/lib/realtime/events";
 import type { Tile, Seat } from "@/lib/game/types";
@@ -377,6 +378,7 @@ export default function GamePage() {
       prevTurnRef.current !== mySeat
     ) {
       playYourTurn();
+      hapticYourTurn();
       notifyTurn();
     }
     prevTurnRef.current = currentTurn;
@@ -410,6 +412,7 @@ export default function GamePage() {
           const playedTile = event.tile as Tile;
           if (playedTile[0] === playedTile[1]) playDouble();
           else playTilePlace();
+          hapticPlay();
           const playedName = useGameStore.getState().players.find((p) => p.seat === event.seat)?.displayName ?? `Jugador ${event.seat + 1}`;
           addMoveLog({ seat: event.seat as Seat, playerName: playedName, type: "play", tile: event.tile as Tile, end: event.end, round: roundRef.current });
           // Show ¡Doble! toast for non-cochina doubles
@@ -436,6 +439,7 @@ export default function GamePage() {
 
         case "turn_passed": {
           playPass();
+          hapticPass();
           showPassIndicator(event.seat as Seat);
           const passedName = useGameStore.getState().players.find((p) => p.seat === event.seat)?.displayName ?? `Jugador ${event.seat + 1}`;
           addMoveLog({ seat: event.seat as Seat, playerName: passedName, type: "pass", round: roundRef.current });
@@ -481,15 +485,19 @@ export default function GamePage() {
           if (isGameOver) {
             if (myTeam !== null && event.winner_team === myTeam) {
               playGameOver();
+              hapticGameOverWin();
             } else if (event.winner_team !== null) {
               playGameOverDefeat();
+              hapticGameOverLoss();
             }
           } else if (event.reason === "locked") {
             playTrancado();
           } else if (myTeam !== null && event.winner_team === myTeam) {
             playVictory();
+            hapticVictory();
           } else if (event.winner_team !== null) {
             playDefeat();
+            hapticDefeat();
           }
           // Capture current scores before updating so the overlay can animate from old → new
           const prevScores = useGameStore.getState().scores;
@@ -653,6 +661,7 @@ export default function GamePage() {
 
     if (tile[0] === tile[1]) playDouble();
     else playTilePlace();
+    hapticPlay();
 
     // Show ¡Doble! toast for own non-cochina doubles
     if (tile[0] === tile[1] && mySeat !== null && !(tile[0] === 6 && useGameStore.getState().board.plays.length === 0)) {
