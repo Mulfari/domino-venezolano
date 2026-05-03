@@ -682,10 +682,11 @@ function RoundEndView({
                 Actividad de la ronda
               </p>
               <div className="rounded-xl border border-[#f5f0e8]/8 overflow-hidden">
-                <div className="grid grid-cols-[1fr_auto_auto_auto] gap-x-3 px-3 py-1.5 bg-[#0f3520]/60">
+                <div className="grid grid-cols-[1fr_auto_auto_auto_auto] gap-x-3 px-3 py-1.5 bg-[#0f3520]/60">
                   <span className="text-[9px] uppercase tracking-wider text-[#a8c4a0]/40">Jugador</span>
                   <span className="text-[9px] uppercase tracking-wider text-[#a8c4a0]/40 text-center">Eq.</span>
                   <span className="text-[9px] uppercase tracking-wider text-[#a8c4a0]/40 text-center" title="Fichas jugadas">🁣</span>
+                  <span className="text-[9px] uppercase tracking-wider text-[#a8c4a0]/40 text-center" title="Puntos aportados al tablero">Pts</span>
                   <span className="text-[9px] uppercase tracking-wider text-[#a8c4a0]/40 text-right" title="Pases">↩</span>
                 </div>
                 {([0, 1, 2, 3] as const).map((seat, i) => {
@@ -693,12 +694,14 @@ function RoundEndView({
                   const name = player?.displayName ?? `J${seat + 1}`;
                   const team = (seat % 2) as 0 | 1;
                   const isMyTeamRow = myTeam === team;
-                  const playsCount = roundEntries.filter((e) => e.seat === seat && e.type === "play").length;
+                  const seatPlays = roundEntries.filter((e) => e.seat === seat && e.type === "play");
+                  const playsCount = seatPlays.length;
+                  const pipSum = seatPlays.reduce((sum, e) => sum + (e.tile ? e.tile[0] + e.tile[1] : 0), 0);
                   const passCount = roundEntries.filter((e) => e.seat === seat && e.type === "pass").length;
                   return (
                     <div
                       key={seat}
-                      className={`grid grid-cols-[1fr_auto_auto_auto] gap-x-3 px-3 py-1.5 border-t border-[#f5f0e8]/5 ${
+                      className={`grid grid-cols-[1fr_auto_auto_auto_auto] gap-x-3 px-3 py-1.5 border-t border-[#f5f0e8]/5 ${
                         i % 2 === 0 ? "bg-[#163d28]" : "bg-[#1a4530]/40"
                       }`}
                     >
@@ -713,6 +716,9 @@ function RoundEndView({
                       </span>
                       <span className="text-[10px] font-bold tabular-nums text-center text-[#f5f0e8]/70">
                         {playsCount}
+                      </span>
+                      <span className={`text-[10px] font-bold tabular-nums text-center ${pipSum > 0 ? "text-[#c9a84c]/75" : "text-[#f5f0e8]/25"}`}>
+                        {pipSum > 0 ? pipSum : "—"}
                       </span>
                       <span className={`text-[10px] font-bold tabular-nums text-right ${passCount > 0 ? "text-[#fb923c]/80" : "text-[#f5f0e8]/25"}`}>
                         {passCount > 0 ? passCount : "—"}
