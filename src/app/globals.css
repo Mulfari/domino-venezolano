@@ -171,6 +171,46 @@ select {
   display: none;
 }
 
+/* ── Screen shake — double tile slam ─────────── */
+@keyframes screen-shake-double {
+  0%   { transform: translate(0, 0); }
+  12%  { transform: translate(-3px, 2px); }
+  25%  { transform: translate(3px, -2px); }
+  37%  { transform: translate(-2px, -1px); }
+  50%  { transform: translate(2px, 1px); }
+  62%  { transform: translate(-1px, 1px); }
+  75%  { transform: translate(1px, -1px); }
+  100% { transform: translate(0, 0); }
+}
+
+@keyframes screen-shake-cochina {
+  0%   { transform: translate(0, 0) rotate(0deg); }
+  10%  { transform: translate(-5px, 3px) rotate(-0.5deg); }
+  20%  { transform: translate(5px, -3px) rotate(0.5deg); }
+  30%  { transform: translate(-4px, -2px) rotate(-0.3deg); }
+  40%  { transform: translate(4px, 2px) rotate(0.3deg); }
+  50%  { transform: translate(-3px, 1px) rotate(-0.2deg); }
+  60%  { transform: translate(3px, -1px) rotate(0.2deg); }
+  70%  { transform: translate(-2px, 1px) rotate(-0.1deg); }
+  80%  { transform: translate(1px, -1px) rotate(0.1deg); }
+  100% { transform: translate(0, 0) rotate(0deg); }
+}
+
+.screen-shake-double {
+  animation: screen-shake-double 350ms ease-out;
+}
+
+.screen-shake-cochina {
+  animation: screen-shake-cochina 500ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .screen-shake-double,
+  .screen-shake-cochina {
+    animation: none;
+  }
+}
+
 /* ── Felt texture overlay ────────────────────── */
 .felt-texture {
   position: relative;

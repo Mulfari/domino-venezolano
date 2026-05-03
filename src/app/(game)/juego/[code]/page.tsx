@@ -235,6 +235,8 @@ export default function GamePage() {
   const prevFirstPlayRef = useRef<string | null>(null);
   const [dobleAlert, setDobleAlert] = useState<{ name: string; pip: number; seat: Seat } | null>(null);
   const dobleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [screenShake, setScreenShake] = useState<"double" | "cochina" | null>(null);
+  const screenShakeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [boardTransitioning, setBoardTransitioning] = useState(false);
   const [copiedCode, setCopiedCode] = useState(false);
   const copiedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -511,8 +513,10 @@ export default function GamePage() {
       switch (event.type) {
         case "tile_played": {
           const playedTile = event.tile as Tile;
-          if (playedTile[0] === playedTile[1]) playDouble();
-          else playTilePlace();
+          if (playedTile[0] === playedTile[1]) {
+            playDouble();
+            triggerScreenShake(playedTile[0] === 6 && useGameStore.getState().board.plays.length === 0);
+          } else playTilePlace();
           hapticPlay();
           const playedName = useGameStore.getState().players.find((p) => p.seat === event.seat)?.displayName ?? `Jugador ${event.seat + 1}`;
           addMoveLog({ seat: event.seat as Seat, playerName: playedName, type: "play", tile: event.tile as Tile, end: event.end, round: roundRef.current });
@@ -773,8 +777,10 @@ export default function GamePage() {
     if (actionLoading) return;
     setActionLoading(true);
 
-    if (tile[0] === tile[1]) playDouble();
-    else playTilePlace();
+    if (tile[0] === tile[1]) {
+      playDouble();
+      triggerScreenShake(tile[0] === 6 && useGameStore.getState().board.plays.length === 0);
+    } else playTilePlace();
     hapticPlay();
 
     // Show ¡Doble! toast for own non-cochina doubles
@@ -1016,6 +1022,12 @@ export default function GamePage() {
 
   const isHost = userId === hostId;
 
+  function triggerScreenShake(isCochina: boolean) {
+    if (screenShakeTimerRef.current) clearTimeout(screenShakeTimerRef.current);
+    setScreenShake(isCochina ? "cochina" : "double");
+    screenShakeTimerRef.current = setTimeout(() => setScreenShake(null), isCochina ? 500 : 350);
+  }
+
   function teamGlow(seat: Seat, alpha: number): string {
     return (seat % 2) === 0
       ? `rgba(201,168,76,${alpha})`
@@ -1023,7 +1035,7 @@ export default function GamePage() {
   }
 
   return (
-    <div className="h-[100dvh] flex flex-col bg-felt overflow-hidden select-none">
+    <div className={`h-[100dvh] flex flex-col bg-felt overflow-hidden select-none${screenShake === "cochina" ? " screen-shake-cochina" : screenShake === "double" ? " screen-shake-double" : ""}`}>
       {/* Landscape prompt for mobile portrait */}
       <LandscapePrompt />
 
