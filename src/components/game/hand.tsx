@@ -134,6 +134,18 @@ export function Hand({ onPlayTile, onPass, disabled = false }: HandProps) {
   const totalPips = myHand.reduce((sum, [a, b]) => sum + a + b, 0);
   // trancado is imminent when 2+ consecutive passes have happened
   const trancadoImminent = consecutivePasses >= 2 && myHand.length > 0;
+  // None of the player's tiles fit either board end while waiting — they'll have to pass
+  const noPlayableOnWait =
+    !isMyTurn &&
+    board.plays.length > 0 &&
+    board.left !== null &&
+    board.right !== null &&
+    myHand.length > 0 &&
+    !myHand.some(
+      (t) =>
+        t[0] === board.left || t[1] === board.left ||
+        t[0] === board.right || t[1] === board.right
+    );
 
   // Fire ¡Vas a dominar! once when turn arrives with exactly 1 tile left
   useEffect(() => {
@@ -749,6 +761,44 @@ export function Hand({ onPlayTile, onPass, disabled = false }: HandProps) {
                 </motion.div>
               );
             })()}
+          </AnimatePresence>
+
+          {/* No-playable-on-wait indicator — shown when none of the player's tiles fit the board ends */}
+          <AnimatePresence>
+            {noPlayableOnWait && (
+              <motion.div
+                key="no-playable-wait"
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.8 }}
+                transition={{ type: "spring", stiffness: 400, damping: 24 }}
+                className="flex items-center gap-1 rounded-full px-2.5 py-1"
+                style={{
+                  background: "rgba(220,120,40,0.12)",
+                  border: "1px solid rgba(220,120,40,0.4)",
+                }}
+                aria-label="Ninguna de tus fichas encaja — tendrás que pasar"
+              >
+                <motion.svg
+                  width="10" height="10" viewBox="0 0 10 10" fill="none"
+                  aria-hidden="true"
+                  animate={{ opacity: [1, 0.5, 1] }}
+                  transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }}
+                >
+                  <circle cx="5" cy="5" r="4" stroke="rgba(220,120,40,0.85)" strokeWidth="1" fill="none"/>
+                  <line x1="5" y1="2.5" x2="5" y2="5.5" stroke="rgba(220,120,40,0.85)" strokeWidth="1.1" strokeLinecap="round"/>
+                  <circle cx="5" cy="7.2" r="0.7" fill="rgba(220,120,40,0.85)"/>
+                </motion.svg>
+                <motion.span
+                  className="text-[9px] font-semibold uppercase tracking-widest leading-none whitespace-nowrap"
+                  style={{ color: "rgba(220,120,40,0.9)" }}
+                  animate={{ opacity: [1, 0.6, 1] }}
+                  transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }}
+                >
+                  pasarás
+                </motion.span>
+              </motion.div>
+            )}
           </AnimatePresence>
 
           {/* Keyboard shortcuts "?" button */}

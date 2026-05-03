@@ -130,6 +130,15 @@ export function MoveLog() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [open]);
 
+  // Scroll to bottom when panel opens so latest moves are visible immediately
+  useEffect(() => {
+    if (!open) return;
+    const id = requestAnimationFrame(() => {
+      if (listRef.current) listRef.current.scrollTop = listRef.current.scrollHeight;
+    });
+    return () => cancelAnimationFrame(id);
+  }, [open]);
+
   useEffect(() => {
     const newLen = moveLog.length;
     const prevLen = prevLenRef.current;
