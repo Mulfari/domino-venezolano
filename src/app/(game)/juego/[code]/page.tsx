@@ -32,6 +32,7 @@ import { ToolbarMenu } from "@/components/game/toolbar-menu";
 import { ToastStack } from "@/components/game/toast-stack";
 import { SeatMap } from "@/components/game/seat-map";
 import { RoundProgress } from "@/components/game/round-progress";
+import { PlayerSeat } from "@/components/game/player-seat";
 import { useGameChannel } from "@/hooks/use-game-channel";
 import { useGameStore } from "@/stores/game-store";
 import { playTilePlace, playPass, playYourTurn, playVictory, playDefeat, playGameOver, playGameOverDefeat, playCapicua, playUnaFicha, playDosFichas, playShuffle, playDouble, playStreak, playCochina, playTimeout, playTrancado, playVaADominar, playCerca } from "@/lib/sounds/sound-engine";
@@ -1333,59 +1334,67 @@ export default function GamePage() {
       >
       <DealingOverlay />
       {/* Partner (top) */}
-      <motion.div
-        className="flex justify-center shrink-0 pb-0.5 sm:pb-2 rounded-xl"
-        animate={currentTurn === seats.top && status === "playing" ? {
-          boxShadow: [
-            `0 0 0px ${teamGlow(seats.top, 0)}`,
-            `0 8px 28px ${teamGlow(seats.top, 0.32)}`,
-            `0 0 0px ${teamGlow(seats.top, 0)}`,
-          ],
-        } : { boxShadow: "none" }}
-        transition={currentTurn === seats.top && status === "playing" ? {
-          duration: 2.2, repeat: Infinity, ease: "easeInOut",
-        } : { duration: 0.5 }}
-      >
-        <OpponentHand
-          seat={seats.top}
-          tileCount={handCounts[seats.top] ?? 0}
-          playerName={getPlayerName(seats.top)}
-          connected={getPlayerConnected(seats.top)}
-          isCurrentTurn={currentTurn === seats.top}
-          isBot={players.find((p) => p.seat === seats.top)?.isBot ?? false}
-          isPartner
-          position="top"
-          showPass={lastPassSeat === seats.top}
-        />
-      </motion.div>
+      <div className="flex justify-center shrink-0 pb-0.5 sm:pb-2">
+        <PlayerSeat position="top" teamIndex={(seats.top % 2) as 0 | 1} isActive={currentTurn === seats.top && status === "playing"}>
+          <motion.div
+            className="rounded-xl"
+            animate={currentTurn === seats.top && status === "playing" ? {
+              boxShadow: [
+                `0 0 0px ${teamGlow(seats.top, 0)}`,
+                `0 8px 28px ${teamGlow(seats.top, 0.32)}`,
+                `0 0 0px ${teamGlow(seats.top, 0)}`,
+              ],
+            } : { boxShadow: "none" }}
+            transition={currentTurn === seats.top && status === "playing" ? {
+              duration: 2.2, repeat: Infinity, ease: "easeInOut",
+            } : { duration: 0.5 }}
+          >
+            <OpponentHand
+              seat={seats.top}
+              tileCount={handCounts[seats.top] ?? 0}
+              playerName={getPlayerName(seats.top)}
+              connected={getPlayerConnected(seats.top)}
+              isCurrentTurn={currentTurn === seats.top}
+              isBot={players.find((p) => p.seat === seats.top)?.isBot ?? false}
+              isPartner
+              position="top"
+              showPass={lastPassSeat === seats.top}
+            />
+          </motion.div>
+        </PlayerSeat>
+      </div>
 
       {/* Middle row: left opponent, board, right opponent */}
       <div className="relative flex flex-1 min-h-0 items-center">
         {/* Left opponent — absolute overlay on mobile, in-flow on desktop */}
-        <motion.div
-          className="absolute left-0 top-1/2 -translate-y-1/2 z-10 sm:relative sm:left-auto sm:top-auto sm:translate-y-0 sm:shrink-0 sm:px-4 rounded-xl"
-          animate={currentTurn === seats.left && status === "playing" ? {
-            boxShadow: [
-              `0 0 0px ${teamGlow(seats.left, 0)}`,
-              `8px 0 28px ${teamGlow(seats.left, 0.32)}`,
-              `0 0 0px ${teamGlow(seats.left, 0)}`,
-            ],
-          } : { boxShadow: "none" }}
-          transition={currentTurn === seats.left && status === "playing" ? {
-            duration: 2.2, repeat: Infinity, ease: "easeInOut",
-          } : { duration: 0.5 }}
-        >
-          <OpponentHand
-            seat={seats.left}
-            tileCount={handCounts[seats.left] ?? 0}
-            playerName={getPlayerName(seats.left)}
-            connected={getPlayerConnected(seats.left)}
-            isCurrentTurn={currentTurn === seats.left}
-            isBot={players.find((p) => p.seat === seats.left)?.isBot ?? false}
-            position="left"
-            showPass={lastPassSeat === seats.left}
-          />
-        </motion.div>
+        <div className="absolute left-0 top-1/2 -translate-y-1/2 z-10 sm:relative sm:left-auto sm:top-auto sm:translate-y-0 sm:shrink-0 sm:px-4">
+          <PlayerSeat position="left" teamIndex={(seats.left % 2) as 0 | 1} isActive={currentTurn === seats.left && status === "playing"}>
+            <motion.div
+              className="rounded-xl"
+              animate={currentTurn === seats.left && status === "playing" ? {
+                boxShadow: [
+                  `0 0 0px ${teamGlow(seats.left, 0)}`,
+                  `8px 0 28px ${teamGlow(seats.left, 0.32)}`,
+                  `0 0 0px ${teamGlow(seats.left, 0)}`,
+                ],
+              } : { boxShadow: "none" }}
+              transition={currentTurn === seats.left && status === "playing" ? {
+                duration: 2.2, repeat: Infinity, ease: "easeInOut",
+              } : { duration: 0.5 }}
+            >
+              <OpponentHand
+                seat={seats.left}
+                tileCount={handCounts[seats.left] ?? 0}
+                playerName={getPlayerName(seats.left)}
+                connected={getPlayerConnected(seats.left)}
+                isCurrentTurn={currentTurn === seats.left}
+                isBot={players.find((p) => p.seat === seats.left)?.isBot ?? false}
+                position="left"
+                showPass={lastPassSeat === seats.left}
+              />
+            </motion.div>
+          </PlayerSeat>
+        </div>
 
         {/* Board — takes full width on mobile */}
         <div className="relative flex flex-col items-center flex-1 min-h-0">
@@ -1408,51 +1417,59 @@ export default function GamePage() {
         </div>
 
         {/* Right opponent — absolute overlay on mobile, in-flow on desktop */}
-        <motion.div
-          className="absolute right-0 top-1/2 -translate-y-1/2 z-10 sm:relative sm:right-auto sm:top-auto sm:translate-y-0 sm:shrink-0 sm:px-4 rounded-xl"
-          animate={currentTurn === seats.right && status === "playing" ? {
-            boxShadow: [
-              `0 0 0px ${teamGlow(seats.right, 0)}`,
-              `-8px 0 28px ${teamGlow(seats.right, 0.32)}`,
-              `0 0 0px ${teamGlow(seats.right, 0)}`,
-            ],
-          } : { boxShadow: "none" }}
-          transition={currentTurn === seats.right && status === "playing" ? {
-            duration: 2.2, repeat: Infinity, ease: "easeInOut",
-          } : { duration: 0.5 }}
-        >
-          <OpponentHand
-            seat={seats.right}
-            tileCount={handCounts[seats.right] ?? 0}
-            playerName={getPlayerName(seats.right)}
-            connected={getPlayerConnected(seats.right)}
-            isCurrentTurn={currentTurn === seats.right}
-            isBot={players.find((p) => p.seat === seats.right)?.isBot ?? false}
-            position="right"
-            showPass={lastPassSeat === seats.right}
-          />
-        </motion.div>
+        <div className="absolute right-0 top-1/2 -translate-y-1/2 z-10 sm:relative sm:right-auto sm:top-auto sm:translate-y-0 sm:shrink-0 sm:px-4">
+          <PlayerSeat position="right" teamIndex={(seats.right % 2) as 0 | 1} isActive={currentTurn === seats.right && status === "playing"}>
+            <motion.div
+              className="rounded-xl"
+              animate={currentTurn === seats.right && status === "playing" ? {
+                boxShadow: [
+                  `0 0 0px ${teamGlow(seats.right, 0)}`,
+                  `-8px 0 28px ${teamGlow(seats.right, 0.32)}`,
+                  `0 0 0px ${teamGlow(seats.right, 0)}`,
+                ],
+              } : { boxShadow: "none" }}
+              transition={currentTurn === seats.right && status === "playing" ? {
+                duration: 2.2, repeat: Infinity, ease: "easeInOut",
+              } : { duration: 0.5 }}
+            >
+              <OpponentHand
+                seat={seats.right}
+                tileCount={handCounts[seats.right] ?? 0}
+                playerName={getPlayerName(seats.right)}
+                connected={getPlayerConnected(seats.right)}
+                isCurrentTurn={currentTurn === seats.right}
+                isBot={players.find((p) => p.seat === seats.right)?.isBot ?? false}
+                position="right"
+                showPass={lastPassSeat === seats.right}
+              />
+            </motion.div>
+          </PlayerSeat>
+        </div>
       </div>
 
       {/* Player hand (bottom) */}
-      <motion.div
-        className="relative shrink-0 pt-0.5 sm:pt-2 border-t"
-        animate={currentTurn === mySeat && status === "playing" ? {
-          borderColor: ["rgba(201,168,76,0.15)", "rgba(201,168,76,0.65)", "rgba(201,168,76,0.15)"],
-          boxShadow: ["0 -2px 0px rgba(201,168,76,0)", "0 -6px 20px rgba(201,168,76,0.28)", "0 -2px 0px rgba(201,168,76,0)"],
-        } : {
-          borderColor: "rgba(201,168,76,0.15)",
-          boxShadow: "none",
-        }}
-        transition={currentTurn === mySeat && status === "playing" ? {
-          duration: 2.2,
-          repeat: Infinity,
-          ease: "easeInOut",
-        } : { duration: 0.5 }}
-      >
-        <PassIndicator show={lastPassSeat === mySeat} />
-        <Hand onPlayTile={handlePlayTile} onPass={handlePass} disabled={actionLoading} />
-      </motion.div>
+      <div className="shrink-0 pt-0.5 sm:pt-2">
+        <PlayerSeat position="bottom" teamIndex={(mySeat % 2) as 0 | 1} isActive={currentTurn === mySeat && status === "playing"}>
+          <motion.div
+            className="relative border-t"
+            animate={currentTurn === mySeat && status === "playing" ? {
+              borderColor: ["rgba(201,168,76,0.15)", "rgba(201,168,76,0.65)", "rgba(201,168,76,0.15)"],
+              boxShadow: ["0 -2px 0px rgba(201,168,76,0)", "0 -6px 20px rgba(201,168,76,0.28)", "0 -2px 0px rgba(201,168,76,0)"],
+            } : {
+              borderColor: "rgba(201,168,76,0.15)",
+              boxShadow: "none",
+            }}
+            transition={currentTurn === mySeat && status === "playing" ? {
+              duration: 2.2,
+              repeat: Infinity,
+              ease: "easeInOut",
+            } : { duration: 0.5 }}
+          >
+            <PassIndicator show={lastPassSeat === mySeat} />
+            <Hand onPlayTile={handlePlayTile} onPass={handlePass} disabled={actionLoading} />
+          </motion.div>
+        </PlayerSeat>
+      </div>
       </motion.div>
 
       {/* Stacked toasts — rendered in a shared column so they never overlap */}
