@@ -67,6 +67,7 @@ interface GameStore {
   roundHistory: RoundHistoryEntry[];
   moveLog: MoveLogEntry[];
   selectedTile: Tile | null;
+  handCounts: number[];
 
   // --- Derived (computed via getters) ---
   isMyTurn: () => boolean;
@@ -95,6 +96,7 @@ interface GameStore {
   selectTile: (tile: Tile | null) => void;
   playTile: (tile: Tile, end: "left" | "right") => void;
   passTurn: () => void;
+  setHandCounts: (counts: number[]) => void;
   updatePlayerConnection: (seat: Seat, connected: boolean) => void;
   reset: () => void;
 }
@@ -118,6 +120,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   roundHistory: [],
   moveLog: [],
   selectedTile: null,
+  handCounts: [7, 7, 7, 7],
 
   // --- Derived ---
   isMyTurn: () => {
@@ -229,6 +232,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
       selectedTile: null,
     });
   },
+
+  setHandCounts: (counts) => set({ handCounts: counts }),
 
   updatePlayerConnection: (seat, connected) => {
     const { players } = get();

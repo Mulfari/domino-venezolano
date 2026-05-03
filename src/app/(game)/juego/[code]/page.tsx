@@ -30,6 +30,7 @@ import { TurnFlash } from "@/components/game/turn-flash";
 import { PassMeter } from "@/components/game/pass-meter";
 import { ToolbarMenu } from "@/components/game/toolbar-menu";
 import { ToastStack } from "@/components/game/toast-stack";
+import { SeatMap } from "@/components/game/seat-map";
 import { useGameChannel } from "@/hooks/use-game-channel";
 import { useGameStore } from "@/stores/game-store";
 import { playTilePlace, playPass, playYourTurn, playVictory, playDefeat, playGameOver, playGameOverDefeat, playCapicua, playUnaFicha, playDosFichas, playShuffle, playDouble, playStreak, playCochina, playTimeout, playTrancado, playVaADominar, playCerca } from "@/lib/sounds/sound-engine";
@@ -1385,6 +1386,10 @@ export default function GamePage() {
           <div className="absolute bottom-1 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-0.5">
             <BoardEnds handCounts={handCounts} />
             <LastAction />
+          </div>
+          {/* Mini seat map — mobile only, shows all 4 players with tile counts and turn */}
+          <div className="absolute top-1 right-1 z-20 sm:hidden">
+            <SeatMap handCounts={handCounts} />
           </div>
         </div>
 
