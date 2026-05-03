@@ -225,6 +225,19 @@ export function Hand({ onPlayTile, onPass, disabled = false }: HandProps) {
     return a === board.left || b === board.left || a === board.right || b === board.right;
   }
 
+  // Returns which specific ends (with pip values) a tile fits while waiting — richer than isPlanningMatch
+  function getPlanningMatchEnds(tile: Tile): { end: "left" | "right"; pip: number }[] {
+    if (isMyTurn || board.left === null || board.right === null || board.plays.length === 0) return [];
+    const [a, b] = tile;
+    const matches: { end: "left" | "right"; pip: number }[] = [];
+    const fitsLeft = a === board.left || b === board.left;
+    const fitsRight = a === board.right || b === board.right;
+    if (fitsLeft) matches.push({ end: "left", pip: board.left });
+    if (fitsRight && board.left !== board.right) matches.push({ end: "right", pip: board.right });
+    else if (fitsRight && !fitsLeft) matches.push({ end: "right", pip: board.right });
+    return matches;
+  }
+
   // Must be declared before the keyboard useEffect so it's not in the TDZ when the dep array is evaluated
   const awaitingEndChoice = selectedTile !== null && board.plays.length > 0 && board.left !== board.right;
 
@@ -1008,16 +1021,51 @@ export function Hand({ onPlayTile, onPass, disabled = false }: HandProps) {
                   </>
                 )}
 
-                {/* Planning match: subtle blue-white glow when tile fits a board end but it's not your turn */}
-                {planningMatch && !isMyTurn && (
-                  <motion.div
-                    className="absolute -inset-0.5 rounded-lg border pointer-events-none"
-                    style={{ borderColor: "rgba(168,196,255,0.45)" }}
-                    animate={{ opacity: [0.25, 0.6, 0.25] }}
-                    transition={{ duration: 2.8, repeat: Infinity, ease: "easeInOut" }}
-                    aria-hidden="true"
-                  />
-                )}
+                {/* Planning match: glow + pip-end badges when tile fits a board end but it's not your turn */}
+                {planningMatch && !isMyTurn && (() => {
+                  const matchEnds = getPlanningMatchEnds(tile);
+                  return (
+                    <>
+                      <motion.div
+                        className="absolute -inset-1 rounded-xl pointer-events-none"
+                        style={{ background: "radial-gradient(ellipse, rgba(120,180,255,0.18) 0%, transparent 70%)" }}
+                        animate={{ opacity: [0.3, 0.7, 0.3] }}
+                        transition={{ duration: 2.6, repeat: Infinity, ease: "easeInOut" }}
+                        aria-hidden="true"
+                      />
+                      <motion.div
+                        className="absolute -inset-0.5 rounded-lg border pointer-events-none"
+                        style={{ borderColor: "rgba(120,180,255,0.5)" }}
+                        animate={{ opacity: [0.25, 0.65, 0.25] }}
+                        transition={{ duration: 2.6, repeat: Infinity, ease: "easeInOut" }}
+                        aria-hidden="true"
+                      />
+                      {/* Pip-end badges — show which board end(s) this tile fits */}
+                      <div className="absolute top-full left-1/2 -translate-x-1/2 mt-1 flex items-center gap-0.5 pointer-events-none z-20">
+                        {matchEnds.map(({ end, pip }) => (
+                          <motion.div
+                            key={end}
+                            animate={{ opacity: [0.55, 1, 0.55] }}
+                            transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }}
+                            className="flex items-center gap-0.5 rounded px-1 py-0.5"
+                            style={{
+                              background: "rgba(8,18,32,0.88)",
+                              border: "1px solid rgba(120,180,255,0.45)",
+                            }}
+                            aria-label={`Encaja en el ${end === "left" ? "extremo izquierdo" : "extremo derecho"}: ${pip}`}
+                          >
+                            <span className="text-[8px] font-bold leading-none" style={{ color: "rgba(120,180,255,0.75)" }}>
+                              {end === "left" ? "←" : "→"}
+                            </span>
+                            <span className="text-[8px] font-black tabular-nums leading-none" style={{ color: "rgba(160,210,255,0.9)" }}>
+                              {pip}
+                            </span>
+                          </motion.div>
+                        ))}
+                      </div>
+                    </>
+                  );
+                })()}
 
                 {/* Double tile badge — hidden when hint badge already occupies the same slot */}
                 {isDouble && !isHintTile(tile) && (
