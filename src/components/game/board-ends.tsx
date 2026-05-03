@@ -348,37 +348,75 @@ export function BoardEnds({ handCounts }: { handCounts?: number[] }) {
               </div>
             )}
 
-            {/* Board pip total — lets players deduce hidden pip load: 168 − boardPips − myHandPips */}
+            {/* Board pip total + hidden pip load */}
             {tilesOnBoard >= 2 && mySeat !== null && (
-              <motion.div
-                key={boardPips}
-                initial={{ scale: 1.2, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ type: "spring", stiffness: 420, damping: 24 }}
-                className="flex items-center gap-1 rounded-full px-1.5 py-0.5"
-                style={{
-                  background: "rgba(0,0,0,0.22)",
-                  border: "1px solid rgba(201,168,76,0.18)",
-                }}
-                title={`Puntos en tablero: ${boardPips} · Tuyos: ${myHandPips} · Ocultos: ${hiddenPips}`}
-                aria-label={`Puntos en tablero: ${boardPips}. Puntos ocultos en manos rivales: ${hiddenPips}`}
-              >
-                {/* Pip dot icon */}
-                <svg width="8" height="8" viewBox="0 0 8 8" fill="none" aria-hidden="true">
-                  <circle cx="4" cy="4" r="3" stroke="rgba(201,168,76,0.5)" strokeWidth="0.8" fill="none"/>
-                  <circle cx="4" cy="4" r="1.3" fill="rgba(201,168,76,0.6)"/>
-                </svg>
-                <motion.span
+              <>
+                <motion.div
                   key={boardPips}
-                  initial={{ scale: 1.3 }}
-                  animate={{ scale: 1 }}
-                  transition={{ type: "spring", stiffness: 500, damping: 20 }}
-                  className="text-[8px] font-bold tabular-nums leading-none"
-                  style={{ color: "rgba(201,168,76,0.6)" }}
+                  initial={{ scale: 1.2, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ type: "spring", stiffness: 420, damping: 24 }}
+                  className="flex items-center gap-1 rounded-full px-1.5 py-0.5"
+                  style={{
+                    background: "rgba(0,0,0,0.22)",
+                    border: "1px solid rgba(201,168,76,0.18)",
+                  }}
+                  title={`Puntos en tablero: ${boardPips}`}
+                  aria-label={`Puntos en tablero: ${boardPips}`}
                 >
-                  {boardPips}pts
-                </motion.span>
-              </motion.div>
+                  <svg width="8" height="8" viewBox="0 0 8 8" fill="none" aria-hidden="true">
+                    <circle cx="4" cy="4" r="3" stroke="rgba(201,168,76,0.5)" strokeWidth="0.8" fill="none"/>
+                    <circle cx="4" cy="4" r="1.3" fill="rgba(201,168,76,0.6)"/>
+                  </svg>
+                  <motion.span
+                    key={boardPips}
+                    initial={{ scale: 1.3 }}
+                    animate={{ scale: 1 }}
+                    transition={{ type: "spring", stiffness: 500, damping: 20 }}
+                    className="text-[8px] font-bold tabular-nums leading-none"
+                    style={{ color: "rgba(201,168,76,0.6)" }}
+                  >
+                    {boardPips}pts
+                  </motion.span>
+                </motion.div>
+
+                {/* Hidden pip badge — opponents' combined pip load */}
+                <motion.div
+                  key={`hidden-${hiddenPips}`}
+                  initial={{ scale: 1.2, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ type: "spring", stiffness: 420, damping: 24 }}
+                  className="flex items-center gap-1 rounded-full px-1.5 py-0.5"
+                  style={{
+                    background: "rgba(0,0,0,0.22)",
+                    border: "1px solid rgba(239,100,60,0.22)",
+                  }}
+                  title={`Puntos ocultos en manos rivales: ${hiddenPips} (168 − ${boardPips} tablero − ${myHandPips} tuyos)`}
+                  aria-label={`Puntos ocultos en manos rivales: ${hiddenPips}`}
+                >
+                  {/* Eye-slash icon */}
+                  <svg width="9" height="8" viewBox="0 0 9 8" fill="none" aria-hidden="true">
+                    <path d="M1 1.5C2.2 3 3.2 4 4.5 4s2.3-1 3.5-2.5" stroke="rgba(239,100,60,0.55)" strokeWidth="0.9" strokeLinecap="round"/>
+                    <line x1="1.5" y1="6.5" x2="7.5" y2="1.5" stroke="rgba(239,100,60,0.45)" strokeWidth="0.85" strokeLinecap="round"/>
+                  </svg>
+                  <motion.span
+                    key={hiddenPips}
+                    initial={{ scale: 1.3 }}
+                    animate={{ scale: 1 }}
+                    transition={{ type: "spring", stiffness: 500, damping: 20 }}
+                    className="text-[8px] font-bold tabular-nums leading-none"
+                    style={{ color: "rgba(239,100,60,0.65)" }}
+                  >
+                    {hiddenPips}
+                  </motion.span>
+                  <span
+                    className="text-[7px] leading-none font-semibold"
+                    style={{ color: "rgba(239,100,60,0.4)" }}
+                  >
+                    ocultos
+                  </span>
+                </motion.div>
+              </>
             )}
           </div>
         </motion.div>
