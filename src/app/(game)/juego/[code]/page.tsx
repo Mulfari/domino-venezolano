@@ -155,6 +155,9 @@ export default function GamePage() {
   const streakTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [cercaAlert, setCercaAlert] = useState<{ team: 0 | 1; remaining: number; isMyTeam: boolean } | null>(null);
   const cercaTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const autoPlaceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Ref so the auto-place effect can call handlePlayTile (defined later in the component)
+  const handlePlayTileRef = useRef<((tile: Tile, end: "left" | "right") => Promise<void>) | null>(null);
 
   /* ---- Zustand store ---- */
   const mySeat = useGameStore((s) => s.mySeat);
@@ -690,6 +693,49 @@ export default function GamePage() {
       setActionLoading(false);
     }
   }
+
+  // Keep ref in sync so the auto-place effect below can call it
+  handlePlayTileRef.current = handlePlayTile;
+
+  // Auto-place: when a tile is selected and it only fits one end, play it automatically
+  // after a short delay so the player can see the selection before it fires.
+  useEffect(() => {
+    if (autoPlaceTimerRef.current) clearTimeout(autoPlaceTimerRef.current);
+    if (!selectedTile) return;
+
+    const state = useGameStore.getState();
+    if (!state.isMyTurn()) return;
+
+    const moves = state.validMoves().filter(
+      (m) => m.tile[0] === selectedTile[0] && m.tile[1] === selectedTile[1]
+    );
+
+    // Only auto-place when there is exactly one valid end for this tile
+    const ends = [...new Set(moves.map((m) => m.end))];
+    if (ends.length !== 1) return;
+
+    const end = ends[0];
+    autoPlaceTimerRef.current = setTimeout(() => {
+      const s = useGameStore.getState();
+      // Re-validate: still my turn, tile still selected, still only one end
+      if (!s.isMyTurn()) return;
+      if (!s.selectedTile) return;
+      if (s.selectedTile[0] !== selectedTile[0] || s.selectedTile[1] !== selectedTile[1]) return;
+      const currentMoves = s.validMoves().filter(
+        (m) => m.tile[0] === selectedTile[0] && m.tile[1] === selectedTile[1]
+      );
+      const currentEnds = [...new Set(currentMoves.map((m) => m.end))];
+      if (currentEnds.length !== 1 || currentEnds[0] !== end) return;
+
+      handlePlayTileRef.current?.(selectedTile, end);
+      s.selectTile(null);
+    }, 550);
+
+    return () => {
+      if (autoPlaceTimerRef.current) clearTimeout(autoPlaceTimerRef.current);
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedTile]);
 
   async function handlePass() {
     if (actionLoading) return;
