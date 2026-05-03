@@ -19,6 +19,7 @@ import { TileTracker } from "@/components/game/tile-tracker";
 import { MoveLog } from "@/components/game/move-log";
 import { EmojiReactions } from "@/components/game/emoji-reactions";
 import { RulesPanel } from "@/components/game/rules-panel";
+import { MatchStats } from "@/components/game/match-stats";
 import { BoardEnds } from "@/components/game/board-ends";
 import { LastAction } from "@/components/game/last-action";
 import { LandscapePrompt } from "@/components/game/landscape-prompt";
@@ -1034,6 +1035,7 @@ export default function GamePage() {
           <ToolbarMenu>
             <MoveLog />
             <TileTracker />
+            <MatchStats />
             <RulesPanel />
             <EmojiReactions
               mySeat={mySeat}
