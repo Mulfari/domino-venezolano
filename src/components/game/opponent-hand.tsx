@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { DominoTile } from "./tile";
 import { PassIndicator } from "./pass-indicator";
@@ -108,6 +108,20 @@ export function OpponentHand({
     }
     return [...missing].sort((a, b) => a - b);
   }, [moveLog, currentRound, seat]);
+  // Elapsed thinking timer for human opponents
+  const [thinkingSec, setThinkingSec] = useState(0);
+  const thinkingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    if (thinkingIntervalRef.current) clearInterval(thinkingIntervalRef.current);
+    setThinkingSec(0);
+    if (!isCurrentTurn || isBot) return;
+    thinkingIntervalRef.current = setInterval(() => {
+      setThinkingSec((s) => s + 1);
+    }, 1000);
+    return () => { if (thinkingIntervalRef.current) clearInterval(thinkingIntervalRef.current); };
+  }, [isCurrentTurn, isBot, seat]);
+
   const maxDisplay = isMobile ? (isVertical ? 3 : 5) : MAX_DISPLAY;
   const displayCount = Math.min(tileCount, maxDisplay);
 
@@ -588,7 +602,7 @@ export function OpponentHand({
             )}
           </AnimatePresence>
 
-          {/* ▼ Turno label — floats above the stack when it's this player's turn (human only) */}
+          {/* Thinking timer — shows elapsed seconds with escalating urgency for human opponents */}
           <AnimatePresence>
             {isCurrentTurn && !isBot && tileCount > 1 && (
               <motion.div
@@ -602,18 +616,51 @@ export function OpponentHand({
                 <div
                   className="flex items-center gap-1 rounded-full px-2 py-0.5"
                   style={{
-                    background: colors.badgeBg,
-                    border: `1px solid ${colors.activeBorder}`,
-                    boxShadow: `0 0 10px ${colors.activeShadow}`,
+                    background: thinkingSec >= 20
+                      ? "rgba(220,38,38,0.15)"
+                      : thinkingSec >= 10
+                        ? "rgba(251,146,60,0.10)"
+                        : colors.badgeBg,
+                    border: `1px solid ${
+                      thinkingSec >= 20
+                        ? "rgba(239,68,68,0.7)"
+                        : thinkingSec >= 10
+                          ? "rgba(251,146,60,0.6)"
+                          : colors.activeBorder
+                    }`,
+                    boxShadow: thinkingSec >= 20
+                      ? "0 0 12px rgba(239,68,68,0.5)"
+                      : thinkingSec >= 10
+                        ? "0 0 10px rgba(251,146,60,0.4)"
+                        : `0 0 10px ${colors.activeShadow}`,
                   }}
                 >
                   <motion.span
-                    animate={{ opacity: [0.7, 1, 0.7] }}
-                    transition={{ duration: 1.1, repeat: Infinity, ease: "easeInOut" }}
+                    animate={thinkingSec >= 20
+                      ? { opacity: [0.6, 1, 0.6] }
+                      : { opacity: [0.7, 1, 0.7] }}
+                    transition={{
+                      duration: thinkingSec >= 20 ? 0.5 : 1.1,
+                      repeat: Infinity,
+                      ease: "easeInOut",
+                    }}
                     className="text-[8px] sm:text-[9px] font-black uppercase tracking-widest whitespace-nowrap leading-none"
-                    style={{ color: colors.name, textShadow: `0 0 8px ${colors.glow}` }}
+                    style={{
+                      color: thinkingSec >= 20
+                        ? "#ef4444"
+                        : thinkingSec >= 10
+                          ? "#fb923c"
+                          : colors.name,
+                      textShadow: thinkingSec >= 20
+                        ? "0 0 8px rgba(239,68,68,0.6)"
+                        : thinkingSec >= 10
+                          ? "0 0 8px rgba(251,146,60,0.5)"
+                          : `0 0 8px ${colors.glow}`,
+                    }}
                   >
-                    ▼ Turno
+                    {thinkingSec < 5
+                      ? "▼ Turno"
+                      : `⏱ ${thinkingSec}s`}
                   </motion.span>
                 </div>
               </motion.div>
