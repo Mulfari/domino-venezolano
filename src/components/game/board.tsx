@@ -788,14 +788,45 @@ export function Board({ onPlaceEnd, clearing = false }: BoardProps) {
                         transition={isNew ? { type: "spring", stiffness: 340, damping: 22 } : undefined}
                         style={{ transformOrigin: `${pt.x}px ${pt.y}px` }}
                       >
-                        {/* Fading "just played" glow — one-shot, fades out over 2.5s, colored by team */}
+                        {/* Shockwave ripple + glow — one-shot radial burst when a tile is placed */}
                         {isNew && (() => {
                           const glowTeam = (pt.seat % 2) as 0 | 1;
                           const glowStroke = glowTeam === 0 ? "#c9a84c" : "#4ca8c9";
                           const glowFill = glowTeam === 0 ? "rgba(201,168,76,0.22)" : "rgba(76,168,201,0.22)";
                           const glowDrop = glowTeam === 0 ? "drop-shadow(0 0 6px rgba(201,168,76,0.9))" : "drop-shadow(0 0 6px rgba(76,168,201,0.9))";
+                          const rippleStroke = glowTeam === 0 ? "rgba(201,168,76," : "rgba(76,168,201,";
+                          const isDouble = pt.tile[0] === pt.tile[1];
+                          const rippleCount = isDouble ? 3 : 2;
+                          const maxRadius = isDouble ? 55 : 40;
                           return (
                           <>
+                            {/* Radial shockwave rings — expand outward from placement point */}
+                            {Array.from({ length: rippleCount }).map((_, ri) => (
+                              <motion.circle
+                                key={`ripple-${ri}`}
+                                cx={pt.x}
+                                cy={pt.y}
+                                r={Math.max(tw, th) / 2}
+                                fill="none"
+                                stroke={`${rippleStroke}0.7)`}
+                                strokeWidth={isDouble ? 2.5 : 2}
+                                initial={{ r: Math.max(tw, th) / 2, opacity: 0.8, strokeWidth: isDouble ? 2.5 : 2 }}
+                                animate={{ r: maxRadius + ri * 12, opacity: 0, strokeWidth: 0.3 }}
+                                transition={{ duration: 0.6 + ri * 0.15, delay: ri * 0.1, ease: "easeOut" }}
+                                style={{ filter: `drop-shadow(0 0 3px ${rippleStroke}0.6))` }}
+                              />
+                            ))}
+                            {/* Brief radial flash at impact point */}
+                            <motion.circle
+                              cx={pt.x}
+                              cy={pt.y}
+                              r={Math.max(tw, th) * 0.6}
+                              fill={`${rippleStroke}0.18)`}
+                              initial={{ opacity: 1, scale: 0.5 }}
+                              animate={{ opacity: 0, scale: 1.8 }}
+                              transition={{ duration: 0.4, ease: "easeOut" }}
+                              style={{ transformOrigin: `${pt.x}px ${pt.y}px`, filter: "blur(3px)" }}
+                            />
                             <motion.rect
                               x={pt.x - tw / 2 - 9}
                               y={pt.y - th / 2 - 9}
