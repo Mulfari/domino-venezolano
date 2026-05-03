@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { DominoTile } from "./tile";
 import { useGameStore } from "@/stores/game-store";
+import { hapticTap } from "@/lib/haptics/haptics";
 import type { Tile } from "@/lib/game/types";
 
 interface HandProps {
@@ -366,6 +367,7 @@ export function Hand({ onPlayTile, onPass, disabled = false }: HandProps) {
       return;
     }
 
+    hapticTap();
     selectTile(tile);
   }
 
