@@ -580,6 +580,13 @@ export function ScorePanel() {
           </div>
         )}
       </div>
+      <AnimatePresence>
+        {showPipBalance && (
+          <div className="px-2 pb-1 pt-1 border-t border-[#c9a84c]/12">
+            <PipBalance team0Pips={team0Pips} team1Pips={team1Pips} myTeam={myTeam} />
+          </div>
+        )}
+      </AnimatePresence>
       <RoundHistory
         history={roundHistory}
         myTeam={myTeam}
