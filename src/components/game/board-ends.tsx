@@ -146,7 +146,6 @@ export function BoardEnds({ handCounts }: { handCounts?: number[] }) {
   const hands = useGameStore((s) => s.hands);
   const mySeat = useGameStore((s) => s.mySeat);
   const status = useGameStore((s) => s.status);
-  const consecutivePasses = useGameStore((s) => s.consecutivePasses);
   const selectedTile = useGameStore((s) => s.selectedTile);
 
   if (board.left === null || board.right === null || board.plays.length === 0) return null;
@@ -263,64 +262,6 @@ export function BoardEnds({ handCounts }: { handCounts?: number[] }) {
             <EndBadge value={board.right} label="Der" matchCount={rightMatches} isCapicua={isCapicua} isSelectedMatch={rightSelectedMatch} />
           </div>
         </div>
-
-        {/* Consecutive passes tension meter */}
-        {consecutivePasses > 0 && (
-          <motion.div
-            key={consecutivePasses}
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ type: "spring", stiffness: 500, damping: 24 }}
-            className="flex flex-col items-center gap-0.5"
-            aria-label={`${consecutivePasses} pase${consecutivePasses !== 1 ? "s" : ""} consecutivo${consecutivePasses !== 1 ? "s" : ""} — el juego se tranca con 4`}
-          >
-            <span className="text-[7px] uppercase tracking-widest font-semibold leading-none"
-              style={{ color: consecutivePasses >= 3 ? "#e84a3a" : "rgba(168,196,160,0.5)" }}>
-              pases
-            </span>
-            <div className="flex items-center gap-0.5">
-              {[1, 2, 3, 4].map((n) => {
-                const filled = n <= consecutivePasses;
-                const isFinal = n === 4;
-                return (
-                  <motion.div
-                    key={n}
-                    animate={filled && consecutivePasses >= 3 ? { opacity: [1, 0.5, 1] } : {}}
-                    transition={filled && consecutivePasses >= 3 ? { duration: 0.7, repeat: Infinity, ease: "easeInOut" } : {}}
-                    className="w-3 h-3 rounded-sm"
-                    style={{
-                      background: filled
-                        ? consecutivePasses >= 3
-                          ? "linear-gradient(135deg, #e84a3a, #ff6b5a)"
-                          : consecutivePasses >= 2
-                          ? "linear-gradient(135deg, #fb923c, #fbbf24)"
-                          : "rgba(168,196,160,0.55)"
-                        : "rgba(0,0,0,0.3)",
-                      border: `1px solid ${filled
-                        ? consecutivePasses >= 3 ? "rgba(232,74,58,0.8)" : "rgba(251,146,60,0.6)"
-                        : "rgba(168,196,160,0.15)"}`,
-                      boxShadow: filled && consecutivePasses >= 3
-                        ? "0 0 6px rgba(232,74,58,0.6)"
-                        : undefined,
-                    }}
-                    aria-hidden="true"
-                  />
-                );
-              })}
-            </div>
-            {consecutivePasses >= 3 && (
-              <motion.span
-                initial={{ opacity: 0, y: 2 }}
-                animate={{ opacity: [1, 0.6, 1], y: 0 }}
-                transition={{ duration: 0.7, repeat: Infinity, ease: "easeInOut" }}
-                className="text-[7px] font-black uppercase tracking-widest leading-none whitespace-nowrap"
-                style={{ color: "#e84a3a", textShadow: "0 0 6px rgba(232,74,58,0.7)" }}
-              >
-                ¡próximo tranca!
-              </motion.span>
-            )}
-          </motion.div>
-        )}
 
         {/* Board progress bar + counters */}
         <motion.div
