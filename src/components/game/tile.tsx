@@ -18,6 +18,7 @@ interface TileProps {
   highlight?: boolean;
   responsive?: boolean;
   disableHover?: boolean;
+  teamBack?: 0 | 1;
   onClick?: () => void;
 }
 
@@ -97,6 +98,7 @@ export function DominoTile({
   highlight = false,
   responsive = false,
   disableHover = false,
+  teamBack,
   onClick,
 }: TileProps) {
   const isMobile = useIsMobile();
@@ -113,6 +115,11 @@ export function DominoTile({
   const ornSize = Math.min(w, h) * 0.14;
   const cornerPipR = Math.min(w, h) * 0.055;
   const cornerPad = Math.min(w, h) * 0.2;
+
+  // Team-specific accent colors for face-down tile backs
+  const backAccent = teamBack === 1
+    ? { outer: "#1e6a9a", inner: "#0e4a6a", divider: "#1a5a8a", diamFill: "#0a2a42", diamStroke: "#4ca8c9", cornerFill: "#0e3a5a", cornerStroke: "#2a7aaa" }
+    : { outer: "#c8903a", inner: "#8a5e2a", divider: "#9a6830", diamFill: "#5a3010", diamStroke: "#c9a84c", cornerFill: "#6a3818", cornerStroke: "#a06830" };
 
   const svgContent = (
     <svg
@@ -171,6 +178,20 @@ export function DominoTile({
           <stop offset="30%" stopColor="#4a2c12" />
           <stop offset="65%" stopColor="#2e1808" />
           <stop offset="100%" stopColor="#150800" />
+        </linearGradient>
+        {/* Team 0 back — warm gold */}
+        <linearGradient id={`back-t0-${uid}`} x1="0.15" y1="0" x2="0.85" y2="1">
+          <stop offset="0%" stopColor="#8a6820" />
+          <stop offset="30%" stopColor="#5a4010" />
+          <stop offset="65%" stopColor="#3a2808" />
+          <stop offset="100%" stopColor="#1e1400" />
+        </linearGradient>
+        {/* Team 1 back — cool navy */}
+        <linearGradient id={`back-t1-${uid}`} x1="0.15" y1="0" x2="0.85" y2="1">
+          <stop offset="0%" stopColor="#1e4a6a" />
+          <stop offset="30%" stopColor="#0e2a42" />
+          <stop offset="65%" stopColor="#081828" />
+          <stop offset="100%" stopColor="#030c14" />
         </linearGradient>
         <pattern id={`grain-${uid}`} x="0" y="0" width="3" height="3" patternUnits="userSpaceOnUse" patternTransform="rotate(10)">
           <line x1="0" y1="0" x2="0" y2="3" stroke="#d08840" strokeWidth="1.4" opacity="1.0"/>
@@ -235,9 +256,12 @@ export function DominoTile({
       <rect
         x={0} y={0} width={w} height={h}
         rx={borderRadius}
-        fill={faceDown ? `url(#back-${uid})` : `url(#face-${uid})`}
+        fill={faceDown
+          ? (teamBack === 0 ? `url(#back-t0-${uid})` : teamBack === 1 ? `url(#back-t1-${uid})` : `url(#back-${uid})`)
+          : `url(#face-${uid})`}
         stroke={
           selected || highlight ? "#c9a84c"
+            : faceDown && teamBack === 1 ? "#1e5a7a"
             : faceDown ? "#7a4a22"
               : "#c8bfb0"
         }
@@ -268,29 +292,29 @@ export function DominoTile({
           {/* Vignette to give rounded depth */}
           <rect x={0} y={0} width={w} height={h} rx={borderRadius} fill={`url(#vignette-${uid})`} clipPath={`url(#clip-${uid})`} />
           {/* Outer inset border — warm gold tint */}
-          <rect x={1.5} y={1.5} width={w - 3} height={h - 3} rx={borderRadius - 0.5} fill="none" stroke="#c8903a" strokeWidth={1.6} opacity={0.75} />
+          <rect x={1.5} y={1.5} width={w - 3} height={h - 3} rx={borderRadius - 0.5} fill="none" stroke={backAccent.outer} strokeWidth={1.6} opacity={0.75} />
           {/* Inner decorative frame */}
-          <rect x={3.5} y={3.5} width={w - 7} height={h - 7} rx={borderRadius - 2} fill="none" stroke="#8a5e2a" strokeWidth={1.0} opacity={0.8} />
+          <rect x={3.5} y={3.5} width={w - 7} height={h - 7} rx={borderRadius - 2} fill="none" stroke={backAccent.inner} strokeWidth={1.0} opacity={0.8} />
           {/* Divider line */}
           {isHorizontal ? (
-            <line x1={w / 2} y1={4} x2={w / 2} y2={h - 4} stroke="#9a6830" strokeWidth={1.0} opacity={0.85} />
+            <line x1={w / 2} y1={4} x2={w / 2} y2={h - 4} stroke={backAccent.divider} strokeWidth={1.0} opacity={0.85} />
           ) : (
-            <line x1={4} y1={h / 2} x2={w - 4} y2={h / 2} stroke="#9a6830" strokeWidth={1.0} opacity={0.85} />
+            <line x1={4} y1={h / 2} x2={w - 4} y2={h / 2} stroke={backAccent.divider} strokeWidth={1.0} opacity={0.85} />
           )}
           {/* Center diamond ornament */}
           <polygon
             points={`${w/2},${h/2 - ornSize} ${w/2 + ornSize * 0.65},${h/2} ${w/2},${h/2 + ornSize} ${w/2 - ornSize * 0.65},${h/2}`}
-            fill="#5a3010" stroke="#b07838" strokeWidth={1.0} opacity={1.0}
+            fill={backAccent.diamFill} stroke={backAccent.diamStroke} strokeWidth={1.0} opacity={1.0}
           />
           <polygon
             points={`${w/2},${h/2 - ornSize * 0.55} ${w/2 + ornSize * 0.38},${h/2} ${w/2},${h/2 + ornSize * 0.55} ${w/2 - ornSize * 0.38},${h/2}`}
-            fill="none" stroke="#c9a84c" strokeWidth={0.7} opacity={0.75}
+            fill="none" stroke={backAccent.diamStroke} strokeWidth={0.7} opacity={0.75}
           />
           {/* Corner pip accents */}
-          <circle cx={cornerPad} cy={cornerPad} r={cornerPipR} fill="#6a3818" stroke="#a06830" strokeWidth={0.7} opacity={0.9} />
-          <circle cx={w - cornerPad} cy={cornerPad} r={cornerPipR} fill="#6a3818" stroke="#a06830" strokeWidth={0.7} opacity={0.9} />
-          <circle cx={cornerPad} cy={h - cornerPad} r={cornerPipR} fill="#6a3818" stroke="#a06830" strokeWidth={0.7} opacity={0.9} />
-          <circle cx={w - cornerPad} cy={h - cornerPad} r={cornerPipR} fill="#6a3818" stroke="#a06830" strokeWidth={0.7} opacity={0.9} />
+          <circle cx={cornerPad} cy={cornerPad} r={cornerPipR} fill={backAccent.cornerFill} stroke={backAccent.cornerStroke} strokeWidth={0.7} opacity={0.9} />
+          <circle cx={w - cornerPad} cy={cornerPad} r={cornerPipR} fill={backAccent.cornerFill} stroke={backAccent.cornerStroke} strokeWidth={0.7} opacity={0.9} />
+          <circle cx={cornerPad} cy={h - cornerPad} r={cornerPipR} fill={backAccent.cornerFill} stroke={backAccent.cornerStroke} strokeWidth={0.7} opacity={0.9} />
+          <circle cx={w - cornerPad} cy={h - cornerPad} r={cornerPipR} fill={backAccent.cornerFill} stroke={backAccent.cornerStroke} strokeWidth={0.7} opacity={0.9} />
           {/* Top-left highlight sheen */}
           <rect x={1} y={1} width={w * 0.65} height={h * 0.35} rx={borderRadius - 1} fill="white" opacity={0.13} clipPath={`url(#clip-${uid})`} />
         </>

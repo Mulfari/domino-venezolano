@@ -382,6 +382,7 @@ export function OpponentHand({
                     size="medium"
                     responsive
                     orientation={isVertical ? "horizontal" : "vertical"}
+                    teamBack={team}
                   />
                 </motion.div>
               );
