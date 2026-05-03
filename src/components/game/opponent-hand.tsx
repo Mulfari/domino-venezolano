@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { DominoTile } from "./tile";
 import { PassIndicator } from "./pass-indicator";
@@ -96,6 +97,17 @@ export function OpponentHand({
   const passCount = moveLog.filter(
     (e) => e.round === currentRound && e.seat === seat && e.type === "pass"
   ).length;
+
+  // Pip values this opponent is confirmed to lack (they passed when these were the open ends)
+  const knownMissingPips = useMemo(() => {
+    const missing = new Set<number>();
+    for (const entry of moveLog) {
+      if (entry.round !== currentRound || entry.seat !== seat || entry.type !== "pass") continue;
+      if (entry.passedOnLeft != null) missing.add(entry.passedOnLeft);
+      if (entry.passedOnRight != null) missing.add(entry.passedOnRight);
+    }
+    return [...missing].sort((a, b) => a - b);
+  }, [moveLog, currentRound, seat]);
   const maxDisplay = isMobile ? (isVertical ? 3 : 5) : MAX_DISPLAY;
   const displayCount = Math.min(tileCount, maxDisplay);
 
@@ -299,6 +311,51 @@ export function OpponentHand({
               >
                 {passCount}
               </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Known missing pips — pip values this opponent is confirmed to lack from their passes */}
+        <AnimatePresence>
+          {knownMissingPips.length > 0 && (
+            <motion.div
+              key={knownMissingPips.join(",")}
+              initial={{ opacity: 0, scale: 0.7 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.7 }}
+              transition={{ type: "spring", stiffness: 480, damping: 24 }}
+              className="flex flex-col items-center gap-0.5 shrink-0"
+              title={`No tiene: ${knownMissingPips.join(", ")}`}
+              aria-label={`Pips que no tiene: ${knownMissingPips.join(", ")}`}
+            >
+              <span
+                className="text-[7px] uppercase tracking-widest leading-none font-semibold"
+                style={{ color: "rgba(239,68,68,0.55)" }}
+              >
+                sin
+              </span>
+              <div className="flex items-center gap-0.5">
+                {knownMissingPips.map((pip) => (
+                  <motion.div
+                    key={pip}
+                    initial={{ opacity: 0, scale: 0.5 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ type: "spring", stiffness: 500, damping: 22 }}
+                    className="flex items-center justify-center rounded-full font-black tabular-nums leading-none"
+                    style={{
+                      width: isMobile ? 13 : 15,
+                      height: isMobile ? 13 : 15,
+                      fontSize: isMobile ? 7 : 8,
+                      background: "rgba(239,68,68,0.12)",
+                      border: "1px solid rgba(239,68,68,0.45)",
+                      color: "rgba(239,68,68,0.85)",
+                    }}
+                    aria-hidden="true"
+                  >
+                    {pip}
+                  </motion.div>
+                ))}
+              </div>
             </motion.div>
           )}
         </AnimatePresence>
