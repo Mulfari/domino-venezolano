@@ -23,7 +23,8 @@ export type GameEvent =
   | { type: "game_state_sync"; state: SerializedGameState }
   | { type: "chat_message"; player_id: string; display_name: string; message: string }
   | { type: "player_connected"; seat: number; display_name: string }
-  | { type: "player_disconnected"; seat: number };
+  | { type: "player_disconnected"; seat: number }
+  | { type: "emoji_reaction"; seat: number; emoji: string; id: string };
 
 export interface PresenceState {
   user_id: string;

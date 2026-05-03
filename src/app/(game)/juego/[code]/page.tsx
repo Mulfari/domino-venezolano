@@ -17,6 +17,7 @@ import { ChatPanel } from "@/components/chat/chat-panel";
 import { SoundToggle } from "@/components/game/sound-toggle";
 import { TileTracker } from "@/components/game/tile-tracker";
 import { MoveLog } from "@/components/game/move-log";
+import { EmojiReactions } from "@/components/game/emoji-reactions";
 import { RulesPanel } from "@/components/game/rules-panel";
 import { BoardEnds } from "@/components/game/board-ends";
 import { LandscapePrompt } from "@/components/game/landscape-prompt";
@@ -241,6 +242,7 @@ export default function GamePage() {
   const streakTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [cercaAlert, setCercaAlert] = useState<{ team: 0 | 1; remaining: number; isMyTeam: boolean } | null>(null);
   const cercaTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [incomingEmoji, setIncomingEmoji] = useState<{ id: string; seat: number; emoji: string } | null>(null);
   const autoPlaceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   // Ref so the auto-place effect can call handlePlayTile (defined later in the component)
   const handlePlayTileRef = useRef<((tile: Tile, end: "left" | "right") => Promise<void>) | null>(null);
@@ -714,6 +716,11 @@ export default function GamePage() {
           updatePlayerConnection(event.seat as Seat, false);
           break;
         }
+
+        case "emoji_reaction": {
+          setIncomingEmoji({ id: event.id, seat: event.seat, emoji: event.emoji });
+          break;
+        }
       }
     },
     [fetchGameState, setScores, setRoundResult, addRoundHistory, setGameState, updatePlayerConnection, reset, router, showPassIndicator]
@@ -722,7 +729,7 @@ export default function GamePage() {
   /* ---------------------------------------------------------------- */
   /*  Subscribe to realtime channel                                   */
   /* ---------------------------------------------------------------- */
-  useGameChannel({
+  const { broadcast } = useGameChannel({
     roomCode: roomCode ?? "",
     userId: userId ?? "",
     displayName,
@@ -1012,6 +1019,16 @@ export default function GamePage() {
           <MoveLog />
           <TileTracker />
           <RulesPanel />
+          <EmojiReactions
+            mySeat={mySeat}
+            players={players.map((p) => ({ seat: p.seat, displayName: p.displayName }))}
+            onSend={(emoji) => {
+              const id = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+              broadcast({ type: "emoji_reaction", seat: mySeat!, emoji, id });
+              setIncomingEmoji({ id, seat: mySeat!, emoji });
+            }}
+            incoming={incomingEmoji}
+          />
           <SoundToggle />
           {roomCode && (
             <motion.button
