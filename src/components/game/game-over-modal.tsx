@@ -456,7 +456,7 @@ function RoundEndView({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm px-4"
+      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/75 backdrop-blur-sm px-4 py-4"
       role="dialog"
       aria-modal="true"
       aria-labelledby="round-end-title"
@@ -912,7 +912,7 @@ function GameOverView({ scores, myTeam, team0Names, team1Names, roundHistory, pl
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md px-4"
+      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/85 backdrop-blur-md px-4 py-4"
       role="dialog"
       aria-modal="true"
       aria-labelledby="game-over-title"
