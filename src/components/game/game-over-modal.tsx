@@ -304,7 +304,7 @@ export function GameOverModal({ onNextRound, onBackToLobby, onRevancha }: GameOv
   const team1Names = teamPlayers(1);
 
   useEffect(() => {
-    if (!roundResult || gameOver || !onNextRound) {
+    if (!roundResult || gameOver) {
       setCountdown(AUTO_START_DELAY);
       hasTriggered.current = false;
       return;
@@ -317,7 +317,7 @@ export function GameOverModal({ onNextRound, onBackToLobby, onRevancha }: GameOv
       setCountdown((prev) => {
         if (prev <= 1) {
           if (countdownRef.current) clearInterval(countdownRef.current);
-          if (!hasTriggered.current) {
+          if (!hasTriggered.current && onNextRound) {
             hasTriggered.current = true;
             onNextRound();
           }
@@ -860,26 +860,19 @@ function RoundEndView({
           transition={{ delay: 0.9 }}
           className="mx-5 mb-6"
         >
-          {onNextRound ? (
-            <div className="space-y-2">
-              <div className="relative h-1.5 rounded-full bg-[#0f3520]/80 overflow-hidden">
-                <motion.div
-                  initial={{ width: "100%" }}
-                  animate={{ width: "0%" }}
-                  transition={{ duration: AUTO_START_DELAY, ease: "linear" }}
-                  className="absolute inset-y-0 left-0 bg-[#c9a84c]/60 rounded-full"
-                />
-              </div>
-              <p className="text-center text-xs text-[#a8c4a0]/55" aria-live="polite" aria-atomic="true">
-                Siguiente ronda en {countdown}s
-              </p>
+          <div className="space-y-2">
+            <div className="relative h-1.5 rounded-full bg-[#0f3520]/80 overflow-hidden">
+              <motion.div
+                initial={{ width: "100%" }}
+                animate={{ width: "0%" }}
+                transition={{ duration: AUTO_START_DELAY, ease: "linear" }}
+                className="absolute inset-y-0 left-0 bg-[#c9a84c]/60 rounded-full"
+              />
             </div>
-          ) : (
-            <div className="flex items-center justify-center gap-2">
-              <div className="h-1.5 w-1.5 rounded-full bg-[#c9a84c] animate-pulse" />
-              <p className="text-sm text-[#a8c4a0]">Esperando al host…</p>
-            </div>
-          )}
+            <p className="text-center text-xs text-[#a8c4a0]/55" aria-live="polite" aria-atomic="true">
+              Siguiente ronda en {countdown}s
+            </p>
+          </div>
         </motion.div>
       </motion.div>
       )}
@@ -1382,7 +1375,7 @@ function GameOverView({ scores, myTeam, team0Names, team1Names, roundHistory, pl
           transition={{ delay: 1.4 }}
           className="mx-5 mb-7 flex flex-col gap-2"
         >
-          {onRevancha && (
+          {onRevancha ? (
             <button
               onClick={onRevancha}
               autoFocus
@@ -1392,6 +1385,11 @@ function GameOverView({ scores, myTeam, team0Names, team1Names, roundHistory, pl
               <span>🔄</span>
               <span>¡Revancha!</span>
             </button>
+          ) : (
+            <div className="flex items-center justify-center gap-2 py-2">
+              <div className="h-1.5 w-1.5 rounded-full bg-[#c9a84c] animate-pulse" />
+              <p className="text-sm text-[#a8c4a0]/70">El host decide si hay revancha</p>
+            </div>
           )}
           <button
             onClick={onBackToLobby}
