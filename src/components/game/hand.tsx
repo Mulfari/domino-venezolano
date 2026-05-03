@@ -879,6 +879,74 @@ export function Hand({ onPlayTile, onPass, disabled = false }: HandProps) {
         </div>
       )}
 
+      {/* Pip distribution — compact row showing tile count per pip value (0-6) */}
+      {myHand.length >= 2 && board.plays.length > 0 && (
+        <div className="flex items-center gap-0.5 sm:gap-1" role="group" aria-label="Distribución de palos">
+          {[0, 1, 2, 3, 4, 5, 6].map((pip) => {
+            const count = myHand.filter((t) => t[0] === pip || t[1] === pip).length;
+            const isLeftEnd = board.left === pip;
+            const isRightEnd = board.right === pip;
+            const isEndMatch = isLeftEnd || isRightEnd;
+            const isStrong = count >= 3;
+            const isEmpty = count === 0;
+
+            return (
+              <div
+                key={pip}
+                className="flex flex-col items-center gap-0.5"
+                aria-label={`Palo ${pip}: ${count} ficha${count !== 1 ? "s" : ""}${isEndMatch ? ", extremo del tablero" : ""}${isStrong ? ", palo fuerte" : ""}`}
+              >
+                <div
+                  className="flex items-center justify-center rounded-md text-[9px] sm:text-[10px] font-black tabular-nums leading-none"
+                  style={{
+                    width: 22,
+                    height: 22,
+                    background: isEndMatch && count > 0
+                      ? "rgba(201,168,76,0.18)"
+                      : isEmpty
+                      ? "rgba(0,0,0,0.15)"
+                      : "rgba(0,0,0,0.25)",
+                    border: `1px solid ${
+                      isEndMatch && count > 0
+                        ? "rgba(201,168,76,0.65)"
+                        : isStrong
+                        ? "rgba(56,220,160,0.4)"
+                        : isEmpty
+                        ? "rgba(245,240,232,0.06)"
+                        : "rgba(245,240,232,0.12)"
+                    }`,
+                    color: isEndMatch && count > 0
+                      ? "#c9a84c"
+                      : isStrong
+                      ? "#38dca0"
+                      : isEmpty
+                      ? "rgba(245,240,232,0.15)"
+                      : "rgba(245,240,232,0.55)",
+                    boxShadow: isEndMatch && count > 0
+                      ? "0 0 6px rgba(201,168,76,0.3)"
+                      : undefined,
+                  }}
+                >
+                  {count}
+                </div>
+                <span
+                  className="text-[7px] font-bold tabular-nums leading-none"
+                  style={{
+                    color: isEndMatch
+                      ? "rgba(201,168,76,0.7)"
+                      : isEmpty
+                      ? "rgba(245,240,232,0.12)"
+                      : "rgba(245,240,232,0.3)",
+                  }}
+                >
+                  {pip}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
       {/* End-selection buttons — shown when a tile is selected and both ends are valid */}
       <AnimatePresence>
         {awaitingEndChoice && selectedTile && (
