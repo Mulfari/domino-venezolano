@@ -442,6 +442,60 @@ function PipBalance({ team0Pips, team1Pips, myTeam }: { team0Pips: number; team1
   );
 }
 
+function ScoreGap({ scores, myTeam }: { scores: { 0: number; 1: number }; myTeam: 0 | 1 | null }) {
+  const gap = Math.abs(scores[0] - scores[1]);
+  if (gap === 0) return (
+    <div className="flex items-center justify-center gap-2 py-0.5" aria-label="Marcador empatado">
+      <div className="flex-1 h-px" style={{ background: "rgba(168,196,160,0.12)" }} />
+      <span className="text-[8px] uppercase tracking-widest font-semibold" style={{ color: "rgba(168,196,160,0.35)" }}>
+        iguales
+      </span>
+      <div className="flex-1 h-px" style={{ background: "rgba(168,196,160,0.12)" }} />
+    </div>
+  );
+
+  const leader: 0 | 1 = scores[0] > scores[1] ? 0 : 1;
+  const leaderColor = leader === 0 ? "#c9a84c" : "#4ca8c9";
+  const leaderColorSubtle = leader === 0 ? "rgba(201,168,76,0.18)" : "rgba(76,168,201,0.18)";
+  const leaderColorBorder = leader === 0 ? "rgba(201,168,76,0.4)" : "rgba(76,168,201,0.4)";
+  const isMyTeamLeading = myTeam === leader;
+
+  return (
+    <motion.div
+      key={gap}
+      initial={{ opacity: 0, scale: 0.85 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ type: "spring", stiffness: 420, damping: 26 }}
+      className="flex items-center justify-center gap-2 py-0.5"
+      aria-label={`Diferencia: ${gap} puntos, equipo ${leader + 1} va adelante`}
+    >
+      <div className="flex-1 h-px" style={{ background: `linear-gradient(90deg, transparent, ${leaderColorBorder})` }} />
+      <div
+        className="flex items-center gap-1.5 rounded-full px-2.5 py-0.5"
+        style={{ background: leaderColorSubtle, border: `1px solid ${leaderColorBorder}` }}
+      >
+        <motion.span
+          key={gap}
+          initial={{ scale: 1.5 }}
+          animate={{ scale: 1 }}
+          transition={{ type: "spring", stiffness: 500, damping: 20 }}
+          className="text-[11px] font-black tabular-nums leading-none"
+          style={{ color: leaderColor, textShadow: `0 0 8px ${leaderColorBorder}` }}
+        >
+          +{gap}
+        </motion.span>
+        <span
+          className="text-[8px] font-semibold uppercase tracking-widest leading-none"
+          style={{ color: `${leaderColor}99` }}
+        >
+          {isMyTeamLeading ? "ventaja" : "desventaja"}
+        </span>
+      </div>
+      <div className="flex-1 h-px" style={{ background: `linear-gradient(90deg, ${leaderColorBorder}, transparent)` }} />
+    </motion.div>
+  );
+}
+
 export function ScorePanel() {
   const scores = useGameStore((s) => s.scores);
   const round = useGameStore((s) => s.round);
@@ -589,19 +643,27 @@ export function ScorePanel() {
 
         {/* Team cards */}
         <div className="flex flex-col gap-2 p-3">
-          {([0, 1] as const).map((teamIdx) => (
-            <TeamCard
-              key={teamIdx}
-              teamIdx={teamIdx}
-              score={scores[teamIdx]}
-              targetScore={targetScore}
-              isMyTeam={myTeam === teamIdx}
-              seats={teamIdx === 0 ? [0, 2] : [1, 3]}
-              players={players}
-              firstSeat={firstSeat}
-              streak={getStreak(roundHistory, teamIdx)}
-            />
-          ))}
+          <TeamCard
+            teamIdx={0}
+            score={scores[0]}
+            targetScore={targetScore}
+            isMyTeam={myTeam === 0}
+            seats={[0, 2]}
+            players={players}
+            firstSeat={firstSeat}
+            streak={getStreak(roundHistory, 0)}
+          />
+          <ScoreGap scores={scores} myTeam={myTeam} />
+          <TeamCard
+            teamIdx={1}
+            score={scores[1]}
+            targetScore={targetScore}
+            isMyTeam={myTeam === 1}
+            seats={[1, 3]}
+            players={players}
+            firstSeat={firstSeat}
+            streak={getStreak(roundHistory, 1)}
+          />
 
           <AnimatePresence>
             {showPipBalance && (
