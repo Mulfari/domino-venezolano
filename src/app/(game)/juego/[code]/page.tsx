@@ -35,6 +35,7 @@ import { SeatMap } from "@/components/game/seat-map";
 import { RoundProgress } from "@/components/game/round-progress";
 import { PlayerSeat } from "@/components/game/player-seat";
 import { useGameChannel } from "@/hooks/use-game-channel";
+import { useDocumentTitle } from "@/hooks/use-document-title";
 import { useGameStore } from "@/stores/game-store";
 import { playTilePlace, playPass, playYourTurn, playVictory, playDefeat, playGameOver, playGameOverDefeat, playCapicua, playUnaFicha, playDosFichas, playShuffle, playDouble, playStreak, playCochina, playTimeout, playTrancado, playVaADominar, playCerca } from "@/lib/sounds/sound-engine";
 import { hapticYourTurn, hapticPlay, hapticPass, hapticVictory, hapticDefeat, hapticCapicua, hapticCochina, hapticGameOverWin, hapticGameOverLoss } from "@/lib/haptics/haptics";
@@ -201,6 +202,9 @@ export default function GamePage() {
   const params = useParams<{ code: string }>();
   const router = useRouter();
   const gameId = params.code; // The [code] param is actually the game UUID
+
+  /* ---- Dynamic browser tab title ---- */
+  useDocumentTitle();
 
   /* ---- Local UI state ---- */
   const [loading, setLoading] = useState(true);
