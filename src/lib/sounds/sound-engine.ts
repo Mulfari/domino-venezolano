@@ -7,14 +7,19 @@ function getCtx(): AudioContext {
 }
 
 let _muted = typeof window !== "undefined" && localStorage.getItem("domino_muted") === "true";
-let _volume = 0.5;
+let _volume = typeof window !== "undefined"
+  ? parseFloat(localStorage.getItem("domino_volume") ?? "0.5")
+  : 0.5;
 
 export function setMuted(m: boolean) {
   _muted = m;
   if (typeof window !== "undefined") localStorage.setItem("domino_muted", String(m));
 }
 export function isMuted() { return _muted; }
-export function setVolume(v: number) { _volume = Math.max(0, Math.min(1, v)); }
+export function setVolume(v: number) {
+  _volume = Math.max(0, Math.min(1, v));
+  if (typeof window !== "undefined") localStorage.setItem("domino_volume", String(_volume));
+}
 export function getVolume() { return _volume; }
 
 function gain(ctx: AudioContext, v: number): GainNode {
