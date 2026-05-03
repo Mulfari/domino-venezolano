@@ -334,6 +334,7 @@ export default function GamePage() {
     const isCapicua = board.left !== null && board.left === board.right && board.plays.length > 1;
     if (isCapicua && !prevCapicuaRef.current) {
       playCapicua();
+      hapticCapicua();
       // Find who played the last tile (the capicúa maker)
       const lastPlay = board.plays[board.plays.length - 1];
       const capicuaPlayer = lastPlay
@@ -357,6 +358,7 @@ export default function GamePage() {
     prevFirstPlayRef.current = key;
     if (firstPlay.tile[0] === 6 && firstPlay.tile[1] === 6) {
       playCochina();
+      hapticCochina();
       const name = players.find((p) => p.seat === firstPlay.seat)?.displayName ?? `Jugador ${firstPlay.seat + 1}`;
       if (cochinaTimerRef.current) clearTimeout(cochinaTimerRef.current);
       setCochinaAlert({ name });
