@@ -902,6 +902,35 @@ interface GameOverViewProps {
   onRevancha?: () => void;
 }
 
+function computeMVP(
+  players: { seat: Seat; displayName: string }[],
+  moveLog: import("@/stores/game-store").MoveLogEntry[],
+  winnerTeam: 0 | 1,
+) {
+  const stats = ([0, 1, 2, 3] as const).map((seat) => {
+    const plays = moveLog.filter((e) => e.seat === seat && e.type === "play");
+    const passes = moveLog.filter((e) => e.seat === seat && e.type === "pass").length;
+    const doubles = plays.filter((e) => e.tile && e.tile[0] === e.tile[1]).length;
+    const pips = plays.reduce((s, e) => s + (e.tile ? e.tile[0] + e.tile[1] : 0), 0);
+    const isWinner = (seat % 2) === winnerTeam;
+    // Score: tiles played (×3) + doubles (×2) + pip contribution (×0.1) − passes (×2) + winner bonus
+    const score = plays.length * 3 + doubles * 2 + pips * 0.1 - passes * 2 + (isWinner ? 4 : 0);
+    return { seat, score, plays: plays.length, doubles, passes, pips };
+  });
+  stats.sort((a, b) => b.score - a.score);
+  const best = stats[0];
+  const player = players.find((p) => p.seat === best.seat);
+  return {
+    seat: best.seat as Seat,
+    name: player?.displayName ?? `Jugador ${best.seat + 1}`,
+    plays: best.plays,
+    doubles: best.doubles,
+    passes: best.passes,
+    pips: best.pips,
+    team: (best.seat % 2) as 0 | 1,
+  };
+}
+
 function GameOverView({ scores, myTeam, team0Names, team1Names, roundHistory, players, moveLog, onBackToLobby, onRevancha }: GameOverViewProps) {
   const winnerTeam: 0 | 1 = scores[0] >= scores[1] ? 0 : 1;
   const loserTeam: 0 | 1 = winnerTeam === 0 ? 1 : 0;
@@ -910,6 +939,8 @@ function GameOverView({ scores, myTeam, team0Names, team1Names, roundHistory, pl
   const roundsWon0 = roundHistory.filter((e) => e.winner_team === 0).length;
   const roundsWon1 = roundHistory.filter((e) => e.winner_team === 1).length;
   const totalRounds = roundHistory.length;
+
+  const mvp = moveLog.length > 0 ? computeMVP(players, moveLog, winnerTeam) : null;
 
   const teamLabel = (team: 0 | 1) => {
     const names = team === 0 ? team0Names : team1Names;
@@ -1259,6 +1290,87 @@ function GameOverView({ scores, myTeam, team0Names, team1Names, roundHistory, pl
                   </div>
                 );
               })}
+            </div>
+          </motion.div>
+        )}
+
+        {/* MVP highlight */}
+        {mvp && (
+          <motion.div
+            initial={{ opacity: 0, y: 12, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ delay: 1.65, type: "spring", stiffness: 300, damping: 22 }}
+            className="mx-5 mb-4"
+          >
+            <p className="text-[9px] uppercase tracking-widest text-[#a8c4a0]/40 mb-2 text-center">
+              Jugador más valioso
+            </p>
+            <div
+              className="relative rounded-xl border overflow-hidden"
+              style={{
+                background: mvp.team === 0
+                  ? "linear-gradient(135deg, rgba(201,168,76,0.12) 0%, rgba(201,168,76,0.04) 100%)"
+                  : "linear-gradient(135deg, rgba(76,168,201,0.12) 0%, rgba(76,168,201,0.04) 100%)",
+                borderColor: mvp.team === 0 ? "rgba(201,168,76,0.45)" : "rgba(76,168,201,0.45)",
+                boxShadow: mvp.team === 0
+                  ? "0 0 20px rgba(201,168,76,0.15), inset 0 0 20px rgba(201,168,76,0.06)"
+                  : "0 0 20px rgba(76,168,201,0.15), inset 0 0 20px rgba(76,168,201,0.06)",
+              }}
+            >
+              <div className="flex items-center gap-3 px-4 py-3">
+                <motion.div
+                  initial={{ scale: 0, rotate: -20 }}
+                  animate={{ scale: [0, 1.3, 0.9, 1], rotate: [-20, 10, -5, 0] }}
+                  transition={{ delay: 1.85, duration: 0.6, ease: "easeOut" }}
+                  className="text-3xl leading-none shrink-0"
+                  aria-hidden="true"
+                >
+                  ⭐
+                </motion.div>
+                <div className="flex flex-col gap-1 min-w-0 flex-1">
+                  <div className="flex items-center gap-2">
+                    <span
+                      className="text-[14px] font-black leading-none truncate"
+                      style={{
+                        color: mvp.team === 0 ? "#c9a84c" : "#4ca8c9",
+                        textShadow: mvp.team === 0
+                          ? "0 0 12px rgba(201,168,76,0.5)"
+                          : "0 0 12px rgba(76,168,201,0.5)",
+                      }}
+                    >
+                      {mvp.name}
+                    </span>
+                    <span
+                      className="text-[8px] font-bold uppercase tracking-widest px-1.5 py-0.5 rounded-full shrink-0"
+                      style={{
+                        color: mvp.team === 0 ? "rgba(201,168,76,0.8)" : "rgba(76,168,201,0.8)",
+                        background: mvp.team === 0 ? "rgba(201,168,76,0.12)" : "rgba(76,168,201,0.12)",
+                        border: `1px solid ${mvp.team === 0 ? "rgba(201,168,76,0.3)" : "rgba(76,168,201,0.3)"}`,
+                      }}
+                    >
+                      MVP
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-3 flex-wrap">
+                    <span className="text-[10px] text-[#f5f0e8]/60">
+                      <span className="font-bold text-[#f5f0e8]/80">{mvp.plays}</span> jugadas
+                    </span>
+                    {mvp.doubles > 0 && (
+                      <span className="text-[10px] text-[#f5f0e8]/60">
+                        <span className="font-bold text-[#c9a84c]/80">{mvp.doubles}</span> dobles
+                      </span>
+                    )}
+                    <span className="text-[10px] text-[#f5f0e8]/60">
+                      <span className="font-bold text-[#f5f0e8]/80">{mvp.pips}</span> pts
+                    </span>
+                    {mvp.passes > 0 && (
+                      <span className="text-[10px] text-[#fb923c]/60">
+                        <span className="font-bold text-[#fb923c]/80">{mvp.passes}</span> pases
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
             </div>
           </motion.div>
         )}
