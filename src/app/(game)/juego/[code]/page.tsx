@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useParams, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -76,6 +76,89 @@ function getRelativeSeats(mySeat: Seat): {
     top: ((mySeat + 2) % 4) as Seat,
     left: ((mySeat + 3) % 4) as Seat,
   };
+}
+
+/* ------------------------------------------------------------------ */
+/*  Mini confetti burst for round-win transition                      */
+/* ------------------------------------------------------------------ */
+const ROUND_CONFETTI_COLORS = ["#c9a84c", "#f5f0e8", "#4caf50", "#ffb74d", "#64b5f6", "#ce93d8", "#fff176"];
+
+function RoundConfetti({ active }: { active: boolean }) {
+  const particles = useMemo(() => {
+    if (!active) return [];
+    return Array.from({ length: 38 }, (_, i) => {
+      const angle = (i / 38) * Math.PI * 2;
+      const isFalling = i < 20;
+      return {
+        id: i,
+        color: ROUND_CONFETTI_COLORS[i % ROUND_CONFETTI_COLORS.length],
+        size: isFalling ? 5 + Math.random() * 7 : 4 + Math.random() * 6,
+        duration: isFalling ? 1.4 + Math.random() * 1.2 : 0.8 + Math.random() * 0.6,
+        delay: isFalling ? Math.random() * 0.6 : Math.random() * 0.2,
+        // Falling particles
+        x: isFalling ? 10 + Math.random() * 80 : 50,
+        startY: isFalling ? -8 - Math.random() * 20 : 50,
+        drift: (Math.random() - 0.5) * 120,
+        rotate: Math.random() * 540 - 270,
+        shape: (i % 3 === 0 ? "circle" : i % 3 === 1 ? "strip" : "rect") as "circle" | "strip" | "rect",
+        // Burst particles
+        isBurst: !isFalling,
+        angle,
+        radius: 80 + Math.random() * 120,
+      };
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [active]);
+
+  if (!active) return null;
+
+  return (
+    <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-2xl z-10" aria-hidden="true">
+      {particles.map((p) => {
+        const w = p.shape === "strip" ? p.size * 0.4 : p.size;
+        const h = p.shape === "strip" ? p.size * 2.2 : p.size;
+
+        if (p.isBurst) {
+          const tx = Math.cos(p.angle) * p.radius;
+          const ty = Math.sin(p.angle) * p.radius;
+          return (
+            <motion.div
+              key={p.id}
+              initial={{ x: "50%", y: "50%", opacity: 1, rotate: 0, scale: 1 }}
+              animate={{ x: `calc(50% + ${tx}px)`, y: `calc(50% + ${ty}px)`, opacity: 0, rotate: p.rotate, scale: 0.3 }}
+              transition={{ duration: p.duration, delay: p.delay, ease: "easeOut" }}
+              style={{
+                position: "absolute",
+                width: w,
+                height: h,
+                borderRadius: p.shape === "circle" ? "50%" : 2,
+                backgroundColor: p.color,
+                translateX: "-50%",
+                translateY: "-50%",
+              }}
+            />
+          );
+        }
+
+        return (
+          <motion.div
+            key={p.id}
+            initial={{ x: `${p.x}%`, y: `${p.startY}%`, opacity: 1, rotate: 0 }}
+            animate={{ x: `calc(${p.x}% + ${p.drift}px)`, y: "110%", opacity: 0, rotate: p.rotate }}
+            transition={{ duration: p.duration, delay: p.delay, ease: "easeIn" }}
+            style={{
+              position: "absolute",
+              width: w,
+              height: h,
+              borderRadius: p.shape === "circle" ? "50%" : 2,
+              backgroundColor: p.color,
+              translateX: "-50%",
+            }}
+          />
+        );
+      })}
+    </div>
+  );
 }
 
 /* ------------------------------------------------------------------ */
@@ -987,8 +1070,16 @@ export default function GamePage() {
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 1.04, opacity: 0, y: -12 }}
               transition={{ type: "spring", stiffness: 260, damping: 22, delay: 0.05 }}
-              className="flex flex-col items-center gap-3"
+              className="relative flex flex-col items-center gap-3"
             >
+              {/* Mini confetti burst when local team wins the round */}
+              <RoundConfetti active={
+                transitionWinner !== null &&
+                transitionWinner.team !== null &&
+                mySeat !== null &&
+                transitionWinner.team === (mySeat % 2)
+              } />
+
               {/* Winner badge */}
               {transitionWinner && (
                 <motion.div
