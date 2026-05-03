@@ -750,6 +750,82 @@ export function Hand({ onPlayTile, onPass, disabled = false }: HandProps) {
               );
             })()}
           </AnimatePresence>
+
+          {/* Keyboard shortcuts "?" button */}
+          <div className="relative" ref={shortcutsRef}>
+            <motion.button
+              whileTap={{ scale: 0.9 }}
+              onClick={() => setShowShortcuts((v) => !v)}
+              aria-label="Ver atajos de teclado"
+              aria-expanded={showShortcuts}
+              className="hidden sm:flex items-center justify-center rounded-full w-6 h-6 transition-colors"
+              style={{
+                background: showShortcuts ? "rgba(201,168,76,0.15)" : "rgba(0,0,0,0.22)",
+                border: `1px solid ${showShortcuts ? "rgba(201,168,76,0.45)" : "rgba(245,240,232,0.12)"}`,
+              }}
+            >
+              <span
+                className="text-[10px] font-black leading-none"
+                style={{ color: showShortcuts ? "#c9a84c" : "rgba(245,240,232,0.4)" }}
+              >
+                ?
+              </span>
+            </motion.button>
+
+            <AnimatePresence>
+              {showShortcuts && (
+                <motion.div
+                  key="shortcuts-popover"
+                  initial={{ opacity: 0, y: 8, scale: 0.92 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 6, scale: 0.94 }}
+                  transition={{ type: "spring", stiffness: 420, damping: 26 }}
+                  className="absolute bottom-full mb-2 right-0 z-50 rounded-xl border shadow-2xl overflow-hidden"
+                  style={{
+                    background: "linear-gradient(160deg, #2a1a08 0%, #1a1008 100%)",
+                    borderColor: "rgba(201,168,76,0.3)",
+                    boxShadow: "0 8px 32px rgba(0,0,0,0.7), 0 0 0 1px rgba(201,168,76,0.08)",
+                    minWidth: 200,
+                  }}
+                  role="tooltip"
+                  aria-label="Atajos de teclado"
+                >
+                  <div className="px-3 py-2 border-b" style={{ borderColor: "rgba(201,168,76,0.15)" }}>
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-[#c9a84c]">
+                      Atajos de teclado
+                    </span>
+                  </div>
+                  <div className="px-3 py-2 flex flex-col gap-1.5">
+                    {[
+                      { key: "1 – 7", desc: "Seleccionar ficha" },
+                      { key: "← →", desc: "Elegir extremo" },
+                      { key: "P", desc: "Pasar turno" },
+                      { key: "H", desc: "Pista (mejor jugada)" },
+                      { key: "S", desc: "Cambiar orden" },
+                      { key: "Esc", desc: "Deseleccionar" },
+                    ].map(({ key, desc }) => (
+                      <div key={key} className="flex items-center justify-between gap-4">
+                        <kbd
+                          className="text-[9px] font-black tabular-nums px-1.5 py-0.5 rounded"
+                          style={{
+                            background: "rgba(201,168,76,0.12)",
+                            border: "1px solid rgba(201,168,76,0.3)",
+                            color: "#c9a84c",
+                            fontFamily: "monospace",
+                          }}
+                        >
+                          {key}
+                        </kbd>
+                        <span className="text-[10px] text-[#f5f0e8]/60 leading-none text-right">
+                          {desc}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
         </div>
       )}
 
