@@ -889,14 +889,20 @@ export function Board({ onPlaceEnd, clearing = false }: BoardProps) {
                     return (
                       <motion.g
                         key={pt.key}
-                        initial={isNew ? {
-                          scale: 0.7,
-                          opacity: 0,
-                          x: lastPlayEnd === "left" ? -28 : lastPlayEnd === "right" ? 28 : 0,
-                        } : false}
-                        animate={isNew ? { scale: 1, opacity: 1, x: 0 } : undefined}
+                        initial={isNew ? (() => {
+                          let dx = 0, dy = 0;
+                          if (lastPlayedSeat !== null && mySeat !== null) {
+                            const rel = ((lastPlayedSeat - mySeat + 4) % 4) as 0 | 1 | 2 | 3;
+                            if (rel === 0) { dy = 35; }
+                            else if (rel === 1) { dx = 35; }
+                            else if (rel === 2) { dy = -35; }
+                            else { dx = -35; }
+                          }
+                          return { scale: 0.65, opacity: 0, x: dx, y: dy };
+                        })() : false}
+                        animate={isNew ? { scale: 1, opacity: 1, x: 0, y: 0 } : undefined}
                         exit={clearing ? { scale: 0, opacity: 0, transition: { duration: 0.25, delay: exitDelay, ease: "easeIn" } } : undefined}
-                        transition={isNew ? { type: "spring", stiffness: 340, damping: 22 } : undefined}
+                        transition={isNew ? { type: "spring", stiffness: 320, damping: 20 } : undefined}
                         style={{ transformOrigin: `${pt.x}px ${pt.y}px` }}
                       >
                         {/* Shockwave ripple + glow — one-shot radial burst when a tile is placed */}
