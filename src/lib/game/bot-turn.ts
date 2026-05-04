@@ -42,8 +42,9 @@ export async function processBotTurns(gameId: string) {
     };
 
     const botHand = allHands[currentSeat];
+    const handCounts = allHands.map((h) => h.length);
     const mustPlayDouble6 = (game.round_number ?? 1) === 1 && board.plays.length === 0;
-    const move = chooseBotMove(botHand, board, mustPlayDouble6, currentSeat);
+    const move = chooseBotMove(botHand, board, mustPlayDouble6, currentSeat, handCounts);
 
     let newState: GameState;
     let eventPayload: Record<string, unknown>;
