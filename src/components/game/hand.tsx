@@ -522,6 +522,51 @@ export function Hand({ onPlayTile, onPass, disabled = false }: HandProps) {
         )}
       </AnimatePresence>
 
+      {/* "Vas a pasar" pre-warning — shown while waiting when no tiles match the board */}
+      <AnimatePresence>
+        {noPlayableOnWait && (
+          <motion.div
+            key="vas-a-pasar"
+            initial={{ opacity: 0, y: 8, scale: 0.88 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 4, scale: 0.92 }}
+            transition={{ type: "spring", stiffness: 420, damping: 24 }}
+            className="flex items-center gap-2 rounded-full px-3.5 py-1.5 pointer-events-none"
+            style={{
+              background: "linear-gradient(135deg, #2a1208 0%, #1a0a04 100%)",
+              border: "1px solid rgba(251,146,60,0.5)",
+              boxShadow: "0 0 14px rgba(251,146,60,0.15), 0 2px 8px rgba(0,0,0,0.5)",
+            }}
+            role="status"
+            aria-live="polite"
+            aria-label="No tienes fichas que jugar — vas a pasar"
+          >
+            <motion.svg
+              width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"
+              animate={{ rotate: [0, 10, -10, 0] }}
+              transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+            >
+              <path d="M7 1.5L12.5 11.5H1.5L7 1.5Z" stroke="#fb923c" strokeWidth="1.3" strokeLinejoin="round" fill="none"/>
+              <line x1="7" y1="5.5" x2="7" y2="8" stroke="#fb923c" strokeWidth="1.3" strokeLinecap="round"/>
+              <circle cx="7" cy="9.5" r="0.7" fill="#fb923c"/>
+            </motion.svg>
+            <div className="flex flex-col leading-tight">
+              <motion.span
+                className="text-[10px] sm:text-[11px] font-black uppercase tracking-widest leading-none"
+                style={{ color: "#fb923c", textShadow: "0 0 8px rgba(251,146,60,0.5)" }}
+                animate={{ opacity: [1, 0.65, 1] }}
+                transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+              >
+                Vas a pasar
+              </motion.span>
+              <span className="text-[8px] sm:text-[9px] text-[#f5f0e8]/45 leading-none mt-0.5">
+                sin fichas que jugar
+              </span>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Pass button — prominent tap target when no valid moves exist */}
       <AnimatePresence>
         {isMyTurn && canPass && validMoves.length === 0 && (
