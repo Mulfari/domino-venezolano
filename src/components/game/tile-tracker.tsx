@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useGameStore } from "@/stores/game-store";
-import type { Tile } from "@/lib/game/types";
+import type { Tile, Seat } from "@/lib/game/types";
 
 // All 28 tiles in a standard double-6 set
 const ALL_TILES: Tile[] = [];
@@ -23,8 +23,11 @@ function tilesMatch(a: Tile, b: Tile) {
 
 type TileStatus = "played" | "mine" | "playable" | "unknown";
 
+/** How many opponents (out of 3) are known NOT to hold this tile, based on pass inference. */
+type EliminationInfo = { count: number; seats: Seat[] };
+
 // Tiny inline pip renderer for the tracker grid
-function MiniTile({ tile, status }: { tile: Tile; status: TileStatus }) {
+function MiniTile({ tile, status, elimination }: { tile: Tile; status: TileStatus; elimination?: EliminationInfo }) {
   const W = 22;
   const H = 40;
   const half = H / 2;
@@ -65,6 +68,8 @@ function MiniTile({ tile, status }: { tile: Tile; status: TileStatus }) {
     ));
   }
 
+  const showElim = elimination && elimination.count > 0 && (status === "unknown" || status === "playable");
+
   return (
     <svg
       width={W} height={H}
@@ -76,6 +81,14 @@ function MiniTile({ tile, status }: { tile: Tile; status: TileStatus }) {
       <line x1={2} y1={half} x2={W - 2} y2={half} stroke={borderColor} strokeWidth={0.8} />
       {pips(tile[0], 0)}
       {pips(tile[1], half)}
+      {/* Elimination dots — one per opponent who can't hold this tile */}
+      {showElim && (
+        <>
+          {elimination.count >= 1 && <circle cx={W - 4} cy={H - 4} r={2} fill="#e85454" fillOpacity={0.9} />}
+          {elimination.count >= 2 && <circle cx={W - 4} cy={H - 9} r={2} fill="#e85454" fillOpacity={0.9} />}
+          {elimination.count >= 3 && <circle cx={W - 4} cy={H - 14} r={2} fill="#e85454" fillOpacity={0.9} />}
+        </>
+      )}
     </svg>
   );
 }
@@ -168,6 +181,9 @@ export function TileTracker() {
   const hands = useGameStore((s) => s.hands);
   const mySeat = useGameStore((s) => s.mySeat);
   const status = useGameStore((s) => s.status);
+  const moveLog = useGameStore((s) => s.moveLog);
+  const round = useGameStore((s) => s.round);
+  const players = useGameStore((s) => s.players);
 
   // Close panel when clicking outside the component
   useEffect(() => {
@@ -180,6 +196,35 @@ export function TileTracker() {
     document.addEventListener("pointerdown", onPointerDown);
     return () => document.removeEventListener("pointerdown", onPointerDown);
   }, [open]);
+
+  // Pass inference: for each opponent, collect which pips they're known to lack
+  // When a player passes, they had no tiles matching either board end at that moment
+  const passInference = useMemo(() => {
+    const missingPips: Record<number, Set<number>> = { 0: new Set(), 1: new Set(), 2: new Set(), 3: new Set() };
+    const currentRoundEntries = moveLog.filter((e) => e.round === round);
+    for (const entry of currentRoundEntries) {
+      if (entry.type !== "pass") continue;
+      if (entry.passedOnLeft != null) missingPips[entry.seat].add(entry.passedOnLeft);
+      if (entry.passedOnRight != null && entry.passedOnRight !== entry.passedOnLeft) {
+        missingPips[entry.seat].add(entry.passedOnRight);
+      }
+    }
+    return missingPips;
+  }, [moveLog, round]);
+
+  // For a given unknown/playable tile, which opponents can't hold it?
+  function getElimination(tile: Tile): EliminationInfo {
+    if (mySeat === null) return { count: 0, seats: [] };
+    const eliminated: Seat[] = [];
+    for (let s = 0; s < 4; s++) {
+      if (s === mySeat) continue;
+      const missing = passInference[s];
+      if (missing.size === 0) continue;
+      if (!missing.has(tile[0]) && !missing.has(tile[1])) continue;
+      eliminated.push(s as Seat);
+    }
+    return { count: eliminated.length, seats: eliminated };
+  }
 
   if (status !== "playing") return null;
 
@@ -205,6 +250,11 @@ export function TileTracker() {
   const playedCount = ALL_TILES.filter((t) => getStatus(t) === "played").length;
   const unknownCount = ALL_TILES.filter((t) => getStatus(t) === "unknown").length;
   const playableCount = ALL_TILES.filter((t) => getStatus(t) === "playable").length;
+
+  // Count how many opponents have pass inference data
+  const opponentsWithInference = mySeat !== null
+    ? ([0, 1, 2, 3] as Seat[]).filter((s) => s !== mySeat && passInference[s].size > 0)
+    : [];
 
   // Group by higher value (0s row, 1s row, ..., 6s row)
   const rows: Tile[][] = Array.from({ length: 7 }, (_, i) =>
@@ -304,6 +354,12 @@ export function TileTracker() {
                   <span className="w-2 h-2 rounded-sm inline-block" style={{ background: "#2a2a2a", opacity: 0.5 }} />
                   <span className="text-[#a8c4a0]/60">jugada</span>
                 </span>
+                {opponentsWithInference.length > 0 && (
+                  <span className="flex items-center gap-1">
+                    <span className="w-2 h-2 rounded-full inline-block" style={{ background: "#e85454" }} />
+                    <span style={{ color: "rgba(232,84,84,0.7)" }}>descartada</span>
+                  </span>
+                )}
               </div>
 
               {/* Board ends hint */}
@@ -355,14 +411,18 @@ export function TileTracker() {
                     <div className="flex gap-1">
                       {row.map((tile) => {
                         const s = getStatus(tile);
+                        const elim = (s === "unknown" || s === "playable") ? getElimination(tile) : undefined;
+                        const elimLabel = elim && elim.count > 0
+                          ? ` — ${elim.count} oponente${elim.count > 1 ? "s" : ""} no la tiene${elim.count > 1 ? "n" : ""}`
+                          : "";
                         const statusLabel =
                           s === "played"   ? "jugada" :
                           s === "mine"     ? "en tu mano" :
-                          s === "playable" ? "oculta — encaja con el tablero" :
-                          "desconocida";
+                          s === "playable" ? "oculta — encaja con el tablero" + elimLabel :
+                          "desconocida" + elimLabel;
                         return (
                           <div key={tileKey(tile)} title={`${tile[0]}-${tile[1]}: ${statusLabel}`}>
-                            <MiniTile tile={tile} status={s} />
+                            <MiniTile tile={tile} status={s} elimination={elim} />
                           </div>
                         );
                       })}
@@ -370,6 +430,68 @@ export function TileTracker() {
                   </div>
                 ))}
               </div>
+
+              {/* Pass inference — opponent missing pips summary */}
+              {opponentsWithInference.length > 0 && (
+                <div className="flex flex-col gap-1.5 mt-3 pt-2.5" style={{ borderTop: "1px solid rgba(201,168,76,0.12)" }}>
+                  <span className="text-[8px] uppercase tracking-wider text-[#a8c4a0]/40 mb-0.5">
+                    Deducción por pases
+                  </span>
+                  {opponentsWithInference.map((seat) => {
+                    const player = players.find((p) => p.seat === seat);
+                    const name = player ? player.displayName.split(" ")[0] : `J${seat + 1}`;
+                    const team = (seat % 2) as 0 | 1;
+                    const isPartner = mySeat !== null && ((mySeat + 2) % 4) === seat;
+                    const teamColor = team === 0 ? "#c9a84c" : "#4ca8c9";
+                    const missingArr = Array.from(passInference[seat]).sort((a, b) => a - b);
+                    return (
+                      <div
+                        key={seat}
+                        className="flex items-center gap-2 px-2 py-1 rounded-lg"
+                        style={{
+                          background: "rgba(232,84,84,0.06)",
+                          border: "1px solid rgba(232,84,84,0.15)",
+                        }}
+                        aria-label={`${name} no tiene palos: ${missingArr.join(", ")}`}
+                      >
+                        <span
+                          className="w-1.5 h-1.5 rounded-full shrink-0"
+                          style={{ backgroundColor: teamColor }}
+                        />
+                        <span
+                          className="text-[9px] font-semibold shrink-0 truncate"
+                          style={{ color: teamColor, maxWidth: 60 }}
+                        >
+                          {name}
+                          {isPartner && (
+                            <span className="text-[7px] ml-0.5" style={{ color: "rgba(168,196,160,0.5)" }}>
+                              ★
+                            </span>
+                          )}
+                        </span>
+                        <span className="text-[8px] shrink-0" style={{ color: "rgba(232,84,84,0.6)" }}>
+                          sin
+                        </span>
+                        <div className="flex gap-1">
+                          {missingArr.map((p) => (
+                            <span
+                              key={p}
+                              className="flex items-center justify-center w-4 h-4 rounded text-[8px] font-black leading-none"
+                              style={{
+                                background: "rgba(232,84,84,0.15)",
+                                color: "#e85454",
+                                border: "1px solid rgba(232,84,84,0.3)",
+                              }}
+                            >
+                              {p}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
 
               {/* Footer stats */}
               <div className="mt-3 pt-2.5 flex items-center justify-between" style={{ borderTop: "1px solid rgba(201,168,76,0.12)" }}>
