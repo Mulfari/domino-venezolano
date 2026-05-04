@@ -1067,6 +1067,286 @@ function RoundEndView({
   );
 }
 
+// ─── Score Progression Chart ─────────────────────────────────────────────────
+
+function ScoreProgressionChart({
+  roundHistory,
+  targetScore,
+  myTeam,
+}: {
+  roundHistory: import("@/stores/game-store").RoundHistoryEntry[];
+  targetScore: number;
+  myTeam: 0 | 1 | null;
+}) {
+  if (roundHistory.length < 2) return null;
+
+  const cumulative: { team0: number; team1: number }[] = [{ team0: 0, team1: 0 }];
+  for (const entry of roundHistory) {
+    const prev = cumulative[cumulative.length - 1];
+    cumulative.push({
+      team0: prev.team0 + (entry.winner_team === 0 ? entry.points : 0),
+      team1: prev.team1 + (entry.winner_team === 1 ? entry.points : 0),
+    });
+  }
+
+  const maxScore = Math.max(
+    targetScore,
+    ...cumulative.map((c) => Math.max(c.team0, c.team1))
+  );
+  const rounds = cumulative.length - 1;
+
+  const W = 280;
+  const H = 140;
+  const padL = 32;
+  const padR = 8;
+  const padT = 12;
+  const padB = 22;
+  const chartW = W - padL - padR;
+  const chartH = H - padT - padB;
+
+  function x(round: number) {
+    return padL + (round / rounds) * chartW;
+  }
+  function y(score: number) {
+    return padT + chartH - (score / maxScore) * chartH;
+  }
+
+  function polyline(team: 0 | 1) {
+    return cumulative
+      .map((c, i) => `${x(i)},${y(team === 0 ? c.team0 : c.team1)}`)
+      .join(" ");
+  }
+
+  const yTicks = [0];
+  const step = maxScore <= 50 ? 10 : maxScore <= 120 ? 25 : 50;
+  for (let v = step; v <= maxScore; v += step) yTicks.push(v);
+  if (!yTicks.includes(targetScore)) yTicks.push(targetScore);
+  yTicks.sort((a, b) => a - b);
+
+  const leadChanges: number[] = [];
+  for (let i = 1; i < cumulative.length; i++) {
+    const prev = cumulative[i - 1];
+    const curr = cumulative[i];
+    const prevLeader = prev.team0 > prev.team1 ? 0 : prev.team1 > prev.team0 ? 1 : -1;
+    const currLeader = curr.team0 > curr.team1 ? 0 : curr.team1 > curr.team0 ? 1 : -1;
+    if (prevLeader !== -1 && currLeader !== -1 && prevLeader !== currLeader) {
+      leadChanges.push(i);
+    }
+  }
+
+  const team0Color = "#c9a84c";
+  const team1Color = "#4ca8c9";
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 1.45 }}
+      className="mx-5 mb-4"
+    >
+      <p className="text-[9px] uppercase tracking-widest text-[#a8c4a0]/40 mb-2 text-center">
+        Progresión del marcador
+      </p>
+      <div
+        className="rounded-xl border border-[#f5f0e8]/8 overflow-hidden p-2"
+        style={{ background: "rgba(15,53,32,0.4)" }}
+      >
+        <svg
+          width="100%"
+          viewBox={`0 0 ${W} ${H}`}
+          preserveAspectRatio="xMidYMid meet"
+          aria-label={`Gráfico de progresión: ${rounds} rondas jugadas`}
+          role="img"
+        >
+          {yTicks.map((v) => (
+            <g key={v}>
+              <line
+                x1={padL}
+                y1={y(v)}
+                x2={W - padR}
+                y2={y(v)}
+                stroke={v === targetScore ? "rgba(201,168,76,0.35)" : "rgba(168,196,160,0.08)"}
+                strokeWidth={v === targetScore ? 1 : 0.5}
+                strokeDasharray={v === targetScore ? "4 2" : "none"}
+              />
+              <text
+                x={padL - 4}
+                y={y(v) + 3}
+                textAnchor="end"
+                fill={v === targetScore ? "rgba(201,168,76,0.7)" : "rgba(168,196,160,0.3)"}
+                fontSize={v === targetScore ? 8 : 7}
+                fontWeight={v === targetScore ? "bold" : "normal"}
+                fontFamily="system-ui, sans-serif"
+              >
+                {v}
+              </text>
+            </g>
+          ))}
+
+          {Array.from({ length: rounds + 1 }, (_, i) => i)
+            .filter((i) => i === 0 || i === rounds || (rounds > 6 ? i % Math.ceil(rounds / 6) === 0 : true))
+            .map((i) => (
+              <text
+                key={i}
+                x={x(i)}
+                y={H - 4}
+                textAnchor="middle"
+                fill="rgba(168,196,160,0.3)"
+                fontSize={7}
+                fontFamily="system-ui, sans-serif"
+              >
+                {i}
+              </text>
+            ))}
+
+          {leadChanges.map((i) => (
+            <g key={`lc-${i}`}>
+              <line
+                x1={x(i)}
+                y1={padT}
+                x2={x(i)}
+                y2={padT + chartH}
+                stroke="rgba(245,240,232,0.08)"
+                strokeWidth={0.8}
+                strokeDasharray="2 2"
+              />
+              <motion.circle
+                cx={x(i)}
+                cy={padT + 4}
+                r={3}
+                fill="rgba(245,240,232,0.15)"
+                stroke="rgba(245,240,232,0.3)"
+                strokeWidth={0.5}
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ delay: 1.8 + i * 0.1, type: "spring", stiffness: 400, damping: 20 }}
+              />
+              <text
+                x={x(i)}
+                y={padT + 1}
+                textAnchor="middle"
+                fill="rgba(245,240,232,0.35)"
+                fontSize={4}
+                fontFamily="system-ui, sans-serif"
+              >
+                ⇄
+              </text>
+            </g>
+          ))}
+
+          <motion.polyline
+            points={polyline(0)}
+            fill="none"
+            stroke={team0Color}
+            strokeWidth={2}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            initial={{ pathLength: 0, opacity: 0 }}
+            animate={{ pathLength: 1, opacity: 1 }}
+            transition={{ delay: 1.5, duration: 1.2, ease: "easeOut" }}
+            style={{ filter: `drop-shadow(0 0 4px ${team0Color}55)` }}
+          />
+          <motion.polyline
+            points={polyline(1)}
+            fill="none"
+            stroke={team1Color}
+            strokeWidth={2}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            initial={{ pathLength: 0, opacity: 0 }}
+            animate={{ pathLength: 1, opacity: 1 }}
+            transition={{ delay: 1.6, duration: 1.2, ease: "easeOut" }}
+            style={{ filter: `drop-shadow(0 0 4px ${team1Color}55)` }}
+          />
+
+          {cumulative.map((c, i) => (
+            <g key={`dots-${i}`}>
+              <motion.circle
+                cx={x(i)}
+                cy={y(c.team0)}
+                r={i === cumulative.length - 1 ? 3.5 : 2}
+                fill={team0Color}
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ delay: 1.5 + (i / rounds) * 1.2, type: "spring", stiffness: 500, damping: 22 }}
+              />
+              <motion.circle
+                cx={x(i)}
+                cy={y(c.team1)}
+                r={i === cumulative.length - 1 ? 3.5 : 2}
+                fill={team1Color}
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ delay: 1.6 + (i / rounds) * 1.2, type: "spring", stiffness: 500, damping: 22 }}
+              />
+            </g>
+          ))}
+
+          {(() => {
+            const last = cumulative[cumulative.length - 1];
+            return (
+              <>
+                <motion.text
+                  x={x(rounds) + 5}
+                  y={y(last.team0) + 3}
+                  fill={team0Color}
+                  fontSize={8}
+                  fontWeight="bold"
+                  fontFamily="system-ui, sans-serif"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 2.8 }}
+                >
+                  {last.team0}
+                </motion.text>
+                <motion.text
+                  x={x(rounds) + 5}
+                  y={y(last.team1) + 3}
+                  fill={team1Color}
+                  fontSize={8}
+                  fontWeight="bold"
+                  fontFamily="system-ui, sans-serif"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 2.9 }}
+                >
+                  {last.team1}
+                </motion.text>
+              </>
+            );
+          })()}
+        </svg>
+
+        <div className="flex items-center justify-center gap-4 mt-1.5">
+          <div className="flex items-center gap-1.5">
+            <span className="w-3 h-0.5 rounded-full" style={{ backgroundColor: team0Color }} />
+            <span
+              className="text-[8px] font-semibold leading-none"
+              style={{ color: myTeam === 0 ? team0Color : `${team0Color}99` }}
+            >
+              {myTeam === 0 ? "◆ Tu equipo" : "Equipo A"}
+            </span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="w-3 h-0.5 rounded-full" style={{ backgroundColor: team1Color }} />
+            <span
+              className="text-[8px] font-semibold leading-none"
+              style={{ color: myTeam === 1 ? team1Color : `${team1Color}99` }}
+            >
+              {myTeam === 1 ? "◆ Tu equipo" : "Equipo B"}
+            </span>
+          </div>
+          {leadChanges.length > 0 && (
+            <span className="text-[7px] text-[#f5f0e8]/30 leading-none">
+              {leadChanges.length} cambio{leadChanges.length !== 1 ? "s" : ""} de líder
+            </span>
+          )}
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
 // ─── Game Over / Podium ───────────────────────────────────────────────────────
 
 interface GameOverViewProps {
@@ -1436,6 +1716,13 @@ function GameOverView({ scores, myTeam, team0Names, team1Names, roundHistory, pl
             </div>
           </motion.div>
         )}
+
+        {/* Score progression chart */}
+        <ScoreProgressionChart
+          roundHistory={roundHistory}
+          targetScore={scores[winnerTeam]}
+          myTeam={myTeam}
+        />
 
         {/* Match stats — per-player totals across all rounds */}
         {moveLog.length > 0 && (
