@@ -230,6 +230,27 @@ export function Hand({ onPlayTile, onPass, disabled = false }: HandProps) {
     return (a === L && b === R) || (b === L && a === R);
   }
 
+  // Cuadre: returns which end(s) playing this tile would lock both board ends to the same pip
+  function getCuadreEnds(tile: Tile): { end: "left" | "right"; pip: number }[] {
+    if (!isMyTurn || !isTilePlayable(tile)) return [];
+    if (board.left === null || board.right === null || board.plays.length === 0) return [];
+    const [a, b] = tile;
+    const L: number = board.left;
+    const R: number = board.right;
+    const results: { end: "left" | "right"; pip: number }[] = [];
+    const ends = getEndsForTile(tile);
+    for (const end of ends) {
+      if (end === "left") {
+        const newLeft: number = a === L ? b : a;
+        if (newLeft === R) results.push({ end: "left", pip: newLeft });
+      } else {
+        const newRight: number = b === R ? a : b;
+        if (newRight === L) results.push({ end: "right", pip: newRight });
+      }
+    }
+    return results;
+  }
+
   // Tiles that fit a board end while waiting for your turn — helps plan the next move
   function isPlanningMatch(tile: Tile): boolean {
     if (isMyTurn || board.left === null || board.right === null || board.plays.length === 0) return false;
@@ -1095,6 +1116,8 @@ export function Hand({ onPlayTile, onPass, disabled = false }: HandProps) {
             const selected = isTileSelected(tile);
             const cochina = isCochina(tile);
             const capicua = isCapicuaTile(tile);
+            const cuadreEnds = getCuadreEnds(tile);
+            const isCuadre = cuadreEnds.length > 0 && !capicua && !cochina;
             const isDouble = tile[0] === tile[1] && !cochina;
             const planningMatch = isPlanningMatch(tile);
 
@@ -1201,6 +1224,38 @@ export function Hand({ onPlayTile, onPass, disabled = false }: HandProps) {
                       transition={{ duration: 1.2, repeat: Infinity, ease: "easeInOut" }}
                     >
                       ✦ capicúa
+                    </motion.div>
+                  </>
+                )}
+
+                {/* Cuadre: amber glow when playing this tile locks both board ends to the same pip */}
+                {isCuadre && playable && !isHintTile(tile) && (
+                  <>
+                    <motion.div
+                      className="absolute -inset-2.5 rounded-xl pointer-events-none z-10"
+                      style={{ background: "radial-gradient(ellipse, rgba(245,158,11,0.4) 0%, transparent 65%)" }}
+                      animate={{ opacity: [0.4, 0.9, 0.4], scale: [0.96, 1.04, 0.96] }}
+                      transition={{ duration: 1.3, repeat: Infinity, ease: "easeInOut" }}
+                    />
+                    <motion.div
+                      className="absolute -inset-0.5 rounded-lg border-2 pointer-events-none z-10"
+                      style={{ borderColor: "rgba(245,158,11,0.8)" }}
+                      animate={{ opacity: [0.5, 1, 0.5] }}
+                      transition={{ duration: 1.3, repeat: Infinity, ease: "easeInOut" }}
+                    />
+                    <motion.div
+                      className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 flex items-center gap-1 px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-widest whitespace-nowrap pointer-events-none z-20"
+                      style={{
+                        color: "rgba(245,158,11,1)",
+                        backgroundColor: "rgba(20,10,2,0.9)",
+                        border: "1px solid rgba(245,158,11,0.55)",
+                        textShadow: "0 0 8px rgba(245,158,11,0.7)",
+                      }}
+                      animate={{ opacity: [0.8, 1, 0.8] }}
+                      transition={{ duration: 1.3, repeat: Infinity, ease: "easeInOut" }}
+                    >
+                      <span aria-hidden="true">⊞</span>
+                      cuadre {cuadreEnds[0].pip}
                     </motion.div>
                   </>
                 )}
