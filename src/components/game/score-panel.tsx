@@ -512,11 +512,14 @@ export function ScorePanel() {
   const firstPlayer = firstSeat !== null ? players.find((p) => p.seat === firstSeat) : null;
   const firstPlayerName = firstPlayer?.displayName.split(" ")[0] ?? null;
 
+  // Only compute pip balance when all 4 hands are populated (bot games or round-end reveal).
+  // In online multiplayer, opponent hands are empty arrays — showing partial data is misleading.
+  const allHandsKnown = [0, 1, 2, 3].every((s) => (hands[s as Seat] ?? []).length > 0);
   const team0Pips = (hands[0] ?? []).reduce((s, [a, b]) => s + a + b, 0)
                   + (hands[2] ?? []).reduce((s, [a, b]) => s + a + b, 0);
   const team1Pips = (hands[1] ?? []).reduce((s, [a, b]) => s + a + b, 0)
                   + (hands[3] ?? []).reduce((s, [a, b]) => s + a + b, 0);
-  const showPipBalance = status === "playing" && board.plays.length > 0 && (team0Pips + team1Pips) > 0;
+  const showPipBalance = status === "playing" && board.plays.length > 0 && allHandsKnown && (team0Pips + team1Pips) > 0;
 
   return (
     <>
