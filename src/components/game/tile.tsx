@@ -104,7 +104,7 @@ export function DominoTile({
   const isMobile = useIsMobile();
   const config = responsive && isMobile ? mobileSizeConfig : sizeConfig;
   const { w: baseW, h: baseH, pip, gap } = config[size];
-  const borderRadius = size === "small" ? 8 : size === "medium" ? 12 : 17;
+  const borderRadius = Math.round(Math.min(baseW, baseH) * 0.2);
   const uid = useId().replace(/:/g, "");
 
   const isHorizontal = orientation === "horizontal";
@@ -112,6 +112,12 @@ export function DominoTile({
   const h = isHorizontal ? baseW : baseH;
 
   const showFace = !faceDown && tile;
+  // Scale groove and pip effects to tile size for consistent visual quality
+  const grooveDark = Math.max(0.8, baseW * 0.045);
+  const grooveLight = Math.max(0.5, baseW * 0.028);
+  const grooveOffset = Math.max(0.4, baseW * 0.02);
+  const grooveInset = Math.max(2, baseW * 0.12);
+  const isSmall = size === "small";
   const ornSize = Math.min(w, h) * 0.14;
   const cornerPipR = Math.min(w, h) * 0.055;
   const cornerPad = Math.min(w, h) * 0.2;
@@ -158,6 +164,13 @@ export function DominoTile({
           <stop offset="0%" stopColor="transparent" />
           <stop offset="100%" stopColor="rgba(0,0,0,0.16)" />
         </linearGradient>
+        {/* Subtle ivory surface texture — fine cross-hatch for bone/resin feel */}
+        <pattern id={`ivory-tex-${uid}`} x="0" y="0" width="4" height="4" patternUnits="userSpaceOnUse" patternTransform="rotate(15)">
+          <line x1="0" y1="0" x2="0" y2="4" stroke="#d8cbb0" strokeWidth="0.6" opacity="0.35" />
+        </pattern>
+        <pattern id={`ivory-tex2-${uid}`} x="0" y="0" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(72)">
+          <line x1="0" y1="0" x2="0" y2="6" stroke="#c8b898" strokeWidth="0.8" opacity="0.2" />
+        </pattern>
         {/* Divider bar gradients — fade to transparent at ends for a carved look */}
         <linearGradient id={`div-h-${uid}`} x1="0" y1="0" x2="1" y2="0">
           <stop offset="0%"   stopColor="rgba(180,168,140,0)" />
@@ -239,11 +252,11 @@ export function DominoTile({
           <stop offset="65%" stopColor="#030303" />
           <stop offset="100%" stopColor="#000000" />
         </radialGradient>
-        {/* Specular highlight — top-left catch of light on carved edge */}
+        {/* Specular highlight — reduced at small sizes to preserve pip contrast */}
         <radialGradient id={`pip-shine-${uid}`} cx="25%" cy="20%" r="45%">
-          <stop offset="0%" stopColor="white" stopOpacity="0.78" />
-          <stop offset="35%" stopColor="white" stopOpacity="0.28" />
-          <stop offset="70%" stopColor="white" stopOpacity="0.06" />
+          <stop offset="0%" stopColor="white" stopOpacity={isSmall ? 0.38 : 0.78} />
+          <stop offset="35%" stopColor="white" stopOpacity={isSmall ? 0.12 : 0.28} />
+          <stop offset="70%" stopColor="white" stopOpacity={isSmall ? 0.02 : 0.06} />
           <stop offset="100%" stopColor="white" stopOpacity="0" />
         </radialGradient>
         {/* Deep inset rim — stronger shadow at bottom-right */}
@@ -268,12 +281,18 @@ export function DominoTile({
         strokeWidth={selected || highlight ? 1.5 : 0.75}
       />
 
-      {/* Surface sheen, inner depth gradient, and bottom edge shadow on face-up tiles */}
+      {/* Surface texture, sheen, inner depth, bevel edges on face-up tiles */}
       {!faceDown && (
         <>
+          <rect x={0} y={0} width={w} height={h} rx={borderRadius} fill={`url(#ivory-tex-${uid})`} clipPath={`url(#clip-${uid})`} />
+          <rect x={0} y={0} width={w} height={h} rx={borderRadius} fill={`url(#ivory-tex2-${uid})`} clipPath={`url(#clip-${uid})`} />
           <rect x={0} y={0} width={w} height={h} rx={borderRadius} fill={`url(#face-inner-${uid})`} clipPath={`url(#clip-${uid})`} />
           <rect x={0} y={0} width={w} height={h * 0.48} rx={borderRadius} fill={`url(#sheen-${uid})`} clipPath={`url(#clip-${uid})`} />
           <rect x={0} y={0} width={w} height={h} rx={borderRadius} fill={`url(#edge-shadow-${uid})`} clipPath={`url(#clip-${uid})`} />
+          <rect x={0} y={0} width={w} height={h * 0.35} rx={borderRadius} fill={`url(#edge-top-${uid})`} clipPath={`url(#clip-${uid})`} opacity={0.35} />
+          <rect x={0} y={0} width={w * 0.3} height={h} rx={borderRadius} fill={`url(#edge-left-${uid})`} clipPath={`url(#clip-${uid})`} opacity={0.25} />
+          <rect x={0} y={0} width={w} height={h} rx={borderRadius} fill={`url(#edge-bottom-${uid})`} clipPath={`url(#clip-${uid})`} opacity={0.18} />
+          <rect x={0} y={0} width={w} height={h} rx={borderRadius} fill={`url(#edge-right-${uid})`} clipPath={`url(#clip-${uid})`} opacity={0.12} />
         </>
       )}
 
@@ -324,9 +343,8 @@ export function DominoTile({
             <g>
               <PipDots value={tile[0]} pipSize={pip} halfWidth={w / 2} halfHeight={h} horizontal pipGradientId={`pip-${uid}`} pipShineId={`pip-shine-${uid}`} pipRimId={`pip-rim-${uid}`} />
             </g>
-            {/* Carved groove: dark shadow left, light highlight right */}
-            <line x1={w / 2 - 0.6} y1={3} x2={w / 2 - 0.6} y2={h - 3} stroke="rgba(0,0,0,0.55)" strokeWidth={1.4} />
-            <line x1={w / 2 + 0.6} y1={3} x2={w / 2 + 0.6} y2={h - 3} stroke="rgba(255,255,255,0.32)" strokeWidth={0.8} />
+            <line x1={w / 2 - grooveOffset} y1={grooveInset} x2={w / 2 - grooveOffset} y2={h - grooveInset} stroke="rgba(0,0,0,0.55)" strokeWidth={grooveDark} />
+            <line x1={w / 2 + grooveOffset} y1={grooveInset} x2={w / 2 + grooveOffset} y2={h - grooveInset} stroke="rgba(255,255,255,0.32)" strokeWidth={grooveLight} />
             <g transform={`translate(${w / 2}, 0)`}>
               <PipDots value={tile[1]} pipSize={pip} halfWidth={w / 2} halfHeight={h} horizontal pipGradientId={`pip-${uid}`} pipShineId={`pip-shine-${uid}`} pipRimId={`pip-rim-${uid}`} />
             </g>
@@ -336,9 +354,8 @@ export function DominoTile({
             <g>
               <PipDots value={tile[0]} pipSize={pip} halfWidth={w} halfHeight={(h - gap) / 2} pipGradientId={`pip-${uid}`} pipShineId={`pip-shine-${uid}`} pipRimId={`pip-rim-${uid}`} />
             </g>
-            {/* Carved groove: dark shadow above, light highlight below */}
-            <line x1={3} y1={(h - gap) / 2 + gap / 2 - 0.6} x2={w - 3} y2={(h - gap) / 2 + gap / 2 - 0.6} stroke="rgba(0,0,0,0.55)" strokeWidth={1.4} />
-            <line x1={3} y1={(h - gap) / 2 + gap / 2 + 0.6} x2={w - 3} y2={(h - gap) / 2 + gap / 2 + 0.6} stroke="rgba(255,255,255,0.32)" strokeWidth={0.8} />
+            <line x1={grooveInset} y1={(h - gap) / 2 + gap / 2 - grooveOffset} x2={w - grooveInset} y2={(h - gap) / 2 + gap / 2 - grooveOffset} stroke="rgba(0,0,0,0.55)" strokeWidth={grooveDark} />
+            <line x1={grooveInset} y1={(h - gap) / 2 + gap / 2 + grooveOffset} x2={w - grooveInset} y2={(h - gap) / 2 + gap / 2 + grooveOffset} stroke="rgba(255,255,255,0.32)" strokeWidth={grooveLight} />
             <g transform={`translate(0, ${(h - gap) / 2 + gap})`}>
               <PipDots value={tile[1]} pipSize={pip} halfWidth={w} halfHeight={(h - gap) / 2} pipGradientId={`pip-${uid}`} pipShineId={`pip-shine-${uid}`} pipRimId={`pip-rim-${uid}`} />
             </g>
