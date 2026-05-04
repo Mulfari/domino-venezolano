@@ -33,6 +33,7 @@ import { ToolbarMenu } from "@/components/game/toolbar-menu";
 import { ToastStack } from "@/components/game/toast-stack";
 import { SeatMap } from "@/components/game/seat-map";
 import { RoundProgress } from "@/components/game/round-progress";
+import { DoublesTracker } from "@/components/game/doubles-tracker";
 import { PlayerSeat } from "@/components/game/player-seat";
 import { MatchPointAnnouncement } from "@/components/game/match-point-announcement";
 import { ShortcutsPanel } from "@/components/game/shortcuts-panel";
@@ -1451,6 +1452,10 @@ export default function GamePage() {
           {/* Mini seat map — mobile only, shows all 4 players with tile counts and turn */}
           <div className="absolute top-1 right-1 z-20 sm:hidden">
             <SeatMap handCounts={handCounts} />
+          </div>
+          {/* Doubles tracker — shows which doubles have been played */}
+          <div className="absolute bottom-1 left-1 z-20">
+            <DoublesTracker />
           </div>
         </div>
 
