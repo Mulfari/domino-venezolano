@@ -4,6 +4,7 @@ import { useEffect, useState, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useGameStore } from "@/stores/game-store";
 import type { RoundResult, Seat } from "@/lib/game/types";
+import { formatDuration } from "@/components/game/match-timer";
 
 const AUTO_START_DELAY = 7;
 
@@ -1110,7 +1111,7 @@ function computeMVP(
   };
 }
 
-function GameOverView({ scores, myTeam, team0Names, team1Names, roundHistory, players, moveLog, onBackToLobby, onRevancha }: GameOverViewProps) {
+function GameOverView({ scores, myTeam, team0Names, team1Names, roundHistory, players, moveLog, onBackToLobby, onRevancha, matchElapsed }: GameOverViewProps) {
   const winnerTeam: 0 | 1 = scores[0] >= scores[1] ? 0 : 1;
   const loserTeam: 0 | 1 = winnerTeam === 0 ? 1 : 0;
   const iWon = myTeam === winnerTeam;
@@ -1340,7 +1341,7 @@ function GameOverView({ scores, myTeam, team0Names, team1Names, roundHistory, pl
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 1.3 }}
-          className="mx-5 mt-3 mb-3 flex justify-center gap-6 text-center"
+          className="mx-5 mt-3 mb-3 flex justify-center gap-4 sm:gap-6 text-center flex-wrap"
         >
           <div>
             <p className="text-[9px] uppercase tracking-wider text-[#a8c4a0]/40">Diferencia</p>
@@ -1352,6 +1353,30 @@ function GameOverView({ scores, myTeam, team0Names, team1Names, roundHistory, pl
             <div>
               <p className="text-[9px] uppercase tracking-wider text-[#a8c4a0]/40">Rondas jugadas</p>
               <p className="text-xs font-semibold text-[#f5f0e8]/60">{totalRounds}</p>
+            </div>
+          )}
+          {totalRounds > 0 && (
+            <div>
+              <p className="text-[9px] uppercase tracking-wider text-[#a8c4a0]/40">Rondas ganadas</p>
+              <p className="text-xs font-semibold">
+                <span className="text-[#c9a84c]">{roundsWon0}</span>
+                <span className="text-[#f5f0e8]/30 mx-0.5">–</span>
+                <span className="text-[#4ca8c9]">{roundsWon1}</span>
+              </p>
+            </div>
+          )}
+          {matchElapsed != null && matchElapsed > 0 && (
+            <div>
+              <p className="text-[9px] uppercase tracking-wider text-[#a8c4a0]/40">Duración</p>
+              <p className="text-xs font-semibold text-[#f5f0e8]/60">{formatDuration(matchElapsed)}</p>
+            </div>
+          )}
+          {moveLog.length > 0 && (
+            <div>
+              <p className="text-[9px] uppercase tracking-wider text-[#a8c4a0]/40">Jugadas totales</p>
+              <p className="text-xs font-semibold text-[#f5f0e8]/60">
+                {moveLog.filter((e) => e.type === "play").length}
+              </p>
             </div>
           )}
         </motion.div>
