@@ -1503,7 +1503,7 @@ export default function GamePage() {
               ease: "easeInOut",
             } : { duration: 0.5 }}
           >
-            <PassIndicator show={lastPassSeat === mySeat} />
+            <PassIndicator show={lastPassSeat === mySeat} teamIndex={(mySeat % 2) as 0 | 1} />
             <Hand onPlayTile={handlePlayTile} onPass={handlePass} disabled={actionLoading} />
           </motion.div>
         </PlayerSeat>

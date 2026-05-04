@@ -136,7 +136,7 @@ export function OpponentHand({
       role="region"
       aria-label={`Mano de ${playerName}: ${tileCount} fichas${isCurrentTurn ? ", turno activo" : ""}`}
     >
-      <PassIndicator show={showPass} playerName={playerName} />
+      <PassIndicator show={showPass} playerName={playerName} teamIndex={team} />
 
       {/* "Pensando..." indicator for bots on their turn */}
       <AnimatePresence>
