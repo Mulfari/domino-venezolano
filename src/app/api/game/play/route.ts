@@ -117,7 +117,7 @@ export async function POST(request: NextRequest) {
     };
 
     // If round ended, calculate scores and include in the same update
-    let roundResult: { winner_team: number | null; points: number; reason: string } | null = null;
+    let roundResult: { winner_team: number | null; points: number; reason: string; is_capicua?: boolean } | null = null;
     let newScores: number[] | null = null;
 
     if (newState.status === "finished") {
@@ -189,6 +189,7 @@ export async function POST(request: NextRequest) {
           points: roundResult.points,
           scores: { team0: newScores[0], team1: newScores[1] },
           reason: roundResult.reason,
+          is_capicua: roundResult.is_capicua ?? false,
         },
       });
     }

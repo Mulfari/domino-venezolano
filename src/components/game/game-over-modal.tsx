@@ -568,6 +568,27 @@ function RoundEndView({
             >
               +<AnimatedNumber value={roundResult.points} delay={0.52} />
             </motion.p>
+            {roundResult.is_capicua && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.6, y: 6 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                transition={{ delay: 0.85, type: "spring", stiffness: 400, damping: 22 }}
+                className="flex items-center justify-center gap-2 mt-2"
+              >
+                <span
+                  className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-widest"
+                  style={{
+                    background: "linear-gradient(135deg, rgba(201,168,76,0.2), rgba(201,168,76,0.08))",
+                    border: "1px solid rgba(201,168,76,0.5)",
+                    color: "#c9a84c",
+                    textShadow: "0 0 12px rgba(201,168,76,0.5)",
+                  }}
+                >
+                  <span aria-hidden="true">✨</span>
+                  ¡Capicúa! Puntos x2
+                </span>
+              </motion.div>
+            )}
           </motion.div>
         )}
 

@@ -32,7 +32,16 @@ export function calculateRoundResult(state: GameState): RoundResult {
       points += calculateHandSum(hand);
     }
 
-    return { winner_team: winnerTeam, points, reason: "domino" };
+    const is_capicua =
+      state.board.left !== null &&
+      state.board.left === state.board.right &&
+      state.board.plays.length > 1;
+
+    if (is_capicua) {
+      points *= 2;
+    }
+
+    return { winner_team: winnerTeam, points, reason: "domino", is_capicua };
   }
 
   // Locked game (4 consecutive passes)

@@ -613,11 +613,7 @@ export default function GamePage() {
           }
           // Capture current scores before updating so the overlay can animate from old → new
           const prevScores = useGameStore.getState().scores;
-          const boardAtEnd = useGameStore.getState().board;
-          const isCapicuaRound =
-            boardAtEnd.left !== null &&
-            boardAtEnd.left === boardAtEnd.right &&
-            boardAtEnd.plays.length > 1;
+          const isCapicuaRound = !!(event.is_capicua);
           setTransitionWinner({
             team: event.winner_team as (0 | 1 | null),
             points: event.points,
@@ -633,6 +629,7 @@ export default function GamePage() {
             winner_team: event.winner_team as (0 | 1 | null),
             points: event.points,
             reason: event.reason,
+            is_capicua: isCapicuaRound || undefined,
           });
           addRoundHistory({
             round: roundRef.current,

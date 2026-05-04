@@ -19,6 +19,7 @@ export type GameEvent =
       points: number;
       scores: { team0: number; team1: number };
       reason: "domino" | "locked" | "tied";
+      is_capicua?: boolean;
     }
   | { type: "game_state_sync"; state: SerializedGameState }
   | { type: "chat_message"; player_id: string; display_name: string; message: string }
