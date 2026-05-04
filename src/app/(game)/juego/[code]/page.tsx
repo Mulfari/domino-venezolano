@@ -35,6 +35,7 @@ import { ToastStack } from "@/components/game/toast-stack";
 import { SeatMap } from "@/components/game/seat-map";
 import { RoundProgress } from "@/components/game/round-progress";
 import { DoublesTracker } from "@/components/game/doubles-tracker";
+import { TrancadoDanger } from "@/components/game/trancado-danger";
 import { PlayerSeat } from "@/components/game/player-seat";
 import { MatchPointAnnouncement } from "@/components/game/match-point-announcement";
 import { ShortcutsPanel } from "@/components/game/shortcuts-panel";
@@ -1523,6 +1524,10 @@ export default function GamePage() {
           {/* Doubles tracker — shows which doubles have been played */}
           <div className="absolute bottom-1 left-1 z-20">
             <DoublesTracker />
+          </div>
+          {/* Trancado danger — warns when consecutive passes approach a lock */}
+          <div className="absolute bottom-1 right-1 z-20">
+            <TrancadoDanger />
           </div>
         </div>
 
