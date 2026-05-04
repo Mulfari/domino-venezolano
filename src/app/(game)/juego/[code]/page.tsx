@@ -27,6 +27,7 @@ import { DealingOverlay } from "@/components/game/dealing-overlay";
 import { DominoSplash } from "@/components/game/domino-splash";
 import { CapicuaSplash } from "@/components/game/capicua-splash";
 import { CochinaSplash } from "@/components/game/cochina-splash";
+import { TrancadoSplash } from "@/components/game/trancado-splash";
 import { TurnFlash } from "@/components/game/turn-flash";
 import { PassMeter } from "@/components/game/pass-meter";
 import { ToolbarMenu } from "@/components/game/toolbar-menu";
@@ -224,6 +225,7 @@ export default function GamePage() {
   const dosFichasTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const prevHandCountsRef = useRef<number[]>([7, 7, 7, 7]);
   const [dominoSplash, setDominoSplash] = useState<{ playerName: string; isMyTeam: boolean; reason: "domino" | "locked"; tile?: Tile; points?: number } | null>(null);
+  const [trancadoSplash, setTrancadoSplash] = useState<{ isMyTeam: boolean; winnerTeam: 0 | 1 | null; points: number; myPips: number } | null>(null);
   const [tilePlayedAlert, setTilePlayedAlert] = useState<{ name: string; tile: Tile; seat: Seat } | null>(null);
   const tilePlayedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [capicuaAlert, setCapicuaAlert] = useState<{ playerName: string; isMe: boolean; pipValue: number } | null>(null);
@@ -694,15 +696,22 @@ export default function GamePage() {
               setBoardTransitioning(true);
             }, 1600);
           } else if (event.reason === "locked") {
-            // Show trancado splash briefly before board transition
+            // Show dedicated trancado splash with pip info before board transition
             const isMyTeamLocked = currentSeat !== null && event.winner_team !== null
               ? (currentSeat % 2) === event.winner_team
               : false;
-            setDominoSplash({ playerName: "", isMyTeam: isMyTeamLocked, reason: "locked", points: event.points });
+            const myHand = currentSeat !== null ? (useGameStore.getState().hands[currentSeat] ?? []) : [];
+            const myPipTotal = myHand.reduce((sum: number, t: Tile) => sum + t[0] + t[1], 0);
+            setTrancadoSplash({
+              isMyTeam: isMyTeamLocked,
+              winnerTeam: event.winner_team as (0 | 1 | null),
+              points: event.points,
+              myPips: myPipTotal,
+            });
             setTimeout(() => {
-              setDominoSplash(null);
+              setTrancadoSplash(null);
               setBoardTransitioning(true);
-            }, 1600);
+            }, 2200);
           } else {
             // Start the board fade + overlay as soon as the round ends
             setBoardTransitioning(true);
@@ -2130,6 +2139,17 @@ export default function GamePage() {
           reason={dominoSplash.reason}
           tile={dominoSplash.tile}
           points={dominoSplash.points}
+        />
+      )}
+
+      {/* ¡Trancado! splash */}
+      {trancadoSplash && (
+        <TrancadoSplash
+          show={true}
+          isMyTeam={trancadoSplash.isMyTeam}
+          winnerTeam={trancadoSplash.winnerTeam}
+          points={trancadoSplash.points}
+          myPips={trancadoSplash.myPips}
         />
       )}
 
