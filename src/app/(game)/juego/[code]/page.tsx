@@ -25,7 +25,6 @@ import { LastAction } from "@/components/game/last-action";
 import { LandscapePrompt } from "@/components/game/landscape-prompt";
 import { DealingOverlay } from "@/components/game/dealing-overlay";
 import { DominoSplash } from "@/components/game/domino-splash";
-import { CapicuaSplash } from "@/components/game/capicua-splash";
 import { CochinaSplash } from "@/components/game/cochina-splash";
 import { TrancadoSplash } from "@/components/game/trancado-splash";
 import { TurnFlash } from "@/components/game/turn-flash";
@@ -229,9 +228,9 @@ export default function GamePage() {
   const [trancadoSplash, setTrancadoSplash] = useState<{ isMyTeam: boolean; winnerTeam: 0 | 1 | null; points: number; myPips: number } | null>(null);
   const [tilePlayedAlert, setTilePlayedAlert] = useState<{ name: string; tile: Tile; seat: Seat } | null>(null);
   const tilePlayedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [capicuaAlert, setCapicuaAlert] = useState<{ playerName: string; isMe: boolean; pipValue: number } | null>(null);
-  const capicuaTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const prevCapicuaRef = useRef(false);
+  const [cuadreAlert, setCuadreAlert] = useState<{ playerName: string; isMe: boolean; isPartner: boolean; pipValue: number } | null>(null);
+  const cuadreTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const prevCuadreRef = useRef(false);
   const [cochinaAlert, setCochinaAlert] = useState<{ name: string } | null>(null);
   const cochinaTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [cochinaShow, setCochinaShow] = useState(false);
@@ -435,25 +434,25 @@ export default function GamePage() {
     return () => window.removeEventListener("beforeunload", handler);
   }, [status]);
 
-  /* ---- Capicúa detection ---- */
+  /* ---- Cuadre detection — both board ends match (strategic blocking move) ---- */
   const board = useGameStore((s) => s.board);
   useEffect(() => {
-    const isCapicua = board.left !== null && board.left === board.right && board.plays.length > 1;
-    if (isCapicua && !prevCapicuaRef.current) {
+    const isCuadre = board.left !== null && board.left === board.right && board.plays.length > 1;
+    if (isCuadre && !prevCuadreRef.current) {
       playCapicua();
       hapticCapicua();
-      // Find who played the last tile (the capicúa maker)
       const lastPlay = board.plays[board.plays.length - 1];
-      const capicuaPlayer = lastPlay
+      const cuadrePlayer = lastPlay
         ? (players.find((p) => p.seat === lastPlay.seat) ?? null)
         : null;
-      const capicuaName = capicuaPlayer?.displayName ?? `Jugador ${(lastPlay?.seat ?? 0) + 1}`;
+      const cuadreName = cuadrePlayer?.displayName ?? `Jugador ${(lastPlay?.seat ?? 0) + 1}`;
       const isMe = mySeat !== null && lastPlay?.seat === mySeat;
-      setCapicuaAlert({ playerName: capicuaName, isMe, pipValue: board.left! });
-      if (capicuaTimerRef.current) clearTimeout(capicuaTimerRef.current);
-      capicuaTimerRef.current = setTimeout(() => setCapicuaAlert(null), 3500);
+      const isPartner = mySeat !== null && lastPlay?.seat !== mySeat && (lastPlay?.seat ?? 0) % 2 === mySeat % 2;
+      setCuadreAlert({ playerName: cuadreName, isMe, isPartner, pipValue: board.left! });
+      if (cuadreTimerRef.current) clearTimeout(cuadreTimerRef.current);
+      cuadreTimerRef.current = setTimeout(() => setCuadreAlert(null), 3500);
     }
-    prevCapicuaRef.current = isCapicua;
+    prevCuadreRef.current = isCuadre;
   }, [board, players, mySeat]);
 
   /* ---- Cochina detection — 6-6 opens the game ---- */
@@ -1701,13 +1700,79 @@ export default function GamePage() {
         })()}
       </AnimatePresence>
 
-      {/* ¡Capicúa! splash — fires when both open ends match */}
-      <CapicuaSplash
-        show={capicuaAlert !== null}
-        playerName={capicuaAlert?.playerName ?? ""}
-        isMe={capicuaAlert?.isMe ?? false}
-        pipValue={capicuaAlert?.pipValue ?? 0}
-      />
+      {/* ¡Cuadre! toast — fires when both open ends match (strategic blocking move) */}
+      <AnimatePresence>
+        {cuadreAlert && (() => {
+          const isMyTeamCuadre = cuadreAlert.isMe || cuadreAlert.isPartner;
+          const accentColor = isMyTeamCuadre ? "#c9a84c" : "#a8c4a0";
+          const accentRgb = isMyTeamCuadre ? "201,168,76" : "168,196,160";
+          const bgGradient = isMyTeamCuadre
+            ? "linear-gradient(135deg, #2a1600 0%, #1a0e00 100%)"
+            : "linear-gradient(135deg, #0e1a0e 0%, #081008 100%)";
+          const label = cuadreAlert.isMe
+            ? "¡Cuadraste!"
+            : cuadreAlert.isPartner
+            ? "¡Cuadre del compañero!"
+            : "¡Cuadre rival!";
+          const sublabel = cuadreAlert.isMe
+            ? `ambos extremos en ${cuadreAlert.pipValue}`
+            : `${cuadreAlert.playerName} · ambos en ${cuadreAlert.pipValue}`;
+          return (
+            <motion.div
+              key={`cuadre-${cuadreAlert.pipValue}`}
+              initial={{ opacity: 0, y: -28, scale: 0.82 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -18, scale: 0.9 }}
+              transition={{ type: "spring", stiffness: 440, damping: 24 }}
+              className="pointer-events-none"
+              role="status"
+              aria-live="polite"
+            >
+              <div
+                className="flex items-center gap-2.5 rounded-full px-5 py-2.5 backdrop-blur-sm"
+                style={{
+                  background: bgGradient,
+                  border: `1.5px solid rgba(${accentRgb},0.7)`,
+                  boxShadow: `0 0 28px 6px rgba(${accentRgb},0.28), 0 8px 24px rgba(0,0,0,0.8)`,
+                }}
+              >
+                {/* Lock/block icon representing the cuadre */}
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                  <rect x="3" y="9" width="14" height="9" rx="2" stroke={accentColor} strokeWidth="1.5" fill="none"/>
+                  <path d="M6 9V6a4 4 0 0 1 8 0v3" stroke={accentColor} strokeWidth="1.5" strokeLinecap="round" fill="none"/>
+                  <circle cx="10" cy="13.5" r="1.5" fill={accentColor}/>
+                </svg>
+                <div className="flex flex-col leading-tight">
+                  <motion.span
+                    className="text-[13px] font-black uppercase tracking-widest leading-none"
+                    style={{ color: accentColor, textShadow: `0 0 10px rgba(${accentRgb},0.7)` }}
+                    animate={{ opacity: [1, 0.7, 1] }}
+                    transition={{ duration: 0.9, repeat: Infinity, ease: "easeInOut" }}
+                  >
+                    {label}
+                  </motion.span>
+                  <span className="text-[10px] text-[#f5f0e8]/60 leading-none mt-0.5 truncate max-w-[160px]">
+                    {sublabel}
+                  </span>
+                </div>
+                {/* Pip value badge */}
+                <div
+                  className="flex items-center justify-center w-7 h-7 rounded-full font-black text-[14px] leading-none tabular-nums shrink-0"
+                  style={{
+                    background: `rgba(${accentRgb},0.18)`,
+                    border: `1.5px solid rgba(${accentRgb},0.55)`,
+                    color: accentColor,
+                    textShadow: `0 0 8px rgba(${accentRgb},0.7)`,
+                  }}
+                  aria-hidden="true"
+                >
+                  {cuadreAlert.pipValue}
+                </div>
+              </div>
+            </motion.div>
+          );
+        })()}
+      </AnimatePresence>
 
       {/* ¡Va a dominar! toast — fires when turn switches to a player with 1 tile */}
       <AnimatePresence>
