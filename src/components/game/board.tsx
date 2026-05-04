@@ -385,6 +385,71 @@ export function Board({ onPlaceEnd, clearing = false }: BoardProps) {
               }}
             />
 
+            {/* Felt center emblem — subtle domino club watermark */}
+            <div
+              className="absolute inset-0 flex items-center justify-center pointer-events-none z-[1]"
+              aria-hidden="true"
+            >
+              <svg
+                width={isMobile ? "90" : "130"}
+                height={isMobile ? "90" : "130"}
+                viewBox="0 0 130 130"
+                fill="none"
+                opacity="0.07"
+              >
+                {/* Outer circle border */}
+                <circle cx="65" cy="65" r="60" stroke="currentColor" strokeWidth="2" className="text-[#c9a84c]" />
+                <circle cx="65" cy="65" r="54" stroke="currentColor" strokeWidth="0.75" className="text-[#c9a84c]" />
+
+                {/* Left domino tile — tilted */}
+                <g transform="translate(32, 35) rotate(-12, 16, 30)">
+                  <rect x="0" y="0" width="32" height="60" rx="4" stroke="currentColor" strokeWidth="1.5" className="text-[#c9a84c]" />
+                  <line x1="0" y1="30" x2="32" y2="30" stroke="currentColor" strokeWidth="1" className="text-[#c9a84c]" />
+                  {/* Top pips: 3 */}
+                  <circle cx="8" cy="10" r="3" fill="currentColor" className="text-[#c9a84c]" />
+                  <circle cx="16" cy="15" r="3" fill="currentColor" className="text-[#c9a84c]" />
+                  <circle cx="24" cy="10" r="3" fill="currentColor" className="text-[#c9a84c]" />
+                  {/* Bottom pips: 5 */}
+                  <circle cx="8" cy="38" r="3" fill="currentColor" className="text-[#c9a84c]" />
+                  <circle cx="24" cy="38" r="3" fill="currentColor" className="text-[#c9a84c]" />
+                  <circle cx="16" cy="45" r="3" fill="currentColor" className="text-[#c9a84c]" />
+                  <circle cx="8" cy="52" r="3" fill="currentColor" className="text-[#c9a84c]" />
+                  <circle cx="24" cy="52" r="3" fill="currentColor" className="text-[#c9a84c]" />
+                </g>
+
+                {/* Right domino tile — tilted opposite */}
+                <g transform="translate(62, 35) rotate(12, 16, 30)">
+                  <rect x="0" y="0" width="32" height="60" rx="4" stroke="currentColor" strokeWidth="1.5" className="text-[#c9a84c]" />
+                  <line x1="0" y1="30" x2="32" y2="30" stroke="currentColor" strokeWidth="1" className="text-[#c9a84c]" />
+                  {/* Top pips: 6 */}
+                  <circle cx="8" cy="10" r="3" fill="currentColor" className="text-[#c9a84c]" />
+                  <circle cx="24" cy="10" r="3" fill="currentColor" className="text-[#c9a84c]" />
+                  <circle cx="8" cy="18" r="3" fill="currentColor" className="text-[#c9a84c]" />
+                  <circle cx="24" cy="18" r="3" fill="currentColor" className="text-[#c9a84c]" />
+                  <circle cx="8" cy="26" r="3" fill="currentColor" className="text-[#c9a84c]" />
+                  <circle cx="24" cy="26" r="3" fill="currentColor" className="text-[#c9a84c]" />
+                  {/* Bottom pips: 4 */}
+                  <circle cx="8" cy="38" r="3" fill="currentColor" className="text-[#c9a84c]" />
+                  <circle cx="24" cy="38" r="3" fill="currentColor" className="text-[#c9a84c]" />
+                  <circle cx="8" cy="52" r="3" fill="currentColor" className="text-[#c9a84c]" />
+                  <circle cx="24" cy="52" r="3" fill="currentColor" className="text-[#c9a84c]" />
+                </g>
+
+                {/* Bottom text arc */}
+                <text
+                  x="65"
+                  y="120"
+                  textAnchor="middle"
+                  fontSize="8"
+                  fontWeight="600"
+                  letterSpacing="2"
+                  fill="currentColor"
+                  className="text-[#c9a84c]"
+                >
+                  DOMINÓ CLUB
+                </text>
+              </svg>
+            </div>
 
             {/* Capicúa indicator — both open ends show the same number */}
             <AnimatePresence>
