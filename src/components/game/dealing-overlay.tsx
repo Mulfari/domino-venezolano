@@ -2,6 +2,7 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import { useGameStore } from "@/stores/game-store";
+import type { RoundHistoryEntry } from "@/stores/game-store";
 
 const TEAM_COLORS = {
   0: { accent: "#c9a84c", glow: "rgba(201,168,76,0.5)" },
@@ -105,6 +106,137 @@ const PLAYER_POSITIONS = [
 
 const TILES_PER_PLAYER = 7;
 
+function PrevRoundRecap({
+  entry,
+  myTeam,
+  players,
+}: {
+  entry: RoundHistoryEntry;
+  myTeam: 0 | 1 | null;
+  players: { seat: number; displayName: string }[];
+}) {
+  const tied = entry.winner_team === null;
+  const won = myTeam !== null && entry.winner_team === myTeam;
+  const winnerTeam = entry.winner_team ?? 0;
+  const winnerColor = TEAM_COLORS[winnerTeam as 0 | 1]?.accent ?? "#c9a84c";
+
+  const reasonLabel =
+    entry.reason === "domino" ? "Dominó" :
+    entry.reason === "locked" ? "Trancado" : "Empate";
+
+  const reasonIcon =
+    entry.reason === "domino" ? "🎯" :
+    entry.reason === "locked" ? "🔒" : "⚖️";
+
+  function teamName(team: 0 | 1): string {
+    const seats = team === 0 ? [0, 2] : [1, 3];
+    const names = seats.map((s) => {
+      const p = players.find((pl) => pl.seat === s);
+      return p?.displayName.split(" ")[0] ?? `J${s + 1}`;
+    });
+    return names.join(" & ");
+  }
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 8, scale: 0.9 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ delay: 0.3, duration: 0.35, ease: "easeOut" }}
+      className="flex flex-col items-center gap-1.5 rounded-xl px-4 py-2.5"
+      style={{
+        background: "rgba(0,0,0,0.35)",
+        border: `1px solid ${tied ? "rgba(168,196,160,0.2)" : `${winnerColor}30`}`,
+        maxWidth: 220,
+      }}
+      aria-label={`Ronda anterior: ${tied ? "empate" : won ? "ganaste" : "perdiste"}, ${entry.points} puntos, ${reasonLabel}`}
+    >
+      <span
+        className="text-[7px] uppercase tracking-[0.2em] leading-none font-semibold"
+        style={{ color: "rgba(168,196,160,0.45)" }}
+      >
+        Ronda anterior
+      </span>
+
+      <div className="flex items-center gap-2">
+        <span className="text-sm leading-none" aria-hidden="true">{reasonIcon}</span>
+        <span
+          className="text-[11px] font-bold uppercase tracking-widest leading-none"
+          style={{
+            color: tied ? "rgba(168,196,160,0.7)" : won ? "#4ade80" : "rgba(239,68,68,0.8)",
+          }}
+        >
+          {tied ? "Empate" : won ? "¡Ganada!" : "Perdida"}
+        </span>
+      </div>
+
+      <div className="flex items-center gap-2.5">
+        <div className="flex flex-col items-center gap-0.5">
+          <span
+            className="text-[7px] uppercase tracking-widest font-semibold leading-none"
+            style={{ color: tied ? "rgba(168,196,160,0.4)" : `${winnerColor}99` }}
+          >
+            {reasonLabel}
+          </span>
+          {!tied && (
+            <span
+              className="text-[8px] font-semibold leading-none truncate max-w-[90px]"
+              style={{ color: `${winnerColor}cc` }}
+            >
+              {teamName(winnerTeam as 0 | 1)}
+            </span>
+          )}
+        </div>
+
+        <div
+          className="flex items-center justify-center rounded-full"
+          style={{
+            width: 32,
+            height: 32,
+            background: tied
+              ? "rgba(168,196,160,0.1)"
+              : won
+              ? "rgba(74,222,128,0.12)"
+              : "rgba(239,68,68,0.1)",
+            border: `1.5px solid ${
+              tied ? "rgba(168,196,160,0.25)" : won ? "rgba(74,222,128,0.4)" : "rgba(239,68,68,0.3)"
+            }`,
+          }}
+        >
+          <span
+            className="text-[14px] font-black tabular-nums leading-none"
+            style={{
+              color: tied
+                ? "rgba(168,196,160,0.7)"
+                : won
+                ? "#4ade80"
+                : "rgba(239,68,68,0.85)",
+            }}
+          >
+            {tied ? "0" : `${won ? "+" : "-"}${entry.points}`}
+          </span>
+        </div>
+      </div>
+
+      {entry.is_capicua && (
+        <motion.span
+          initial={{ opacity: 0, scale: 0.7 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.5, type: "spring", stiffness: 400, damping: 22 }}
+          className="text-[8px] font-black uppercase tracking-widest leading-none px-2 py-0.5 rounded-full"
+          style={{
+            color: "#c9a84c",
+            background: "rgba(201,168,76,0.15)",
+            border: "1px solid rgba(201,168,76,0.45)",
+            textShadow: "0 0 6px rgba(201,168,76,0.6)",
+          }}
+        >
+          ✦ Capicúa ×2
+        </motion.span>
+      )}
+    </motion.div>
+  );
+}
+
 export function DealingOverlay() {
   const status = useGameStore((s) => s.status);
   const round = useGameStore((s) => s.round);
@@ -113,9 +245,11 @@ export function DealingOverlay() {
   const mySeat = useGameStore((s) => s.mySeat);
   const currentTurn = useGameStore((s) => s.currentTurn);
   const players = useGameStore((s) => s.players);
+  const roundHistory = useGameStore((s) => s.roundHistory);
 
   const myTeam = mySeat !== null ? ((mySeat % 2) as 0 | 1) : null;
   const isFirstRound = round === 1;
+  const prevRound = roundHistory.length > 0 ? roundHistory[roundHistory.length - 1] : null;
   const starterPlayer = players.find((p) => p.seat === currentTurn);
   const starterName = starterPlayer?.displayName?.split(" ")[0] ?? `J${currentTurn + 1}`;
   const starterIsMe = mySeat === currentTurn;
@@ -228,6 +362,11 @@ export function DealingOverlay() {
                   );
                 })}
               </motion.div>
+            )}
+
+            {/* Previous round recap */}
+            {prevRound && !isFirstRound && (
+              <PrevRoundRecap entry={prevRound} myTeam={myTeam} players={players} />
             )}
 
             {/* Decorative divider */}
