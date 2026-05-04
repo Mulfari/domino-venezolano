@@ -37,6 +37,7 @@ import { DoublesTracker } from "@/components/game/doubles-tracker";
 import { PlayerSeat } from "@/components/game/player-seat";
 import { MatchPointAnnouncement } from "@/components/game/match-point-announcement";
 import { ShortcutsPanel } from "@/components/game/shortcuts-panel";
+import { LeadChangeAlert } from "@/components/game/lead-change-alert";
 import { useGameChannel } from "@/hooks/use-game-channel";
 import { useDocumentTitle } from "@/hooks/use-document-title";
 import { useGameStore } from "@/stores/game-store";
@@ -263,6 +264,9 @@ export default function GamePage() {
   const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [errorAlert, setErrorAlert] = useState<string | null>(null);
   const errorTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [leadChangeAlert, setLeadChangeAlert] = useState<{ newLeader: 0 | 1; isMyTeam: boolean; scores: { 0: number; 1: number } } | null>(null);
+  const leadChangeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const prevLeaderRef = useRef<0 | 1 | "tied" | null>(null);
   const autoPlaceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   // Ref so the auto-place effect can call handlePlayTile (defined later in the component)
   const handlePlayTileRef = useRef<((tile: Tile, end: "left" | "right") => Promise<void>) | null>(null);
@@ -625,6 +629,28 @@ export default function GamePage() {
             next: { 0: event.scores.team0, 1: event.scores.team1 },
           });
           setScores({ 0: event.scores.team0, 1: event.scores.team1 });
+
+          // Detect lead change
+          {
+            const newScores = { 0: event.scores.team0, 1: event.scores.team1 };
+            const prevLeader = prevScores[0] > prevScores[1] ? 0 : prevScores[1] > prevScores[0] ? 1 : "tied";
+            const newLeader = newScores[0] > newScores[1] ? 0 : newScores[1] > newScores[0] ? 1 : "tied";
+            const isGameOverNow = newScores[0] >= useGameStore.getState().targetScore || newScores[1] >= useGameStore.getState().targetScore;
+            if (
+              !isGameOverNow &&
+              prevLeader !== "tied" &&
+              newLeader !== "tied" &&
+              prevLeader !== newLeader
+            ) {
+              const myTeamVal = currentSeat !== null ? (currentSeat % 2) : null;
+              const isMyTeamLeader = myTeamVal !== null && newLeader === myTeamVal;
+              if (leadChangeTimerRef.current) clearTimeout(leadChangeTimerRef.current);
+              setLeadChangeAlert({ newLeader, isMyTeam: isMyTeamLeader, scores: newScores });
+              leadChangeTimerRef.current = setTimeout(() => setLeadChangeAlert(null), 3200);
+            }
+            prevLeaderRef.current = newLeader;
+          }
+
           setRoundResult({
             winner_team: event.winner_team as (0 | 1 | null),
             points: event.points,
@@ -2198,6 +2224,17 @@ export default function GamePage() {
 
       {/* Match point announcement — fires at start of rounds where a team could win */}
       <MatchPointAnnouncement />
+
+      {/* Lead change alert — fires when one team overtakes the other */}
+      {leadChangeAlert && (
+        <LeadChangeAlert
+          show={true}
+          newLeader={leadChangeAlert.newLeader}
+          isMyTeam={leadChangeAlert.isMyTeam}
+          scores={leadChangeAlert.scores}
+          players={players.map((p) => ({ seat: p.seat, displayName: p.displayName }))}
+        />
+      )}
 
       {/* ¡Dominó! splash */}
       {dominoSplash && (
