@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { DominoTile } from "./tile";
 import { useGameStore } from "@/stores/game-store";
 import { hapticTap } from "@/lib/haptics/haptics";
+import { chooseBotMove } from "@/lib/game/bot-engine";
 import type { Tile } from "@/lib/game/types";
 
 interface HandProps {
@@ -31,6 +32,7 @@ export function Hand({ onPlayTile, onPass, disabled = false }: HandProps) {
   const board = useGameStore((s) => s.board);
   const round = useGameStore((s) => s.round);
   const consecutivePasses = useGameStore((s) => s.consecutivePasses);
+  const handCounts = useGameStore((s) => s.handCounts);
 
   const myHand = mySeat !== null ? hands[mySeat] : [];
   const isMyTurn = isMyTurnFn();
@@ -169,11 +171,8 @@ export function Hand({ onPlayTile, onPass, disabled = false }: HandProps) {
 
   function handleHint() {
     if (!isMyTurn || validMoves.length < 2) return;
-    // Pick the move with the highest pip sum (best to shed)
-    const bestMove = validMoves.reduce<{ tile: Tile; end: "left" | "right" } | null>((acc, m) => {
-      if (!acc) return m;
-      return m.tile[0] + m.tile[1] > acc.tile[0] + acc.tile[1] ? m : acc;
-    }, null);
+    const mustPlayDouble6 = round === 1 && board.plays.length === 0;
+    const bestMove = chooseBotMove(myHand, board, mustPlayDouble6, mySeat ?? undefined, handCounts);
     setHintTile(bestMove?.tile ?? null);
     setHintEnd(bestMove?.end ?? null);
     if (hintTimerRef.current) clearTimeout(hintTimerRef.current);
