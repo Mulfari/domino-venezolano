@@ -47,6 +47,7 @@ import { playTilePlace, playPass, playYourTurn, playVictory, playDefeat, playGam
 import { hapticYourTurn, hapticPlay, hapticPass, hapticVictory, hapticDefeat, hapticCapicua, hapticCochina, hapticGameOverWin, hapticGameOverLoss } from "@/lib/haptics/haptics";
 import { requestNotificationPermission, notifyTurn } from "@/lib/notifications/turn-notification";
 import type { GameEvent } from "@/lib/realtime/events";
+import { chooseBotMove } from "@/lib/game/bot-engine";
 import type { Tile, Seat } from "@/lib/game/types";
 
 /* ------------------------------------------------------------------ */
@@ -995,8 +996,22 @@ export default function GamePage() {
   }
 
   function handleAutoPlay() {
-    const moves = useGameStore.getState().validMoves();
-    if (moves.length > 0) {
+    const state = useGameStore.getState();
+    const moves = state.validMoves();
+    if (moves.length === 0) return;
+
+    const mustPlayDouble6 = state.round === 1 && state.board.plays.length === 0;
+    const best = chooseBotMove(
+      state.mySeat !== null ? state.hands[state.mySeat] : [],
+      state.board,
+      mustPlayDouble6,
+      state.mySeat ?? undefined,
+      handCounts,
+    );
+
+    if (best) {
+      handlePlayTile(best.tile, best.end);
+    } else {
       handlePlayTile(moves[0].tile, moves[0].end);
     }
   }
