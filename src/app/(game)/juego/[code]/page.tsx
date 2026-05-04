@@ -258,6 +258,8 @@ export default function GamePage() {
   const [incomingEmoji, setIncomingEmoji] = useState<{ id: string; seat: number; emoji: string } | null>(null);
   const [reconnectAlert, setReconnectAlert] = useState<{ name: string; seat: Seat } | null>(null);
   const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [errorAlert, setErrorAlert] = useState<string | null>(null);
+  const errorTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const autoPlaceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   // Ref so the auto-place effect can call handlePlayTile (defined later in the component)
   const handlePlayTileRef = useRef<((tile: Tile, end: "left" | "right") => Promise<void>) | null>(null);
@@ -812,14 +814,15 @@ export default function GamePage() {
       });
 
       if (!res.ok) {
-        // Revert optimistic update on failure
         await fetchGameState();
         const body = await res.json().catch(() => ({}));
         console.error("Play failed:", body.error);
+        showError("No se pudo jugar la ficha");
       }
     } catch (err) {
       console.error("Play error:", err);
       await fetchGameState();
+      showError("Error de conexión al jugar");
     } finally {
       setActionLoading(false);
     }
@@ -893,10 +896,12 @@ export default function GamePage() {
         await fetchGameState();
         const body = await res.json().catch(() => ({}));
         console.error("Pass failed:", body.error);
+        showError("No se pudo pasar el turno");
       }
     } catch (err) {
       console.error("Pass error:", err);
       await fetchGameState();
+      showError("Error de conexión al pasar");
     } finally {
       setActionLoading(false);
     }
@@ -923,10 +928,11 @@ export default function GamePage() {
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
         console.error("Next round failed:", body.error);
+        showError("No se pudo iniciar la siguiente ronda");
       }
-      // The round_started event from realtime will handle the state update
     } catch (err) {
       console.error("Next round error:", err);
+      showError("Error de conexión al iniciar ronda");
     } finally {
       setActionLoading(false);
     }
@@ -953,6 +959,12 @@ export default function GamePage() {
     if (tiempoTimerRef.current) clearTimeout(tiempoTimerRef.current);
     setTiempoAlert(true);
     tiempoTimerRef.current = setTimeout(() => setTiempoAlert(false), 2500);
+  }
+
+  function showError(msg: string) {
+    if (errorTimerRef.current) clearTimeout(errorTimerRef.current);
+    setErrorAlert(msg);
+    errorTimerRef.current = setTimeout(() => setErrorAlert(null), 3500);
   }
 
   function handleCopyCode() {
@@ -2059,6 +2071,46 @@ export default function GamePage() {
             </motion.div>
           );
         })()}
+      </AnimatePresence>
+
+      {/* Error toast — fires when a play, pass, or next-round API call fails */}
+      <AnimatePresence>
+        {errorAlert && (
+          <motion.div
+            key="error-toast"
+            initial={{ opacity: 0, y: -28, scale: 0.82 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -18, scale: 0.9 }}
+            transition={{ type: "spring", stiffness: 440, damping: 24 }}
+            className="pointer-events-auto cursor-pointer"
+            role="alert"
+            aria-live="assertive"
+            onClick={() => { setErrorAlert(null); if (errorTimerRef.current) clearTimeout(errorTimerRef.current); }}
+          >
+            <div
+              className="flex items-center gap-2.5 rounded-full px-5 py-2.5 backdrop-blur-sm"
+              style={{
+                background: "linear-gradient(135deg, #2a0808 0%, #1a0404 100%)",
+                border: "1.5px solid rgba(239,68,68,0.75)",
+                boxShadow: "0 0 32px 8px rgba(239,68,68,0.3), 0 8px 24px rgba(0,0,0,0.8)",
+              }}
+            >
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+                <circle cx="9" cy="9" r="7" stroke="#ef4444" strokeWidth="1.5" fill="none"/>
+                <path d="M9 5.5v4" stroke="#ef4444" strokeWidth="1.8" strokeLinecap="round"/>
+                <circle cx="9" cy="12.5" r="1" fill="#ef4444"/>
+              </svg>
+              <div className="flex flex-col leading-tight">
+                <span className="text-[13px] font-black text-red-400 uppercase tracking-widest leading-none">
+                  Error
+                </span>
+                <span className="text-[10px] text-[#f5f0e8]/55 leading-none mt-0.5">
+                  {errorAlert}
+                </span>
+              </div>
+            </div>
+          </motion.div>
+        )}
       </AnimatePresence>
 
       </ToastStack>
