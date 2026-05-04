@@ -430,9 +430,10 @@ interface GameOverModalProps {
   onNextRound?: () => void;
   onBackToLobby?: () => void;
   onRevancha?: () => void;
+  matchElapsed?: number;
 }
 
-export function GameOverModal({ onNextRound, onBackToLobby, onRevancha }: GameOverModalProps) {
+export function GameOverModal({ onNextRound, onBackToLobby, onRevancha, matchElapsed }: GameOverModalProps) {
   const roundResult = useGameStore((s) => s.roundResult);
   const scores = useGameStore((s) => s.scores);
   const targetScore = useGameStore((s) => s.targetScore);
@@ -499,6 +500,7 @@ export function GameOverModal({ onNextRound, onBackToLobby, onRevancha }: GameOv
         moveLog={moveLog}
         onBackToLobby={onBackToLobby}
         onRevancha={onRevancha}
+        matchElapsed={matchElapsed}
       />
     );
   }
@@ -1076,6 +1078,7 @@ interface GameOverViewProps {
   moveLog: import("@/stores/game-store").MoveLogEntry[];
   onBackToLobby?: () => void;
   onRevancha?: () => void;
+  matchElapsed?: number;
 }
 
 function computeMVP(

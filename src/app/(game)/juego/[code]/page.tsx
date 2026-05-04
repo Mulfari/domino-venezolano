@@ -39,6 +39,7 @@ import { PlayerSeat } from "@/components/game/player-seat";
 import { MatchPointAnnouncement } from "@/components/game/match-point-announcement";
 import { ShortcutsPanel } from "@/components/game/shortcuts-panel";
 import { LeadChangeAlert } from "@/components/game/lead-change-alert";
+import { MatchTimer, useMatchTimer, formatDuration } from "@/components/game/match-timer";
 import { useGameChannel } from "@/hooks/use-game-channel";
 import { useDocumentTitle } from "@/hooks/use-document-title";
 import { useGameStore } from "@/stores/game-store";
@@ -210,6 +211,9 @@ export default function GamePage() {
 
   /* ---- Dynamic browser tab title ---- */
   useDocumentTitle();
+
+  /* ---- Match elapsed timer ---- */
+  const { elapsed: matchElapsed, formatted: matchFormatted } = useMatchTimer();
 
   /* ---- Local UI state ---- */
   const [loading, setLoading] = useState(true);
@@ -1113,6 +1117,7 @@ export default function GamePage() {
         </div>
         {/* Room code badge + tools */}
         <div className="min-w-0 sm:min-w-[160px] flex items-center justify-end gap-1 sm:gap-2">
+          <MatchTimer elapsed={matchElapsed} />
           <ToolbarMenu>
             <MoveLog />
             <TileTracker />
@@ -2303,6 +2308,7 @@ export default function GamePage() {
         onNextRound={isHost ? handleNextRound : undefined}
         onBackToLobby={handleBackToLobby}
         onRevancha={isHost ? handleRevancha : undefined}
+        matchElapsed={matchElapsed}
       />
 
       {/* Chat panel */}
