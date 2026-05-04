@@ -27,6 +27,7 @@ import { DealingOverlay } from "@/components/game/dealing-overlay";
 import { DominoSplash } from "@/components/game/domino-splash";
 import { CochinaSplash } from "@/components/game/cochina-splash";
 import { TrancadoSplash } from "@/components/game/trancado-splash";
+import { CapicuaSplash } from "@/components/game/capicua-splash";
 import { TurnFlash } from "@/components/game/turn-flash";
 import { PassMeter } from "@/components/game/pass-meter";
 import { ToolbarMenu } from "@/components/game/toolbar-menu";
@@ -237,6 +238,8 @@ export default function GamePage() {
   const cochinaTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [cochinaShow, setCochinaShow] = useState(false);
   const cochinaShowTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [capicuaSplash, setCapicuaSplash] = useState<{ playerName: string; isMe: boolean; pipValue: number } | null>(null);
+  const capicuaSplashTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const prevFirstPlayRef = useRef<string | null>(null);
   const [dobleAlert, setDobleAlert] = useState<{ name: string; pip: number; seat: Seat } | null>(null);
   const dobleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -713,12 +716,28 @@ export default function GamePage() {
             const isMyTeamDomino = dominoSeat !== null && currentSeat !== null
               ? (dominoSeat % 2) === (currentSeat % 2)
               : false;
-            setDominoSplash({ playerName: dominoPlayer, isMyTeam: isMyTeamDomino, reason: "domino", tile: lastPlay?.tile, points: event.points });
-            // Show splash for 1.6s, then start board transition
-            setTimeout(() => {
-              setDominoSplash(null);
-              setBoardTransitioning(true);
-            }, 1600);
+
+            if (isCapicuaRound) {
+              const boardState = useGameStore.getState().board;
+              const pipVal = boardState.left ?? 0;
+              const isMe = dominoSeat !== null && dominoSeat === currentSeat;
+              if (capicuaSplashTimerRef.current) clearTimeout(capicuaSplashTimerRef.current);
+              setCapicuaSplash({ playerName: dominoPlayer, isMe, pipValue: pipVal });
+              capicuaSplashTimerRef.current = setTimeout(() => {
+                setCapicuaSplash(null);
+                setDominoSplash({ playerName: dominoPlayer, isMyTeam: isMyTeamDomino, reason: "domino", tile: lastPlay?.tile, points: event.points });
+                setTimeout(() => {
+                  setDominoSplash(null);
+                  setBoardTransitioning(true);
+                }, 1600);
+              }, 2500);
+            } else {
+              setDominoSplash({ playerName: dominoPlayer, isMyTeam: isMyTeamDomino, reason: "domino", tile: lastPlay?.tile, points: event.points });
+              setTimeout(() => {
+                setDominoSplash(null);
+                setBoardTransitioning(true);
+              }, 1600);
+            }
           } else if (event.reason === "locked") {
             // Show dedicated trancado splash with pip info before board transition
             const isMyTeamLocked = currentSeat !== null && event.winner_team !== null
@@ -2265,6 +2284,16 @@ export default function GamePage() {
         playerName={cochinaAlert?.name ?? board.plays[0] ? (players.find((p) => p.seat === board.plays[0]?.seat)?.displayName ?? "") : ""}
         isMe={mySeat !== null && board.plays[0]?.seat === mySeat}
       />
+
+      {/* ¡Capicúa! splash */}
+      {capicuaSplash && (
+        <CapicuaSplash
+          show={true}
+          playerName={capicuaSplash.playerName}
+          isMe={capicuaSplash.isMe}
+          pipValue={capicuaSplash.pipValue}
+        />
+      )}
 
       {/* Disconnect overlay */}
       <DisconnectOverlay />
