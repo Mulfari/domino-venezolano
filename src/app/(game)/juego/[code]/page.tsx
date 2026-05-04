@@ -36,6 +36,7 @@ import { SeatMap } from "@/components/game/seat-map";
 import { RoundProgress } from "@/components/game/round-progress";
 import { PlayerSeat } from "@/components/game/player-seat";
 import { MatchPointAnnouncement } from "@/components/game/match-point-announcement";
+import { ShortcutsPanel } from "@/components/game/shortcuts-panel";
 import { useGameChannel } from "@/hooks/use-game-channel";
 import { useDocumentTitle } from "@/hooks/use-document-title";
 import { useGameStore } from "@/stores/game-store";
@@ -1075,6 +1076,7 @@ export default function GamePage() {
             <TileTracker />
             <MatchStats />
             <RulesPanel />
+            <ShortcutsPanel />
             <EmojiReactions
               mySeat={mySeat}
               players={players.map((p) => ({ seat: p.seat, displayName: p.displayName }))}
