@@ -449,6 +449,14 @@ export function GameOverModal({ onNextRound, onBackToLobby, onRevancha, matchEla
   const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const hasTriggered = useRef(false);
 
+  const handleSkipCountdown = () => {
+    if (hasTriggered.current) return;
+    if (countdownRef.current) clearInterval(countdownRef.current);
+    hasTriggered.current = true;
+    setCountdown(0);
+    onNextRound?.();
+  };
+
   const gameOver = scores[0] >= targetScore || scores[1] >= targetScore;
   const myTeam = mySeat !== null ? (mySeat % 2) as 0 | 1 : null;
 
@@ -517,6 +525,7 @@ export function GameOverModal({ onNextRound, onBackToLobby, onRevancha, matchEla
       team1Names={team1Names}
       countdown={countdown}
       onNextRound={onNextRound}
+      onSkipCountdown={handleSkipCountdown}
       hands={hands}
       players={players}
       moveLog={moveLog}
@@ -536,6 +545,7 @@ interface RoundEndViewProps {
   team1Names: string[];
   countdown: number;
   onNextRound?: () => void;
+  onSkipCountdown?: () => void;
   hands: { 0: import("@/lib/game/types").Tile[]; 1: import("@/lib/game/types").Tile[]; 2: import("@/lib/game/types").Tile[]; 3: import("@/lib/game/types").Tile[] };
   players: { seat: Seat; displayName: string; connected: boolean; isBot?: boolean }[];
   moveLog: import("@/stores/game-store").MoveLogEntry[];
@@ -557,6 +567,7 @@ function RoundEndView({
   team1Names,
   countdown,
   onNextRound,
+  onSkipCountdown,
   hands,
   players,
   moveLog,
@@ -1039,14 +1050,14 @@ function RoundEndView({
           })}
         </motion.div>
 
-        {/* Countdown */}
+        {/* Countdown + skip button */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.9 }}
           className="mx-5 mb-6"
         >
-          <div className="space-y-2">
+          <div className="space-y-3">
             <div className="relative h-1.5 rounded-full bg-[#0f3520]/80 overflow-hidden">
               <motion.div
                 initial={{ width: "100%" }}
@@ -1055,9 +1066,30 @@ function RoundEndView({
                 className="absolute inset-y-0 left-0 bg-[#c9a84c]/60 rounded-full"
               />
             </div>
-            <p className="text-center text-xs text-[#a8c4a0]/55" aria-live="polite" aria-atomic="true">
-              Siguiente ronda en {countdown}s
-            </p>
+            <button
+              onClick={onSkipCountdown}
+              className="w-full py-2.5 rounded-lg text-sm font-bold uppercase tracking-wider transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#c9a84c]/60 focus:ring-offset-2 focus:ring-offset-[#163d28]"
+              style={{
+                background: "linear-gradient(180deg, rgba(201,168,76,0.2) 0%, rgba(201,168,76,0.08) 100%)",
+                border: "1px solid rgba(201,168,76,0.4)",
+                color: "#c9a84c",
+                textShadow: "0 0 8px rgba(201,168,76,0.3)",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = "linear-gradient(180deg, rgba(201,168,76,0.35) 0%, rgba(201,168,76,0.15) 100%)";
+                e.currentTarget.style.borderColor = "rgba(201,168,76,0.7)";
+                e.currentTarget.style.boxShadow = "0 0 16px rgba(201,168,76,0.25)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = "linear-gradient(180deg, rgba(201,168,76,0.2) 0%, rgba(201,168,76,0.08) 100%)";
+                e.currentTarget.style.borderColor = "rgba(201,168,76,0.4)";
+                e.currentTarget.style.boxShadow = "none";
+              }}
+              aria-live="polite"
+              aria-label={`Continuar a la siguiente ronda (${countdown} segundos restantes)`}
+            >
+              Continuar · {countdown}s
+            </button>
           </div>
         </motion.div>
       </motion.div>
