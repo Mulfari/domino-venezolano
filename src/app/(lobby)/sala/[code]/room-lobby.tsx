@@ -1,7 +1,7 @@
 "use client";
 
 import { createClient } from "@/lib/supabase/client";
-import { startGame, addBot, removeBot, leaveRoom } from "@/lib/rooms/actions";
+import { startGame, addBot, removeBot, leaveRoom, updateTargetScore } from "@/lib/rooms/actions";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -16,6 +16,7 @@ interface Room {
   status: string;
   seats: Seat[];
   current_game_id: string | null;
+  target_score: number | null;
 }
 
 interface Props {
@@ -183,10 +184,13 @@ export function RoomLobby({ room, userId, displayName }: Props) {
   const [starting, setStarting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [targetScore, setTargetScore] = useState<number>(room.target_score ?? 100);
   const router = useRouter();
   const isHost = room.host_id === userId;
   const filledCount = seats.filter((s) => s !== null).length;
   const allReady = filledCount === 4;
+
+  const TARGET_SCORE_OPTIONS = [50, 100, 150, 200] as const;
 
   useEffect(() => {
     const supabase = createClient();
@@ -203,6 +207,9 @@ export function RoomLobby({ room, userId, displayName }: Props) {
         (payload) => {
           const updated = payload.new as Room;
           setSeats(updated.seats);
+          if (updated.target_score !== null && updated.target_score !== undefined) {
+            setTargetScore(updated.target_score);
+          }
           if (updated.status === "playing" && updated.current_game_id) {
             router.push(`/juego/${updated.current_game_id}`);
           }
@@ -261,6 +268,15 @@ export function RoomLobby({ room, userId, displayName }: Props) {
   async function handleAddBot() {
     const result = await addBot(room.id);
     if (result?.error) setError(result.error);
+  }
+
+  async function handleTargetScoreChange(score: number) {
+    setTargetScore(score);
+    const result = await updateTargetScore(room.id, score);
+    if (result?.error) {
+      setError(result.error);
+      setTargetScore(targetScore);
+    }
   }
 
   async function handleRemoveBot(seatIndex: number) {
@@ -375,6 +391,49 @@ export function RoomLobby({ room, userId, displayName }: Props) {
                   onRemoveBot={() => handleRemoveBot(i)}
                 />
               ))}
+            </div>
+          </motion.div>
+
+          {/* Game settings — target score */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.25 }}
+            className="glass rounded-2xl border border-[#c9a84c]/20 p-4"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                  <path d="M8 1l1.796 4.21L14.5 5.59l-3.5 3.16.98 4.75L8 11.08 3.02 13.5 4 8.75.5 5.59l4.704-.38L8 1z" fill="#c9a84c" />
+                </svg>
+                <span className="text-sm font-semibold text-[#f5f0e8]">Meta de puntos</span>
+              </div>
+              <span className="text-xs text-[#a8c4a0]/50">
+                {isHost ? "Elige la meta" : "Configurado por el host"}
+              </span>
+            </div>
+            <div className="flex items-center gap-2 mt-3">
+              {TARGET_SCORE_OPTIONS.map((score) => {
+                const isSelected = targetScore === score;
+                return (
+                  <button
+                    key={score}
+                    onClick={() => isHost && handleTargetScoreChange(score)}
+                    disabled={!isHost}
+                    aria-label={`Meta: ${score} puntos`}
+                    aria-pressed={isSelected}
+                    className={`flex-1 rounded-xl py-2.5 text-sm font-bold transition-all ${
+                      isSelected
+                        ? "bg-[#c9a84c]/20 border-2 border-[#c9a84c] text-[#c9a84c] shadow-[0_0_12px_rgba(201,168,76,0.2)]"
+                        : isHost
+                          ? "bg-[#1e5c3a]/30 border border-[#c9a84c]/15 text-[#a8c4a0]/70 hover:bg-[#1e5c3a]/50 hover:border-[#c9a84c]/30 hover:text-[#a8c4a0]"
+                          : "bg-[#1e5c3a]/20 border border-[#c9a84c]/10 text-[#a8c4a0]/40 cursor-default"
+                    }`}
+                  >
+                    {score}
+                  </button>
+                );
+              })}
             </div>
           </motion.div>
 

@@ -237,6 +237,33 @@ export async function quickPlay() {
   redirect(`/sala/${room.code}`);
 }
 
+export async function updateTargetScore(roomId: string, targetScore: number) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: "No autenticado." };
+
+  const validScores = [50, 100, 150, 200];
+  if (!validScores.includes(targetScore)) return { error: "Puntuación no válida." };
+
+  const { data: room } = await getSupabaseAdmin()
+    .from("rooms")
+    .select("id, host_id, status")
+    .eq("id", roomId)
+    .single();
+
+  if (!room) return { error: "Sala no encontrada." };
+  if (room.host_id !== user.id) return { error: "Solo el host puede cambiar la meta." };
+  if (room.status !== "waiting") return { error: "No se puede cambiar durante una partida." };
+
+  const { error: updateError } = await getSupabaseAdmin()
+    .from("rooms")
+    .update({ target_score: targetScore })
+    .eq("id", room.id);
+
+  if (updateError) return { error: "No se pudo actualizar la meta." };
+  return { success: true };
+}
+
 export async function addBot(roomId: string) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
