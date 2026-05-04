@@ -131,6 +131,159 @@ function Confetti({ active, intensity = 1 }: { active: boolean; intensity?: numb
   );
 }
 
+// ─── Mini tile for hand reveal ───────────────────────────────────────────────
+
+function RevealTile({ tile, delay }: { tile: [number, number]; delay: number }) {
+  const W = 20;
+  const H = 36;
+  const half = H / 2;
+
+  function pips(val: number, yOffset: number) {
+    const cx = W / 2;
+    const cy = yOffset + half / 2;
+    const positions: [number, number][] = [];
+    if (val % 2 === 1) positions.push([cx, cy]);
+    if (val >= 2) { positions.push([cx - 3.5, yOffset + half * 0.25]); positions.push([cx + 3.5, yOffset + half * 0.75]); }
+    if (val >= 4) { positions.push([cx + 3.5, yOffset + half * 0.25]); positions.push([cx - 3.5, yOffset + half * 0.75]); }
+    if (val === 6) { positions.push([cx - 3.5, cy]); positions.push([cx + 3.5, cy]); }
+    return positions.map(([x, y], i) => (
+      <circle key={i} cx={x} cy={y} r={1.6} fill="#1a1a1a" />
+    ));
+  }
+
+  return (
+    <motion.div
+      initial={{ rotateY: 180, opacity: 0, scale: 0.7 }}
+      animate={{ rotateY: 0, opacity: 1, scale: 1 }}
+      transition={{ delay, duration: 0.4, type: "spring", stiffness: 300, damping: 22 }}
+      style={{ perspective: 400 }}
+    >
+      <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`} aria-hidden="true">
+        <rect x={0.5} y={0.5} width={W - 1} height={H - 1} rx={2.5}
+          fill="#f5f0e8" stroke="rgba(201,168,76,0.5)" strokeWidth={0.8} />
+        <line x1={2} y1={half} x2={W - 2} y2={half} stroke="rgba(0,0,0,0.3)" strokeWidth={0.7} />
+        <line x1={2} y1={half + 0.5} x2={W - 2} y2={half + 0.5} stroke="rgba(255,255,255,0.4)" strokeWidth={0.4} />
+        {pips(tile[0], 0)}
+        {pips(tile[1], half)}
+      </svg>
+    </motion.div>
+  );
+}
+
+function HandReveal({ hands, players, myTeam, roundResult, isDraw }: {
+  hands: { 0: import("@/lib/game/types").Tile[]; 1: import("@/lib/game/types").Tile[]; 2: import("@/lib/game/types").Tile[]; 3: import("@/lib/game/types").Tile[] };
+  players: { seat: import("@/lib/game/types").Seat; displayName: string; connected: boolean; isBot?: boolean }[];
+  myTeam: 0 | 1 | null;
+  roundResult: RoundResult;
+  isDraw: boolean;
+}) {
+  const hasAnyTiles = ([0, 1, 2, 3] as const).some((s) => (hands[s] ?? []).length > 0);
+  if (!hasAnyTiles) return null;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.64 }}
+      className="mx-5 mb-4"
+    >
+      <p className="text-[10px] uppercase tracking-widest text-[#a8c4a0]/50 mb-2.5 text-center">
+        Manos reveladas
+      </p>
+      <div className="flex flex-col gap-2.5">
+        {([0, 1, 2, 3] as const).map((seat) => {
+          const tiles = hands[seat] ?? [];
+          if (tiles.length === 0) {
+            const player = players.find((p) => p.seat === seat);
+            const name = player?.displayName.split(" ")[0] ?? `J${seat + 1}`;
+            const team = (seat % 2) as 0 | 1;
+            const isMyTeamRow = myTeam === team;
+            return (
+              <div key={seat} className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5 min-w-[72px]">
+                  <span
+                    className="w-1.5 h-1.5 rounded-full shrink-0"
+                    style={{ backgroundColor: team === 0 ? "#c9a84c" : "#4ca8c9" }}
+                  />
+                  <span className={`text-[10px] font-medium truncate ${isMyTeamRow ? "text-[#c9a84c]" : "text-[#f5f0e8]/55"}`}>
+                    {name}
+                  </span>
+                </div>
+                <span className="text-[9px] italic text-[#a8c4a0]/35">¡Dominó!</span>
+              </div>
+            );
+          }
+          const player = players.find((p) => p.seat === seat);
+          const name = player?.displayName.split(" ")[0] ?? `J${seat + 1}`;
+          const team = (seat % 2) as 0 | 1;
+          const isMyTeamRow = myTeam === team;
+          const isWinnerTeam = roundResult.winner_team === team;
+          const pipSum = tiles.reduce((s, [a, b]) => s + a + b, 0);
+
+          return (
+            <div
+              key={seat}
+              className="rounded-xl px-2.5 py-2 border"
+              style={{
+                background: isWinnerTeam && !isDraw
+                  ? "rgba(74,222,128,0.04)"
+                  : "rgba(0,0,0,0.15)",
+                borderColor: isWinnerTeam && !isDraw
+                  ? "rgba(74,222,128,0.2)"
+                  : "rgba(245,240,232,0.06)",
+              }}
+            >
+              <div className="flex items-center justify-between mb-1.5">
+                <div className="flex items-center gap-1.5">
+                  <span
+                    className="w-1.5 h-1.5 rounded-full shrink-0"
+                    style={{ backgroundColor: team === 0 ? "#c9a84c" : "#4ca8c9" }}
+                  />
+                  <span className={`text-[10px] font-semibold truncate ${isMyTeamRow ? "text-[#c9a84c]" : "text-[#f5f0e8]/65"}`}>
+                    {name}
+                  </span>
+                  <span
+                    className="text-[8px] font-bold tabular-nums px-1 py-0.5 rounded"
+                    style={{
+                      color: team === 0 ? "rgba(201,168,76,0.7)" : "rgba(76,168,201,0.7)",
+                      background: team === 0 ? "rgba(201,168,76,0.1)" : "rgba(76,168,201,0.1)",
+                      border: `1px solid ${team === 0 ? "rgba(201,168,76,0.25)" : "rgba(76,168,201,0.25)"}`,
+                    }}
+                  >
+                    Eq. {team === 0 ? "A" : "B"}
+                  </span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[9px] tabular-nums text-[#a8c4a0]/40">
+                    {tiles.length} ficha{tiles.length !== 1 ? "s" : ""}
+                  </span>
+                  <span
+                    className="text-[10px] font-bold tabular-nums"
+                    style={{
+                      color: isWinnerTeam && !isDraw ? "#4ade80" : "rgba(245,240,232,0.55)",
+                    }}
+                  >
+                    {pipSum} pts
+                  </span>
+                </div>
+              </div>
+              <div className="flex items-center gap-1 flex-wrap">
+                {tiles.map((tile, i) => (
+                  <RevealTile
+                    key={`${tile[0]}-${tile[1]}-${i}`}
+                    tile={tile as [number, number]}
+                    delay={0.7 + seat * 0.15 + i * 0.06}
+                  />
+                ))}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </motion.div>
+  );
+}
+
 // ─── Animated counter ─────────────────────────────────────────────────────────
 
 function AnimatedNumber({ value, from = 0, delay = 0 }: { value: number; from?: number; delay?: number }) {
@@ -828,6 +981,15 @@ function RoundEndView({
             </div>
           </motion.div>
         )}
+
+        {/* Visual hand reveal — shows each player's remaining tiles as mini dominoes */}
+        <HandReveal
+          hands={hands}
+          players={players}
+          myTeam={myTeam}
+          roundResult={roundResult}
+          isDraw={isDraw}
+        />
 
         {/* Score progress bars */}
         <motion.div
