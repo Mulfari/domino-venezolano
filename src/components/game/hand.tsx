@@ -1132,7 +1132,7 @@ export function Hand({ onPlayTile, onPass, disabled = false }: HandProps) {
 
             return (
               <motion.div
-                key={`${tile[0]}-${tile[1]}-${i}`}
+                key={`${Math.min(tile[0], tile[1])}-${Math.max(tile[0], tile[1])}`}
                 layout
                 initial={dealInitial}
                 animate={isTileRejected(tile) ? {
