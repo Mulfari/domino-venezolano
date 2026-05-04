@@ -44,11 +44,12 @@ interface Scores {
   1: number;
 }
 
-interface PlayerInfo {
+export interface PlayerInfo {
   seat: Seat;
   displayName: string;
   connected: boolean;
   isBot?: boolean;
+  avatarUrl?: string;
 }
 
 interface GameStore {

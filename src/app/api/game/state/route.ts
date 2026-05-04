@@ -58,12 +58,27 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "No estás en esta partida." }, { status: 403 });
     }
 
+    // Fetch avatars for human players
+    const humanUserIds = seats
+      .filter((s) => s && !s.user_id.startsWith("bot_"))
+      .map((s) => s!.user_id);
+    const avatarMap: Record<string, string> = {};
+    if (humanUserIds.length > 0) {
+      const { data: profiles } = await getSupabaseAdmin()
+        .from("profiles")
+        .select("id, avatar_url")
+        .in("id", humanUserIds);
+      if (profiles) {
+        for (const p of profiles) {
+          if (p.avatar_url) avatarMap[p.id] = p.avatar_url;
+        }
+      }
+    }
+
     const allHands = (game.hands ?? [[], [], [], []]) as Tile[][];
     const board = (game.board ?? { left: null, right: null, plays: [] }) as BoardState;
     const scores = (game.scores as number[]) || [0, 0];
 
-    // Return only the player's own hand + public info
-    // Other players' hand counts are visible but not their tiles
     const handCounts = allHands.map((h) => (h ? h.length : 0));
 
     return NextResponse.json({
@@ -79,7 +94,7 @@ export async function GET(request: NextRequest) {
       scores: { team0: scores[0], team1: scores[1] },
       seat: playerSeat,
       seats: seats.map((s) =>
-        s ? { user_id: s.user_id, display_name: s.display_name } : null
+        s ? { user_id: s.user_id, display_name: s.display_name, avatar_url: avatarMap[s.user_id] ?? null } : null
       ),
       host_id: roomData.host_id ?? null,
       round: game.round_number ?? 1,

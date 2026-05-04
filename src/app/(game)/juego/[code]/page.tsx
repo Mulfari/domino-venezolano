@@ -56,6 +56,7 @@ import type { Tile, Seat } from "@/lib/game/types";
 interface SeatInfo {
   user_id: string;
   display_name: string;
+  avatar_url?: string | null;
 }
 
 interface GameStateResponse {
@@ -364,6 +365,7 @@ export default function GamePage() {
         displayName: s?.display_name ?? `Jugador ${i + 1}`,
         connected: false,
         isBot: s?.user_id?.startsWith("bot_") ?? false,
+        avatarUrl: s?.avatar_url ?? undefined,
       }));
       setPlayers(playerInfos);
 

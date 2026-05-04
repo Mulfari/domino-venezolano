@@ -81,6 +81,7 @@ export function OpponentHand({
   const currentRound = useGameStore((s) => s.round);
   const board = useGameStore((s) => s.board);
   const isMano = board.plays.length > 0 && board.plays[0].seat === seat;
+  const avatarUrl = useGameStore((s) => s.players.find((p) => p.seat === seat)?.avatarUrl);
 
   // Find the last tile this opponent played in the current round only
   const lastPlayedTile: Tile | null = (() => {
@@ -109,6 +110,10 @@ export function OpponentHand({
     return [...missing].sort((a, b) => a - b);
   }, [moveLog, currentRound, seat]);
   // Elapsed thinking timer for human opponents
+  const [avatarError, setAvatarError] = useState(false);
+
+  useEffect(() => { setAvatarError(false); }, [avatarUrl]);
+
   const [thinkingSec, setThinkingSec] = useState(0);
   const thinkingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -205,6 +210,18 @@ export function OpponentHand({
               <line x1="2" y1="8.5" x2="0.5" y2="8.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
               <line x1="12" y1="8.5" x2="13.5" y2="8.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
             </svg>
+          ) : avatarUrl && !avatarError ? (
+            <img
+              src={avatarUrl}
+              alt={playerName}
+              className="rounded-full object-cover"
+              style={{
+                width: isMobile ? 22 : 26,
+                height: isMobile ? 22 : 26,
+              }}
+              onError={() => setAvatarError(true)}
+              referrerPolicy="no-referrer"
+            />
           ) : (
             getInitials(playerName)
           )}
