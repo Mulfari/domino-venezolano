@@ -19,24 +19,24 @@ function entry(a: number, b: number, i: number): TileEntry {
 }
 
 describe("tileSize", () => {
-  it("horizontal non-double matches tile.tsx small config (w=20,h=36 → horiz 36x20)", () => {
+  it("horizontal non-double (w=40,h=22)", () => {
     const sz = tileSize(false, "right", DIMS_DESKTOP);
-    expect(sz).toEqual({ w: 36, h: 20 });
+    expect(sz).toEqual({ w: 40, h: 22 });
   });
 
-  it("vertical non-double (20x36)", () => {
+  it("vertical non-double (w=22,h=40)", () => {
     const sz = tileSize(false, "down", DIMS_DESKTOP);
-    expect(sz).toEqual({ w: 20, h: 36 });
+    expect(sz).toEqual({ w: 22, h: 40 });
   });
 
-  it("horizontal double is perpendicular (20x36)", () => {
+  it("horizontal double is perpendicular — vertical (w=22,h=40)", () => {
     const sz = tileSize(true, "right", DIMS_DESKTOP);
-    expect(sz).toEqual({ w: 20, h: 36 });
+    expect(sz).toEqual({ w: 22, h: 40 });
   });
 
-  it("vertical double is perpendicular (36x20)", () => {
+  it("vertical double is perpendicular — horizontal (w=40,h=22)", () => {
     const sz = tileSize(true, "down", DIMS_DESKTOP);
-    expect(sz).toEqual({ w: 36, h: 20 });
+    expect(sz).toEqual({ w: 40, h: 22 });
   });
 });
 
