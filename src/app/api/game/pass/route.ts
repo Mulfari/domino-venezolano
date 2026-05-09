@@ -114,13 +114,18 @@ export async function POST(request: NextRequest) {
       updatePayload.points_awarded = result.points;
     }
 
-    const { error: updateError } = await getSupabaseAdmin()
+    // Optimistic lock: update only if current_turn still matches
+    const { error: updateError, count } = await getSupabaseAdmin()
       .from("games")
       .update(updatePayload)
-      .eq("id", game_id);
+      .eq("id", game_id)
+      .eq("current_turn", playerSeat);
 
     if (updateError) {
       return NextResponse.json({ error: "Error al actualizar la partida." }, { status: 500 });
+    }
+    if (count === 0) {
+      return NextResponse.json({ error: "Estado desactualizado. Intenta de nuevo." }, { status: 409 });
     }
 
     // Broadcast

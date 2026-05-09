@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { applyMove } from "@/lib/game/engine";
 import { calculateRoundResult } from "@/lib/game/scoring";
-import { finalizeRound, buildRoundEndPayload } from "@/lib/game/round-end";
+import { finalizeRound } from "@/lib/game/round-end";
 import { processBotTurns } from "@/lib/game/bot-turn";
 import { isBotUserId } from "@/lib/game/bot-engine";
 import type { Tile, Seat, BoardState, GameState } from "@/lib/game/types";
@@ -140,13 +140,19 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const { error: updateError } = await getSupabaseAdmin()
+    // Optimistic lock: update only if current_turn still matches (no race with bot)
+    const { error: updateError, count } = await getSupabaseAdmin()
       .from("games")
       .update(updatePayload)
-      .eq("id", game_id);
+      .eq("id", game_id)
+      .eq("current_turn", playerSeat);
 
+    // If the update touched 0 rows, someone else took the turn first → 409
     if (updateError) {
       return NextResponse.json({ error: "Error al actualizar la partida." }, { status: 500 });
+    }
+    if (count === 0) {
+      return NextResponse.json({ error: "Estado desactualizado. Intenta de nuevo." }, { status: 409 });
     }
 
     // Update the player's hand in game_hands table

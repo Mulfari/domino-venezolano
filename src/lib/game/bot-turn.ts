@@ -92,7 +92,14 @@ export async function processBotTurns(gameId: string) {
       updatePayload.points_awarded = result.points;
     }
 
-    await admin.from("games").update(updatePayload).eq("id", gameId);
+    // Optimistic lock: update only if current_turn still matches
+    const { count: botCount } = await admin
+      .from("games")
+      .update(updatePayload)
+      .eq("id", gameId)
+      .eq("current_turn", currentSeat);
+
+    if (botCount === 0) break; // Someone else modified the state; abort this bot turn
 
     if (move) {
       await admin
