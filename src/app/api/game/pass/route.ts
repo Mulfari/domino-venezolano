@@ -3,9 +3,9 @@ import { createClient } from "@/lib/supabase/server";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { getValidMoves } from "@/lib/game/engine";
 import { calculateRoundResult } from "@/lib/game/scoring";
+import { finalizeRound } from "@/lib/game/round-end";
 import { processBotTurns } from "@/lib/game/bot-turn";
 import { isBotUserId } from "@/lib/game/bot-engine";
-import { updateProfileStats } from "@/lib/supabase/update-profile-stats";
 import type { Tile, Seat, BoardState, GameState } from "@/lib/game/types";
 
 export async function POST(request: NextRequest) {
@@ -89,13 +89,12 @@ export async function POST(request: NextRequest) {
       status: newStatus,
     };
 
-    let roundResult: { winner_team: number | null; points: number; reason: string; is_capicua?: boolean } | null = null;
+    let roundResult: { winner_team: number | null; points: number; reason: string } | null = null;
     let newScores: number[] | null = null;
 
     if (locked) {
       updatePayload.finished_at = new Date().toISOString();
 
-      // Build GameState for scoring
       const state: GameState = {
         board,
         hands,
@@ -109,10 +108,7 @@ export async function POST(request: NextRequest) {
 
       const currentScores = (game.scores as number[]) || [0, 0];
       newScores = [...currentScores];
-      if (result.winner_team !== null) {
-        newScores[result.winner_team] += result.points;
-      }
-
+      if (result.winner_team !== null) newScores[result.winner_team] += result.points;
       updatePayload.scores = newScores;
       updatePayload.winning_team = result.winner_team;
       updatePayload.points_awarded = result.points;
@@ -137,42 +133,21 @@ export async function POST(request: NextRequest) {
       payload: { type: "turn_passed", seat: playerSeat },
     });
 
-    // If locked, write to scores table and broadcast round_ended
-    if (roundResult && newScores) {
-      const roomId = game.room_id as string;
-      const scoreInserts = [
-        { room_id: roomId, game_id, team: 0, points: roundResult.winner_team === 0 ? roundResult.points : 0 },
-        { room_id: roomId, game_id, team: 1, points: roundResult.winner_team === 1 ? roundResult.points : 0 },
-      ];
-      await getSupabaseAdmin().from("scores").upsert(scoreInserts);
-
-      await channel.send({
-        type: "broadcast",
-        event: "game_event",
-        payload: {
-          type: "round_ended",
-          winner_team: roundResult.winner_team,
-          points: roundResult.points,
-          scores: { team0: newScores[0], team1: newScores[1] },
-          reason: roundResult.reason,
-          is_capicua: roundResult.is_capicua ?? false,
-        },
+    if (roundResult && newScores && locked) {
+      await finalizeRound(getSupabaseAdmin(), {
+        gameId: game_id,
+        roomId: game.room_id as string,
+        roomCode: (game.rooms as Record<string, unknown>).code as string,
+        seats,
+        targetScore: ((game.rooms as Record<string, unknown>).target_score as number) ?? 100,
+        newScores,
+        roundResult: roundResult as { winner_team: number | null; points: number; reason: string },
+        newHands: allHands,
+        winnerSeat: playerSeat,
       });
     }
 
     await getSupabaseAdmin().removeChannel(channel);
-
-    // Update profile stats and room status if match is over
-    if (roundResult && newScores) {
-      const targetScore = ((game.rooms as Record<string, unknown>).target_score as number) ?? 100;
-      if (roundResult.winner_team !== null && (newScores[0] >= targetScore || newScores[1] >= targetScore)) {
-        await updateProfileStats(seats, roundResult.winner_team as 0 | 1, targetScore, newScores);
-        await getSupabaseAdmin()
-          .from("rooms")
-          .update({ status: "finished", finished_at: new Date().toISOString() })
-          .eq("id", game.room_id);
-      }
-    }
 
     // If next turn is a bot and round isn't over, await bot turns
     if (newStatus === "playing") {

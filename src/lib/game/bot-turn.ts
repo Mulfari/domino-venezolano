@@ -1,8 +1,8 @@
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { applyMove, applyPass } from "./engine";
 import { calculateRoundResult } from "./scoring";
+import { finalizeRound } from "./round-end";
 import { chooseBotMove, isBotUserId } from "./bot-engine";
-import { updateProfileStats } from "@/lib/supabase/update-profile-stats";
 import type { Tile, Seat, BoardState, GameState } from "./types";
 
 export async function processBotTurns(gameId: string) {
@@ -72,8 +72,6 @@ export async function processBotTurns(gameId: string) {
     };
 
     let roundResult: { winner_team: number | null; points: number; reason: string } | null = null;
-    let newScores: number[] | null = null;
-
     if (newState.status === "finished") {
       const result = calculateRoundResult(newState);
       roundResult = result;
@@ -88,7 +86,7 @@ export async function processBotTurns(gameId: string) {
       }
 
       const currentScores = (game.scores as number[]) || [0, 0];
-      newScores = [...currentScores];
+      const newScores = [...currentScores];
       if (result.winner_team !== null) newScores[result.winner_team] += result.points;
       updatePayload.scores = newScores;
       updatePayload.points_awarded = result.points;
@@ -109,38 +107,27 @@ export async function processBotTurns(gameId: string) {
 
     await channel.send({ type: "broadcast", event: "game_event", payload: eventPayload });
 
-    if (roundResult && newScores) {
-      await admin.from("scores").upsert([
-        { room_id: game.room_id, game_id: gameId, team: 0, points: roundResult.winner_team === 0 ? roundResult.points : 0 },
-        { room_id: game.room_id, game_id: gameId, team: 1, points: roundResult.winner_team === 1 ? roundResult.points : 0 },
-      ]);
+    if (roundResult && newState.status === "finished") {
+      const currentScores = (game.scores as number[]) || [0, 0];
+      const newScores = [...currentScores];
+      if (roundResult.winner_team !== null) newScores[roundResult.winner_team] += roundResult.points;
+      let winnerSeat = -1;
+      for (let i = 0; i < 4; i++) if (newHands[i].length === 0) { winnerSeat = i; break; }
 
-      await channel.send({
-        type: "broadcast",
-        event: "game_event",
-        payload: {
-          type: "round_ended",
-          winner_team: roundResult.winner_team,
-          points: roundResult.points,
-          scores: { team0: newScores[0], team1: newScores[1] },
-          reason: roundResult.reason,
-        },
+      await finalizeRound(admin, {
+        gameId,
+        roomId: game.room_id as string,
+        roomCode: (game.rooms as Record<string, unknown>).code as string,
+        seats,
+        targetScore: ((game.rooms as Record<string, unknown>).target_score as number) ?? 100,
+        newScores,
+        roundResult,
+        newHands,
+        winnerSeat,
       });
     }
 
     await admin.removeChannel(channel);
-
-    // Update profile stats and room status if match is over
-    if (roundResult && newScores) {
-      const targetScore = ((game.rooms as Record<string, unknown>).target_score as number) ?? 100;
-      if (roundResult.winner_team !== null && (newScores[0] >= targetScore || newScores[1] >= targetScore)) {
-        await updateProfileStats(seats, roundResult.winner_team as 0 | 1, targetScore, newScores);
-        await admin
-          .from("rooms")
-          .update({ status: "finished", finished_at: new Date().toISOString() })
-          .eq("id", game.room_id);
-      }
-    }
 
     if (newState.status === "finished") break;
   }

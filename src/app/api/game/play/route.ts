@@ -3,9 +3,9 @@ import { createClient } from "@/lib/supabase/server";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { applyMove } from "@/lib/game/engine";
 import { calculateRoundResult } from "@/lib/game/scoring";
+import { finalizeRound, buildRoundEndPayload } from "@/lib/game/round-end";
 import { processBotTurns } from "@/lib/game/bot-turn";
 import { isBotUserId } from "@/lib/game/bot-engine";
-import { updateProfileStats } from "@/lib/supabase/update-profile-stats";
 import type { Tile, Seat, BoardState, GameState } from "@/lib/game/types";
 
 export async function POST(request: NextRequest) {
@@ -116,17 +116,21 @@ export async function POST(request: NextRequest) {
       status: newState.status,
     };
 
-    // If round ended, calculate scores and include in the same update
-    let roundResult: { winner_team: number | null; points: number; reason: string; is_capicua?: boolean } | null = null;
-    let newScores: number[] | null = null;
-
+    // If round ended, build scores and broadcast via shared helper
+    let roundResult: { winner_team: number | null; points: number; reason: string } | null = null;
     if (newState.status === "finished") {
       const result = calculateRoundResult(newState);
       roundResult = result;
 
       updatePayload.finished_at = new Date().toISOString();
+      const currentScores = (game.scores as number[]) || [0, 0];
+      const newScores = [...currentScores];
+      if (result.winner_team !== null) {
+        newScores[result.winner_team] += result.points;
+      }
+      updatePayload.scores = newScores;
+      updatePayload.points_awarded = result.points;
 
-      // Find the winner seat (the one with empty hand)
       for (let i = 0; i < 4; i++) {
         if (newHands[i].length === 0) {
           updatePayload.winner_seat = i;
@@ -134,15 +138,6 @@ export async function POST(request: NextRequest) {
           break;
         }
       }
-
-      // Calculate and include scores in the same update
-      const currentScores = (game.scores as number[]) || [0, 0];
-      newScores = [...currentScores];
-      if (result.winner_team !== null) {
-        newScores[result.winner_team] += result.points;
-      }
-      updatePayload.scores = newScores;
-      updatePayload.points_awarded = result.points;
     }
 
     const { error: updateError } = await getSupabaseAdmin()
@@ -171,42 +166,28 @@ export async function POST(request: NextRequest) {
       payload: { type: "tile_played", seat: playerSeat, tile, end },
     });
 
-    // If round ended, write to scores table and broadcast
-    if (roundResult && newScores) {
-      const roomId = game.room_id as string;
-      const scoreInserts = [
-        { room_id: roomId, game_id, team: 0, points: roundResult.winner_team === 0 ? roundResult.points : 0 },
-        { room_id: roomId, game_id, team: 1, points: roundResult.winner_team === 1 ? roundResult.points : 0 },
-      ];
-      await getSupabaseAdmin().from("scores").upsert(scoreInserts);
+    // If round ended, broadcast via shared helper
+    if (roundResult && newState.status === "finished") {
+      const currentScores = (game.scores as number[]) || [0, 0];
+      const newScores = [...currentScores];
+      if (roundResult.winner_team !== null) newScores[roundResult.winner_team] += roundResult.points;
+      let winnerSeat = -1;
+      for (let i = 0; i < 4; i++) if (newHands[i].length === 0) { winnerSeat = i; break; }
 
-      await channel.send({
-        type: "broadcast",
-        event: "game_event",
-        payload: {
-          type: "round_ended",
-          winner_team: roundResult.winner_team,
-          points: roundResult.points,
-          scores: { team0: newScores[0], team1: newScores[1] },
-          reason: roundResult.reason,
-          is_capicua: roundResult.is_capicua ?? false,
-        },
+      await finalizeRound(getSupabaseAdmin(), {
+        gameId: game_id,
+        roomId: game.room_id as string,
+        roomCode: (game.rooms as Record<string, unknown>).code as string,
+        seats,
+        targetScore: ((game.rooms as Record<string, unknown>).target_score as number) ?? 100,
+        newScores,
+        roundResult: roundResult as { winner_team: number | null; points: number; reason: string },
+        newHands,
+        winnerSeat,
       });
     }
 
     await getSupabaseAdmin().removeChannel(channel);
-
-    // Update profile stats and room status if match is over
-    if (roundResult && newScores) {
-      const targetScore = ((game.rooms as Record<string, unknown>).target_score as number) ?? 100;
-      if (roundResult.winner_team !== null && (newScores[0] >= targetScore || newScores[1] >= targetScore)) {
-        await updateProfileStats(seats, roundResult.winner_team as 0 | 1, targetScore, newScores);
-        await getSupabaseAdmin()
-          .from("rooms")
-          .update({ status: "finished", finished_at: new Date().toISOString() })
-          .eq("id", game.room_id);
-      }
-    }
 
     // If next turn is a bot and round isn't over, await bot turns
     if (newState.status === "playing") {
