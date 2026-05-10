@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { DominoTile } from "./tile";
 import { useGameStore } from "@/stores/game-store";
@@ -35,6 +35,13 @@ export function Board({ onPlaceEnd, clearing = false }: BoardProps) {
   const inspectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isMobile = useIsMobile();
   const dims = isMobile ? DIMS_MOBILE : DIMS_DESKTOP;
+
+  // Pan + zoom
+  const [viewport, setViewport] = useState({ x: 0, y: 0, scale: 1 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState<{ x: number; y: number; vx: number; vy: number } | null>(null);
+  const boardRef = useRef<HTMLDivElement>(null);
+  const lastTouchDistRef = useRef<number | null>(null);
 
   const isMyTurn = isMyTurnFn();
   const validMoves = validMovesFn();
@@ -73,6 +80,15 @@ export function Board({ onPlaceEnd, clearing = false }: BoardProps) {
 
   const BOARD_SIZE = Math.min(size.w, size.h, isMobile ? 500 : 600);
   const FRAME_PAD = isMobile ? 8 : 12;
+
+  // Reset viewport on new round
+  const resetViewport = useCallback(() => {
+    setViewport({ x: 0, y: 0, scale: 1 });
+  }, []);
+
+  useEffect(() => {
+    setViewport({ x: 0, y: 0, scale: 1 });
+  }, [board.plays.length]);
 
   const prevLastKeyRef = useRef<string | null>(null);
   const [animatingKey, setAnimatingKey] = useState<string | null>(null);
@@ -856,14 +872,66 @@ export function Board({ onPlaceEnd, clearing = false }: BoardProps) {
                 </div>
               </div>
             ) : (
-              <svg
-                width="100%"
-                height="100%"
-                viewBox={dynamicViewBox}
-                preserveAspectRatio="xMidYMid meet"
-                className="absolute inset-0"
-                aria-hidden="true"
-              >
+              <>
+                <div
+                  ref={boardRef}
+                  className="relative w-full h-full overflow-hidden select-none"
+                  style={{ cursor: isDragging ? "grabbing" : viewport.scale !== 1 ? "grab" : "default" }}
+                  onMouseDown={(e) => {
+                    if (e.button !== 0) return;
+                    e.preventDefault();
+                    setIsDragging(true);
+                    setDragStart({ x: e.clientX, y: e.clientY, vx: viewport.x, vy: viewport.y });
+                  }}
+                  onMouseMove={(e) => {
+                    if (!isDragging || !dragStart) return;
+                    setViewport((v) => ({ ...v, x: dragStart.vx + (e.clientX - dragStart.x), y: dragStart.vy + (e.clientY - dragStart.y) }));
+                  }}
+                  onMouseUp={() => { setIsDragging(false); setDragStart(null); }}
+                  onMouseLeave={() => { setIsDragging(false); setDragStart(null); }}
+                  onWheel={(e) => {
+                    e.preventDefault();
+                    const factor = e.deltaY < 0 ? 1.12 : 0.88;
+                    setViewport((v) => {
+                      const newScale = Math.max(0.5, Math.min(4, v.scale * factor));
+                      const rect = e.currentTarget.getBoundingClientRect();
+                      const cx = e.clientX - rect.left - v.x;
+                      const cy = e.clientY - rect.top - v.y;
+                      return { x: v.x - cx * (newScale - v.scale), y: v.y - cy * (newScale - v.scale), scale: newScale };
+                    });
+                  }}
+                  onTouchStart={(e) => {
+                    if (e.touches.length === 1) {
+                      const t = e.touches[0];
+                      setIsDragging(true);
+                      setDragStart({ x: t.clientX, y: t.clientY, vx: viewport.x, vy: viewport.y });
+                    } else if (e.touches.length === 2) {
+                      setIsDragging(false);
+                      lastTouchDistRef.current = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+                    }
+                  }}
+                  onTouchMove={(e) => {
+                    e.preventDefault();
+                    if (e.touches.length === 1 && isDragging && dragStart) {
+                      setViewport((v) => ({ ...v, x: dragStart.vx + (e.touches[0].clientX - dragStart.x), y: dragStart.vy + (e.touches[0].clientY - dragStart.y) }));
+                    } else if (e.touches.length === 2 && lastTouchDistRef.current !== null) {
+                      const dist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+                      const factor = dist / lastTouchDistRef.current;
+                      lastTouchDistRef.current = dist;
+                      setViewport((v) => ({ ...v, scale: Math.max(0.5, Math.min(4, v.scale * factor)) }));
+                    }
+                  }}
+                  onTouchEnd={() => { setIsDragging(false); setDragStart(null); lastTouchDistRef.current = null; }}
+                >
+                  <svg
+                    width="100%"
+                    height="100%"
+                    viewBox={dynamicViewBox}
+                    preserveAspectRatio="xMidYMid meet"
+                    className="absolute inset-0"
+                    aria-hidden="true"
+                    style={{ transform: `translate(${viewport.x}px,${viewport.y}px) scale(${viewport.scale})`, transformOrigin: "0 0" }}
+                  >
                 <AnimatePresence>
                   {placedTiles.map((pt, tileIdx) => {
                     const isH = pt.orientation === "horizontal";
@@ -1300,7 +1368,21 @@ export function Board({ onPlaceEnd, clearing = false }: BoardProps) {
                       );
                     })}
                 </AnimatePresence>
-              </svg>
+                  </svg>
+                </div>
+
+                {/* Reset zoom button */}
+                {viewport.scale !== 1 && (
+                  <button
+                    onClick={resetViewport}
+                    className="absolute bottom-14 right-2 z-30 rounded-full w-9 h-9 flex items-center justify-center text-white text-base font-bold"
+                    style={{ background: "rgba(30,18,8,0.8)", backdropFilter: "blur(6px)", border: "1px solid rgba(201,168,76,0.4)" }}
+                    aria-label="Restablecer zoom"
+                  >
+                    ↺
+                  </button>
+                )}
+              </>
             )}
 
             {/* End value badges — show current open numbers at each end */}
