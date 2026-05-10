@@ -253,6 +253,9 @@ export default function GamePage() {
   const [screenShake, setScreenShake] = useState<"double" | "cochina" | null>(null);
   const screenShakeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [boardTransitioning, setBoardTransitioning] = useState(false);
+  const [autoCountdown, setAutoCountdown] = useState<number | null>(null);
+  const autoCountdownTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const autoCountdownTickRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const [copiedCode, setCopiedCode] = useState(false);
   const copiedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [tiempoAlert, setTiempoAlert] = useState(false);
@@ -578,6 +581,10 @@ export default function GamePage() {
         }
 
         case "round_started": {
+          // Cancel any pending auto-round countdown
+          setAutoCountdown(null);
+          if (autoCountdownTimerRef.current) { clearTimeout(autoCountdownTimerRef.current); autoCountdownTimerRef.current = null; }
+          if (autoCountdownTickRef.current) { clearInterval(autoCountdownTickRef.current); autoCountdownTickRef.current = null; }
           playShuffle();
           setBoardTransitioning(true);
           setTimeout(async () => {
@@ -766,6 +773,46 @@ export default function GamePage() {
           } else {
             // Start the board fade + overlay as soon as the round ends
             setBoardTransitioning(true);
+          }
+
+          // Auto-fetch new game state after board transition, if match not over
+          if (!isGameOver) {
+            const delay = event.reason === "locked" ? 2200 : event.reason === "domino" ? (isCapicuaRound ? 4100 : 1600) : 1600;
+            const countdownDuration = 8; // seconds
+            setAutoCountdown(countdownDuration);
+
+            // Tick down every second
+            if (autoCountdownTickRef.current) clearInterval(autoCountdownTickRef.current);
+            let remaining = countdownDuration;
+            autoCountdownTickRef.current = setInterval(() => {
+              remaining--;
+              if (remaining > 0) {
+                setAutoCountdown(remaining);
+              } else {
+                if (autoCountdownTickRef.current) clearInterval(autoCountdownTickRef.current);
+              }
+            }, 1000);
+
+            // Fetch new game state after delay + countdown
+            if (autoCountdownTimerRef.current) clearTimeout(autoCountdownTimerRef.current);
+            autoCountdownTimerRef.current = setTimeout(async () => {
+              if (autoCountdownTickRef.current) clearInterval(autoCountdownTickRef.current);
+              setAutoCountdown(null);
+              try {
+                const res = await fetch(`/api/game/state?room_code=${roomCode}`);
+                const data = await res.json();
+                if (data.game) {
+                  useGameStore.getState().setGameState({
+                    board: data.game.board,
+                    hands: { 0: [] as Tile[], 1: [] as Tile[], 2: [] as Tile[], 3: [] as Tile[] },
+                    currentTurn: data.game.current_turn,
+                    consecutivePasses: 0,
+                    status: data.game.status,
+                  });
+                  useGameStore.getState().setRound(data.game.round_number);
+                }
+              } catch { /* silent fail — realtime will catch up */ }
+            }, delay + countdownDuration * 1000);
           }
           break;
         }
@@ -1368,6 +1415,19 @@ export default function GamePage() {
                 <span className="text-[10px] uppercase tracking-[0.25em] text-[#a8c4a0]/55 font-semibold">
                   Nueva ronda
                 </span>
+                <AnimatePresence>
+                  {autoCountdown !== null && (
+                    <motion.span
+                      key={autoCountdown}
+                      initial={{ opacity: 0, y: 4 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0 }}
+                      className="text-[10px] text-[#a8c4a0]/45 tabular-nums"
+                    >
+                      en {autoCountdown}s
+                    </motion.span>
+                  )}
+                </AnimatePresence>
                 {transitionRound !== null && (
                   <motion.span
                     key={transitionRound}

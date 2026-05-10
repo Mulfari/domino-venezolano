@@ -25,10 +25,11 @@
 - Real-time via Supabase channels
 
 ## Current Component Sizes
-- Board: 420x420 desktop, 300x300 mobile (SVG viewBox)
-- Tiles on board: small (20x36 desktop, 16x28 mobile)
-- Tiles in hand: large (40x76 desktop, 32x58 mobile)
-- Board tile dims: horizW=36, horizH=20, doubleW=20, doubleH=36, gap=3
+- Board: responsive (100% of container), SVG viewBox auto-fits tiles
+- Tiles in hand: 48×80px desktop, 38×64px mobile
+- Tiles on board: horizW=40, horizH=22, doubleW=22, doubleH=40, gap=4 (desktop)
+- Board supports pan + pinch-to-zoom (0.5x–4x scale, resets on new round)
+- Tiles on board are rendered as SVG groups with circle pips
 
 ## Game State (Zustand store)
 - board: { left, right, plays: PlayedTile[] }
