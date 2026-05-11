@@ -876,7 +876,27 @@ export default function GamePage() {
       }
     },
     onReconnected: () => {
+      // Full state resync (updates scores, board, turn, connection status)
       fetchGameState();
+      // Also restore the player's own hand tiles from game_hands table
+      // (fetchGameState only restores the current player's hand from /api/game/state,
+      // which reads from the hands JSONB column — not game_hands)
+      if (gameIdRef.current) {
+        fetch(`/api/game/hands?game_id=${gameIdRef.current}`)
+          .then((r) => r.json())
+          .then((d) => {
+            if (d.tiles?.length > 0) {
+              useGameStore.getState().setGameState({
+                board: useGameStore.getState().board,
+                hands: { ...useGameStore.getState().hands, [useGameStore.getState().mySeat ?? 0]: d.tiles },
+                currentTurn: useGameStore.getState().currentTurn,
+                consecutivePasses: useGameStore.getState().consecutivePasses,
+                status: useGameStore.getState().status,
+              });
+            }
+          })
+          .catch(() => {});
+      }
     },
   });
 
