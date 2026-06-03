@@ -404,7 +404,7 @@ describe("tiles", () => {
     expect(tilePipSum(0)).toBe(0);   // 0-0
     expect(tilePipSum(7)).toBe(2);   // 1-1
     expect(tilePipSum(27)).toBe(12); // 6-6
-    expect(tilePipSum(3)).toBe(6);   // 0-3
+    expect(tilePipSum(3)).toBe(3);   // 0-3
   });
 });
 ```
@@ -424,16 +424,22 @@ export function encodeTile(a: number, b: number): number {
   if (a > b) {
     throw new Error(`Use sorted form a <= b, got ${a}-${b}`);
   }
-  return a * 7 + b;
+  // Offset for first pip a = sum(7-i for i in 0..a-1) = a*7 - a*(a-1)/2
+  const offset = a * 7 - (a * (a - 1)) / 2;
+  return offset + (b - a);
 }
 
 export function decodeTile(id: number): [number, number] {
   if (id < 0 || id > 27) {
     throw new Error(`Tile id must be 0..27, got ${id}`);
   }
-  const a = Math.floor(id / 7);
-  const b = id % 7;
-  return [a, b];
+  let a = 0;
+  let offset = 0;
+  while (id >= offset + (7 - a)) {
+    offset += 7 - a;
+    a++;
+  }
+  return [a, a + (id - offset)];
 }
 
 export function allTileIds(): number[] {
