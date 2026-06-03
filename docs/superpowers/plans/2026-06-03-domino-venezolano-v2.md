@@ -564,7 +564,7 @@ describe("rules.findStarter", () => {
   it("returns the player with doble-6 if present", () => {
     const hands = [
       [encodeTile(0, 1), encodeTile(2, 3)],
-      [encodeTile(0, 6), encodeTile(3, 3)],
+      [encodeTile(0, 6), encodeTile(6, 6), encodeTile(3, 3)],
       [encodeTile(1, 1), encodeTile(2, 2)],
       [encodeTile(5, 5), encodeTile(4, 4)],
     ];
@@ -668,8 +668,8 @@ Expected: FAIL — module not found.
 - [ ] **Step 3: Implement `src/lib/game/rules.ts`**
 
 ```ts
-import { decodeTile, tilePipSum, allTileIds } from "./tiles";
-import { PASSES_FOR_TRANCADO } from "./constants";
+import { decodeTile, tilePipSum } from "./tiles";
+import { GAME } from "./constants";
 
 export type MoveType = "deal" | "play_tile" | "pass" | "round_end" | "game_end" | "chat";
 
@@ -731,7 +731,7 @@ export function countConsecutivePasses(
 }
 
 export function isTrancado(moves: ReadonlyArray<{ type: string }>): boolean {
-  return countConsecutivePasses(moves) >= PASSES_FOR_TRANCADO;
+  return countConsecutivePasses(moves) >= GAME.PASSES_FOR_TRANCADO;
 }
 
 export function isCapicua(leftEnd: number, rightEnd: number): boolean {
@@ -742,7 +742,7 @@ export function isCapicua(leftEnd: number, rightEnd: number): boolean {
 - [ ] **Step 4: Run test to verify it passes**
 
 Run: `npm run test:run -- rules`
-Expected: 13 tests pass.
+Expected: 15 tests pass.
 
 - [ ] **Step 5: Commit**
 
