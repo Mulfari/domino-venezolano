@@ -1,0 +1,12 @@
+node_modules/
+.next/
+out/
+.env.local
+.env*.local
+*.log
+.DS_Store
+playwright-report/
+test-results/
+coverage/
+supabase/.branches/
+supabase/.temp/
