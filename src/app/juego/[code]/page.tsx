@@ -4,13 +4,17 @@ import { useParams, useRouter } from "next/navigation";
 import { usePlayerStore } from "@/lib/store/player-store";
 import { useRoomStore } from "@/lib/store/room-store";
 import { useRoom } from "@/hooks/use-room";
+import { useHand } from "@/hooks/use-hand";
 import { JoinByName } from "@/components/lobby/join-by-name";
 import { SeatGrid } from "@/components/waiting-room/seat-grid";
 import { ShareLink } from "@/components/waiting-room/share-link";
 import { Button } from "@/components/ui/button";
+import { Hand } from "@/components/game/hand";
 import { createClient } from "@/lib/supabase/client";
 import { useToastStore } from "@/components/ui/toast";
 import { dealRound } from "@/lib/game/actions";
+import { playTile, pass } from "@/lib/game/play";
+import { canPlayTile } from "@/lib/game/rules";
 
 export default function GamePage() {
   const params = useParams<{ code: string }>();
@@ -22,10 +26,13 @@ export default function GamePage() {
   const setRoom = useRoomStore((s) => s.setRoom);
   const status = useRoomStore((s) => s.status);
   const players = useRoomStore((s) => s.players);
+  const gameState = useRoomStore((s) => s.gameState);
+  const myHand = useRoomStore((s) => s.myHand);
   const pushToast = useToastStore((s) => s.push);
 
   const [joinOpen, setJoinOpen] = useState(false);
   const [checked, setChecked] = useState(false);
+  const [selectedTile, setSelectedTile] = useState<number | null>(null);
 
   useEffect(() => {
     if (!roomId) return;
@@ -35,6 +42,7 @@ export default function GamePage() {
   }, [roomId, loadIdentity, setRoom]);
 
   useRoom();
+  useHand();
 
   // Open the join modal if not yet in the room
   useEffect(() => {
@@ -68,7 +76,67 @@ export default function GamePage() {
   }, [checked, identity, roomId, router, pushToast]);
 
   if (status === "playing") {
-    return <div className="p-4">Juego en progreso (UI en construcción)</div>;
+    const me = players.find((p) => p.id === identity?.id);
+    const isMyTurn = me && gameState && gameState.activeSeat === me.seat;
+    const hasPlayable = isMyTurn && gameState
+      ? myHand.some((t) => canPlayTile(t, gameState.boardEnds.left, gameState.boardEnds.right))
+      : false;
+    const onPlayTile = async (tile: number, end: "left" | "right") => {
+      if (!identity || !gameState) return;
+      try {
+        await playTile(
+          roomId,
+          identity.id,
+          tile,
+          end,
+          gameState.boardEnds.left,
+          gameState.boardEnds.right
+        );
+        setSelectedTile(null);
+      } catch (e: any) {
+        pushToast(e.message || "Jugada inválida", "error");
+      }
+    };
+    const onPass = async () => {
+      if (!identity) return;
+      try {
+        await pass(roomId, identity.id);
+      } catch (e: any) {
+        pushToast(e.message || "No se pudo pasar", "error");
+      }
+    };
+    return (
+      <div className="min-h-screen p-4 flex flex-col gap-3">
+        <Hand
+          onTileClick={(tile) => {
+            if (!gameState) return;
+            if (selectedTile === tile) {
+              // Try to play on whichever end matches
+              const { left, right } = gameState.boardEnds;
+              const canLeft = canPlayTile(tile, left, left);
+              const canRight = canPlayTile(tile, right, right);
+              if (canLeft && canRight) {
+                void onPlayTile(tile, "left");
+              } else if (canRight) {
+                void onPlayTile(tile, "right");
+              } else if (canLeft) {
+                void onPlayTile(tile, "left");
+              } else {
+                void onPlayTile(tile, "right");
+              }
+            } else {
+              setSelectedTile(tile);
+            }
+          }}
+          selectedTile={selectedTile}
+        />
+        {isMyTurn && !hasPlayable && (
+          <div className="flex justify-center">
+            <Button onClick={onPass}>Pasar</Button>
+          </div>
+        )}
+      </div>
+    );
   }
 
   return (
