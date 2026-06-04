@@ -5,6 +5,7 @@ import { usePlayerStore } from "@/lib/store/player-store";
 import { useRoomStore } from "@/lib/store/room-store";
 import { useRoom } from "@/hooks/use-room";
 import { useHand } from "@/hooks/use-hand";
+import { useTurnTimer } from "@/hooks/use-turn-timer";
 import { JoinByName } from "@/components/lobby/join-by-name";
 import { SeatGrid } from "@/components/waiting-room/seat-grid";
 import { ShareLink } from "@/components/waiting-room/share-link";
@@ -52,6 +53,7 @@ export default function GamePage() {
 
   useRoom();
   useHand();
+  useTurnTimer();
 
   // Open the join modal if not yet in the room
   useEffect(() => {
