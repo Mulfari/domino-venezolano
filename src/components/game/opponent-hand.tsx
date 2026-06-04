@@ -1,20 +1,26 @@
 "use client";
 import { useRoomStore } from "@/lib/store/room-store";
-import { COLORS } from "@/lib/game/constants";
+import { COLORS, GAME } from "@/lib/game/constants";
 
 interface Props {
   seat: number;
   position: "top" | "left" | "right";
+  playerId: string;
   playerName: string;
   connected: boolean;
   isActive: boolean;
 }
 
-export function OpponentHand({ seat, position, playerName, connected, isActive }: Props) {
-  const players = useRoomStore((s) => s.players);
-  const me = useRoomStore((s) => s.players[0]); // we look up by current player; placeholder
-  // Real count: derive from a join; for now use a stub
-  const tileCount = 7;
+export function OpponentHand({ seat, position, playerId, playerName, connected, isActive }: Props) {
+  const moves = useRoomStore((s) => s.moves);
+
+  // Count tiles the opponent has played in the current round
+  const tilesPlayed = moves.filter(
+    (m) => m.type === "play_tile" && m.playerId === playerId
+  ).length;
+
+  // Tiles remaining = initial hand minus played
+  const tileCount = Math.max(0, GAME.TILES_PER_PLAYER - tilesPlayed);
 
   const isHorizontal = position === "top";
 
@@ -23,6 +29,7 @@ export function OpponentHand({ seat, position, playerName, connected, isActive }
       <div className={`text-gold text-sm font-semibold flex items-center gap-1 ${isActive ? "animate-pulse" : ""}`}>
         <span className={connected ? "text-green-400" : "text-red-400"}>●</span>
         {playerName}
+        <span className="text-ivory/60 ml-1">({tileCount})</span>
       </div>
       <div className={`flex ${isHorizontal ? "flex-row" : "flex-col"} gap-px`}>
         {Array.from({ length: tileCount }).map((_, i) => (
