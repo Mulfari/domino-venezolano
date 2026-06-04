@@ -116,16 +116,6 @@ create trigger moves_validate
   before insert on moves
   for each row execute function validate_play_tile();
 
--- Auto-update connected = (last_seen within 30s)
-create or replace function refresh_player_connected()
-returns trigger language plpgsql as $$
-begin
-  new.connected := (now() - new.last_seen) < interval '30 seconds';
-  return new;
-end;
-$$;
-
-create trigger players_refresh_connected
-  before select on players
-  for each row execute function refresh_player_connected();
--- (The above is conceptual; in practice, compute on read via view or client.)
+-- connected status: computed on read by the client using last_seen and
+-- RECONNECT_GRACE_MS. A BEFORE SELECT trigger cannot modify rows in
+-- Postgres, so the original plan's trigger sketch was removed.
