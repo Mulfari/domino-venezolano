@@ -1024,7 +1024,7 @@ export function dealTiles(seed: number): number[][] {
 - [ ] **Step 4: Run test to verify it passes**
 
 Run: `npm run test:run -- deal`
-Expected: 4 tests pass.
+Expected: 5 tests pass.
 
 - [ ] **Step 5: Commit**
 
