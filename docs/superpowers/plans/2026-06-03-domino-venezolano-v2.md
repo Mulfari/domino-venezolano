@@ -969,7 +969,7 @@ Expected: FAIL — module not found.
 
 ```ts
 import { allTileIds } from "./tiles";
-import { TILES_PER_PLAYER, PLAYERS } from "./constants";
+import { GAME } from "./constants";
 
 /**
  * Hashes a string to a 32-bit unsigned integer. Used to derive a deal
@@ -1011,9 +1011,9 @@ export function dealTiles(seed: number): number[][] {
     const j = Math.floor(rng() * (i + 1));
     [tiles[i], tiles[j]] = [tiles[j], tiles[i]];
   }
-  const hands: number[][] = Array.from({ length: PLAYERS }, () => []);
-  for (let p = 0; p < PLAYERS; p++) {
-    for (let t = 0; t < TILES_PER_PLAYER; t++) {
+  const hands: number[][] = Array.from({ length: GAME.PLAYERS }, () => []);
+  for (let p = 0; p < GAME.PLAYERS; p++) {
+    for (let t = 0; t < GAME.TILES_PER_PLAYER; t++) {
       hands[p].push(tiles[p * TILES_PER_PLAYER + t]);
     }
   }
