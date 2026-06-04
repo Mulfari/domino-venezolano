@@ -11,8 +11,14 @@ import { SeatGrid } from "@/components/waiting-room/seat-grid";
 import { ShareLink } from "@/components/waiting-room/share-link";
 import { Button } from "@/components/ui/button";
 import { Hand } from "@/components/game/hand";
+import { OpponentHand } from "@/components/game/opponent-hand";
+import { Board } from "@/components/game/board";
+import { ScorePanel } from "@/components/game/score-panel";
+import { TurnIndicator } from "@/components/game/turn-indicator";
+import { ChatPanel } from "@/components/game/chat-panel";
 import { RoundEndModal } from "@/components/game/round-end-modal";
 import { GameOverModal } from "@/components/game/game-over-modal";
+import { usePresence } from "@/hooks/use-presence";
 import { createClient } from "@/lib/supabase/client";
 import { useToastStore } from "@/components/ui/toast";
 import { dealRound, recordRoundEnd } from "@/lib/game/actions";
@@ -54,6 +60,7 @@ export default function GamePage() {
   useRoom();
   useHand();
   useTurnTimer();
+  const presence = usePresence();
 
   // Open the join modal if not yet in the room
   useEffect(() => {
@@ -156,34 +163,92 @@ export default function GamePage() {
     };
     return (
       <div className="min-h-screen p-4 flex flex-col gap-3">
-        <Hand
-          onTileClick={(tile) => {
-            if (!gameState) return;
-            if (selectedTile === tile) {
-              // Try to play on whichever end matches
-              const { left, right } = gameState.boardEnds;
-              const canLeft = canPlayTile(tile, left, left);
-              const canRight = canPlayTile(tile, right, right);
-              if (canLeft && canRight) {
-                void onPlayTile(tile, "left");
-              } else if (canRight) {
-                void onPlayTile(tile, "right");
-              } else if (canLeft) {
-                void onPlayTile(tile, "left");
-              } else {
-                void onPlayTile(tile, "right");
-              }
-            } else {
-              setSelectedTile(tile);
-            }
-          }}
-          selectedTile={selectedTile}
-        />
-        {isMyTurn && !hasPlayable && (
-          <div className="flex justify-center">
-            <Button onClick={onPass}>Pasar</Button>
+        <div className="flex items-center justify-between gap-2">
+          <ScorePanel />
+          <TurnIndicator />
+        </div>
+        <div className="flex-1 flex gap-2">
+          <div className="w-20">
+            {(() => {
+              const p = presence.find((pp) => pp.seat === 1);
+              if (!p) return null;
+              return (
+                <OpponentHand
+                  seat={1}
+                  position="left"
+                  playerId={p.id}
+                  playerName={p.name}
+                  connected={p.isConnected}
+                  isActive={gameState?.activeSeat === 1}
+                />
+              );
+            })()}
           </div>
-        )}
+          <div className="flex-1 flex flex-col gap-2">
+            <div className="flex justify-center">
+              {(() => {
+                const p = presence.find((pp) => pp.seat === 2);
+                if (!p) return null;
+                return (
+                  <OpponentHand
+                    seat={2}
+                    position="top"
+                    playerId={p.id}
+                    playerName={p.name}
+                    connected={p.isConnected}
+                    isActive={gameState?.activeSeat === 2}
+                  />
+                );
+              })()}
+            </div>
+            <Board />
+            <Hand
+              onTileClick={(tile) => {
+                if (!gameState) return;
+                if (selectedTile === tile) {
+                  // Try to play on whichever end matches
+                  const { left, right } = gameState.boardEnds;
+                  const canLeft = canPlayTile(tile, left, left);
+                  const canRight = canPlayTile(tile, right, right);
+                  if (canLeft && canRight) {
+                    void onPlayTile(tile, "left");
+                  } else if (canRight) {
+                    void onPlayTile(tile, "right");
+                  } else if (canLeft) {
+                    void onPlayTile(tile, "left");
+                  } else {
+                    void onPlayTile(tile, "right");
+                  }
+                } else {
+                  setSelectedTile(tile);
+                }
+              }}
+              selectedTile={selectedTile}
+            />
+            {isMyTurn && !hasPlayable && (
+              <div className="flex justify-center">
+                <Button onClick={onPass}>Pasar</Button>
+              </div>
+            )}
+          </div>
+          <div className="w-20">
+            {(() => {
+              const p = presence.find((pp) => pp.seat === 3);
+              if (!p) return null;
+              return (
+                <OpponentHand
+                  seat={3}
+                  position="right"
+                  playerId={p.id}
+                  playerName={p.name}
+                  connected={p.isConnected}
+                  isActive={gameState?.activeSeat === 3}
+                />
+              );
+            })()}
+          </div>
+        </div>
+        <ChatPanel />
         <RoundEndModal
           open={showRoundEndModal}
           reason={gameState?.roundEndReason ?? null}
