@@ -10,3 +10,5 @@ test-results/
 coverage/
 supabase/.branches/
 supabase/.temp/
+
+.vercel
