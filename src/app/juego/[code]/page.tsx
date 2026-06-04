@@ -10,6 +10,7 @@ import { ShareLink } from "@/components/waiting-room/share-link";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/client";
 import { useToastStore } from "@/components/ui/toast";
+import { dealRound } from "@/lib/game/actions";
 
 export default function GamePage() {
   const params = useParams<{ code: string }>();
@@ -78,8 +79,11 @@ export default function GamePage() {
       {players.length === 4 && identity && players[0]?.id === identity.id && (
         <Button
           onClick={async () => {
-            // Host triggers deal (placeholder — see Task 33)
-            pushToast("Repartir aún no implementado", "info");
+            try {
+              await dealRound(roomId);
+            } catch (e: any) {
+              pushToast(e.message || "No se pudo repartir", "error");
+            }
           }}
         >
           Repartir
