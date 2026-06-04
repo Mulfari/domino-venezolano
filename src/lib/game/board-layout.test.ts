@@ -46,56 +46,50 @@ describe("board-layout.buildPlacedTiles", () => {
   });
 });
 
-describe("board-layout: tile orientation (the v1 bug fix)", () => {
-  it("preserves [a, b] order when a tile is played on the right end with `a` matching", () => {
-    // Board right end is 6. Tile 3-6 played on the right: side "b" (6) touches the board.
-    // We don't need to flip because the side that matches the open end is naturally on the right.
+describe("board-layout: tile orientation", () => {
+  it("a matches on RIGHT — no flip; renderA (touching chain) = a", () => {
+    // Chain 0-3, then 3-6 on right. Chain right=3 matches a=3.
+    // New tile sits to the right of chain; renderA (left of rendered tile) touches chain.
+    // Matching (3) must be renderA. Natural [3,6] has renderA=3 → no flip.
+    const placed = buildPlacedTiles([
+      { type: "play_tile", playerId: "p0", tile: encodeTile(0, 3), end: "center", flipped: false },
+      { type: "play_tile", playerId: "p1", tile: encodeTile(3, 6), end: "right", flipped: false },
+    ]);
+    expect(placed[1].renderA).toBe(3);
+    expect(placed[1].renderB).toBe(6);
+  });
+
+  it("b matches on RIGHT — FLIP; renderA (touching chain) = b", () => {
+    // Chain 6-6, then 3-6 on right. Chain right=6 matches b=6.
+    // New tile sits to the right of chain; renderA (left of rendered tile) touches chain.
+    // Matching (6) must be renderA. Natural [3,6] has renderA=3 → FLIP to renderA=6, renderB=3.
     const placed = buildPlacedTiles([
       { type: "play_tile", playerId: "p0", tile: encodeTile(6, 6), end: "center", flipped: false },
       { type: "play_tile", playerId: "p1", tile: encodeTile(3, 6), end: "right", flipped: false },
     ]);
-    // When rendered horizontally, the left side of the tile should be tile[0]=3,
-    // the right side should be tile[1]=6.
-    expect(placed[1].renderA).toBe(3);
-    expect(placed[1].renderB).toBe(6);
+    expect(placed[1].renderA).toBe(6);
+    expect(placed[1].renderB).toBe(3);
   });
 
-  it("flips [a, b] when a tile is played on the left end with `b` matching", () => {
-    // Board left end is 6. Tile 3-6 played on the left: side "a" (3) is on the left of the board
-    // (i.e. far from the rest), side "b" (6) is on the right of the tile (touching the existing chain).
-    // We flip so that renderA=6 (touching chain) and renderB=3 (far from chain).
-    // Wait — actually for a horizontal tile played on the left, the tile sits to the LEFT of the chain.
-    // Its right edge is the one that touches the existing chain. So the side that should be on the
-    // RIGHT of the rendered tile is the one matching the open end (6). We need renderB=6.
-    // Original tile is 3-6 (a=3, b=6). The side matching is b=6. We need renderB=6 → no flip needed.
+  it("a matches on LEFT — FLIP; renderB (touching chain) = a", () => {
+    // Chain 3-6, then 3-6 on left. Chain left=3 matches a=3.
+    // New tile sits to the left of chain; renderB (right of rendered tile) touches chain.
+    // Matching (3) must be renderB. Natural [3,6] has renderB=6 → FLIP to renderA=6, renderB=3.
     const placed = buildPlacedTiles([
-      { type: "play_tile", playerId: "p0", tile: encodeTile(6, 6), end: "center", flipped: false },
-      { type: "play_tile", playerId: "p1", tile: encodeTile(3, 6), end: "left", flipped: true },
+      { type: "play_tile", playerId: "p0", tile: encodeTile(3, 6), end: "center", flipped: false },
+      { type: "play_tile", playerId: "p1", tile: encodeTile(3, 6), end: "left", flipped: false },
     ]);
-    expect(placed[1].renderA).toBe(3);
-    expect(placed[1].renderB).toBe(6);
+    expect(placed[1].renderA).toBe(6);
+    expect(placed[1].renderB).toBe(3);
   });
 
-  it("preserves [a, b] order when a tile is played on the left end with `b` matching", () => {
-    // Board left end is 6. Tile 3-6 played on the left: side "b" (6) matches the open end.
-    // The natural [3, 6] ordering already has b on the right of the rendered tile (touching chain),
-    // so no flip is needed: renderA=3, renderB=6.
-    // (Note: encodeTile(6, 3) would throw — the encoding always returns sorted form,
-    //  so the "a matches" case is tested via the right play in test 1 and the left play in test 2.)
+  it("b matches on LEFT — no flip; renderB (touching chain) = b", () => {
+    // Chain 6-6, then 3-6 on left. Chain left=6 matches b=6.
+    // New tile sits to the left of chain; renderB (right of rendered tile) touches chain.
+    // Matching (6) must be renderB. Natural [3,6] has renderB=6 → no flip.
     const placed = buildPlacedTiles([
       { type: "play_tile", playerId: "p0", tile: encodeTile(6, 6), end: "center", flipped: false },
       { type: "play_tile", playerId: "p1", tile: encodeTile(3, 6), end: "left", flipped: false },
-    ]);
-    expect(placed[1].renderA).toBe(3);
-    expect(placed[1].renderB).toBe(6);
-  });
-
-  it("preserves [a, b] order when a tile is played on the right end with `b` matching", () => {
-    // Board right end is 6. Tile 3-6 played on the right: side "b" (6) matches the open end.
-    // The natural [3, 6] ordering already has b on the right of the rendered tile, so no flip.
-    const placed = buildPlacedTiles([
-      { type: "play_tile", playerId: "p0", tile: encodeTile(6, 6), end: "center", flipped: false },
-      { type: "play_tile", playerId: "p1", tile: encodeTile(3, 6), end: "right", flipped: false },
     ]);
     expect(placed[1].renderA).toBe(3);
     expect(placed[1].renderB).toBe(6);

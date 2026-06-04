@@ -45,14 +45,15 @@ export function buildPlacedTiles(moves: PlayMoveInput[]): PlacedTile[] {
     let renderA = a;
     let renderB = b;
     if (move.end === "right" && a === currentRightEnd(out) && b !== a) {
-      // a matches → leave as is
+      // a matches, must be on LEFT of rendered tile (touching chain) → no flip
     } else if (move.end === "right" && b === currentRightEnd(out) && a !== b) {
-      // b matches → leave as is
+      // b matches, must be on LEFT of rendered tile (touching chain) → flip
+      [renderA, renderB] = [b, a];
     } else if (move.end === "left" && a === currentLeftEnd(out) && b !== a) {
-      // a matches, must be on left of rendered tile → flip
+      // a matches, must be on RIGHT of rendered tile (touching chain) → flip
       [renderA, renderB] = [b, a];
     } else if (move.end === "left" && b === currentLeftEnd(out) && a !== b) {
-      // b matches, must be on left of rendered tile → no flip needed
+      // b matches, must be on RIGHT of rendered tile (touching chain) → no flip
     }
     out.push({
       tile: move.tile,
