@@ -146,7 +146,7 @@ export default function GamePage() {
       const lastPlay = gameState?.activeSeat ?? 0;
       const winnerTeam = (SEAT_TEAM[lastPlay] ?? 0) as 0 | 1;
       const d = scoreDomino(handsAll, lastPlay, winnerTeam);
-      return { winnerTeam: d.team, points: d.points };
+      return { winnerTeam: d.team as 0 | 1, points: d.points };
     })();
 
     const onContinue = async () => {

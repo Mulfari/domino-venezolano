@@ -102,7 +102,7 @@ describe("board-layout.layoutChain", () => {
   });
 
   it("returns positions for a single-tile chain", () => {
-    const positions = layoutChain([{ tile: encodeTile(6, 6), flipped: false }]);
+    const positions = layoutChain([{ tile: encodeTile(6, 6), renderA: 6, renderB: 6 }]);
     expect(positions).toHaveLength(1);
     expect(positions[0]).toMatchObject({ x: 0, y: 0 });
   });

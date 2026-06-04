@@ -3,7 +3,7 @@ import { SEAT_TEAM } from "./constants";
 
 export interface ScoreResult {
   points: number;
-  team: 0 | 1;
+  team: 0 | 1 | -1;
 }
 
 export function handSum(hand: number[]): number {
@@ -32,7 +32,7 @@ export function scoreDomino(
  * Score a round ended by trancado. The team with fewer points in hand
  * wins the difference. Returns points=0, team=-1 if tied.
  */
-export function scoreTrancado(hands: number[][]): ScoreResult & { team: 0 | 1 | -1 } {
+export function scoreTrancado(hands: number[][]): ScoreResult {
   const team0Sum = hands
     .filter((_, seat) => SEAT_TEAM[seat] === 0)
     .reduce((sum, h) => sum + handSum(h), 0);
