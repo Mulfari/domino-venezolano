@@ -1128,13 +1128,13 @@ describe("board-layout: tile orientation (the v1 bug fix)", () => {
 
   it("flips when a tile is played on the left end and side `a` matches", () => {
     // Board left end is 6. Tile 6-3 played on the left: side "a" (6) is on the right of the
-    // rendered tile (touching chain). So renderA=6, renderB=3. We need to FLIP.
+    // rendered tile (touching chain). So renderB=6, renderA=3. We need to FLIP.
     const placed = buildPlacedTiles([
       { type: "play_tile", playerId: "p0", tile: encodeTile(6, 6), end: "center", flipped: false },
       { type: "play_tile", playerId: "p1", tile: encodeTile(6, 3), end: "left", flipped: true },
     ]);
-    expect(placed[1].renderA).toBe(6);
-    expect(placed[1].renderB).toBe(3);
+    expect(placed[1].renderA).toBe(3);
+    expect(placed[1].renderB).toBe(6);
   });
 
   it("flips when a tile is played on the right end and side `a` matches", () => {
@@ -1291,7 +1291,7 @@ export function layoutChain(placed: Omit<PlacedTile, "x" | "y" | "orientation">[
 - [ ] **Step 4: Run test to verify it passes**
 
 Run: `npm run test:run -- board-layout`
-Expected: 9 tests pass.
+Expected: 10 tests pass.
 
 If any orientation test fails, the bug is back. Fix the orientation logic in `buildPlacedTiles` before continuing.
 
