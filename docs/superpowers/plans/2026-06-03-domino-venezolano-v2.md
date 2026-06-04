@@ -788,11 +788,11 @@ describe("scoring.scoreTrancado", () => {
   it("credits the team with fewer points in hand", () => {
     const hands = [
       [encodeTile(0, 1)], // seat 0 team 0 - 1
-      [encodeTile(5, 6), encodeTile(3, 3)], // seat 1 team 1 - 22
+      [encodeTile(5, 5), encodeTile(6, 6)], // seat 1 team 1 - 22
       [encodeTile(2, 2)], // seat 2 team 0 - 4 (team 0 = 5)
       [encodeTile(0, 0), encodeTile(4, 5)], // seat 3 team 1 - 9 (team 1 = 31)
     ];
-    expect(scoreTrancado(hands, 0)).toEqual({
+    expect(scoreTrancado(hands)).toEqual({
       points: 26, // 31 - 5
       team: 0,
     });
@@ -805,7 +805,7 @@ describe("scoring.scoreTrancado", () => {
       [],                 // 0
       [],                 // 0
     ];
-    expect(scoreTrancado(hands, 0)).toEqual({ points: 0, team: -1 });
+    expect(scoreTrancado(hands)).toEqual({ points: 0, team: -1 });
   });
 });
 
