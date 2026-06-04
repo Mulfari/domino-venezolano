@@ -21,6 +21,9 @@ interface RoomStore {
   myHand: number[];
   myHandRound: number;
   gameState: GameState | null;
+  team0Score: number;
+  team1Score: number;
+  currentRound: number;
   setRoom: (roomId: string) => void;
   setStatus: (status: "waiting" | "playing" | "finished") => void;
   setPlayers: (players: Player[]) => void;
@@ -28,6 +31,9 @@ interface RoomStore {
   appendMove: (move: MoveRow) => void;
   setMyHand: (tiles: number[], round: number) => void;
   setGameState: (gs: GameState) => void;
+  addTeamScore: (team: 0 | 1, points: number) => void;
+  addRoundScore: (team: 0 | 1, points: number) => void;
+  setCurrentRound: (round: number) => void;
   reset: () => void;
 }
 
@@ -39,6 +45,9 @@ export const useRoomStore = create<RoomStore>((set) => ({
   myHand: [],
   myHandRound: 0,
   gameState: null,
+  team0Score: 0,
+  team1Score: 0,
+  currentRound: 1,
   setRoom: (roomId) => set({ roomId }),
   setStatus: (status) => set({ status }),
   setPlayers: (players) => set({ players }),
@@ -47,6 +56,17 @@ export const useRoomStore = create<RoomStore>((set) => ({
     set((s) => ({ moves: [...s.moves, move].sort((a, b) => a.seq - b.seq) })),
   setMyHand: (tiles, round) => set({ myHand: tiles, myHandRound: round }),
   setGameState: (gs) => set({ gameState: gs }),
+  addTeamScore: (team, points) =>
+    set((s) => ({
+      team0Score: team === 0 ? s.team0Score + points : s.team0Score,
+      team1Score: team === 1 ? s.team1Score + points : s.team1Score,
+    })),
+  addRoundScore: (team, points) =>
+    set((s) => ({
+      team0Score: team === 0 ? s.team0Score + points : s.team0Score,
+      team1Score: team === 1 ? s.team1Score + points : s.team1Score,
+    })),
+  setCurrentRound: (round) => set({ currentRound: round }),
   reset: () =>
     set({
       roomId: null,
@@ -56,5 +76,8 @@ export const useRoomStore = create<RoomStore>((set) => ({
       myHand: [],
       myHandRound: 0,
       gameState: null,
+      team0Score: 0,
+      team1Score: 0,
+      currentRound: 1,
     }),
 }));

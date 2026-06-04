@@ -14,9 +14,11 @@ import { RoundEndModal } from "@/components/game/round-end-modal";
 import { GameOverModal } from "@/components/game/game-over-modal";
 import { createClient } from "@/lib/supabase/client";
 import { useToastStore } from "@/components/ui/toast";
-import { dealRound } from "@/lib/game/actions";
+import { dealRound, recordRoundEnd } from "@/lib/game/actions";
 import { playTile, pass } from "@/lib/game/play";
 import { canPlayTile } from "@/lib/game/rules";
+import { GAME, SEAT_TEAM } from "@/lib/game/constants";
+import { scoreDomino, scoreTrancado } from "@/lib/game/scoring";
 
 export default function GamePage() {
   const params = useParams<{ code: string }>();
@@ -30,6 +32,11 @@ export default function GamePage() {
   const players = useRoomStore((s) => s.players);
   const gameState = useRoomStore((s) => s.gameState);
   const myHand = useRoomStore((s) => s.myHand);
+  const team0Score = useRoomStore((s) => s.team0Score);
+  const team1Score = useRoomStore((s) => s.team1Score);
+  const currentRound = useRoomStore((s) => s.currentRound);
+  const addRoundScore = useRoomStore((s) => s.addRoundScore);
+  const setCurrentRound = useRoomStore((s) => s.setCurrentRound);
   const pushToast = useToastStore((s) => s.push);
 
   const [joinOpen, setJoinOpen] = useState(false);
@@ -109,6 +116,42 @@ export default function GamePage() {
     };
     const showRoundEndModal =
       gameState?.phase === "round_end" && status === "playing";
+
+    // Compute round-end scores from current hands (placeholder; full wire in later tasks)
+    const roundEndInfo: { winnerTeam: 0 | 1 | null; points: number } = (() => {
+      if (!showRoundEndModal) return { winnerTeam: null, points: 0 };
+      const reason = gameState?.roundEndReason;
+      const handsAll: number[][] = players.map((p) => {
+        // Without RLS access to other players' hands, fall back to a per-player stub.
+        // The full computation will run from server-authoritative data in a later task.
+        if (p.id === identity?.id) return myHand;
+        return Array(GAME.TILES_PER_PLAYER).fill(0);
+      });
+      if (reason === "trancado") {
+        const t = scoreTrancado(handsAll) as { points: number; team: 0 | 1 | -1 };
+        return { winnerTeam: t.team === -1 ? null : t.team, points: t.points };
+      }
+      // Dominó: best-effort winner is the activeSeat (when no last-author info is available)
+      const lastPlay = gameState?.activeSeat ?? 0;
+      const winnerTeam = (SEAT_TEAM[lastPlay] ?? 0) as 0 | 1;
+      const d = scoreDomino(handsAll, lastPlay, winnerTeam);
+      return { winnerTeam: d.team, points: d.points };
+    })();
+
+    const onContinue = async () => {
+      // Check for game end first
+      if (team0Score >= GAME.TARGET_SCORE || team1Score >= GAME.TARGET_SCORE) {
+        // Game over modal will be shown; nothing else to do here
+        return;
+      }
+      const nextRound = (currentRound || 1) + 1;
+      try {
+        await dealRound(roomId, nextRound);
+        setCurrentRound(nextRound);
+      } catch (e: any) {
+        pushToast(e.message || "No se pudo iniciar la nueva ronda", "error");
+      }
+    };
     return (
       <div className="min-h-screen p-4 flex flex-col gap-3">
         <Hand
@@ -142,11 +185,9 @@ export default function GamePage() {
         <RoundEndModal
           open={showRoundEndModal}
           reason={gameState?.roundEndReason ?? null}
-          winnerTeam={null}
-          points={0}
-          onContinue={() => {
-            /* wired up in Task 30a */
-          }}
+          winnerTeam={roundEndInfo.winnerTeam}
+          points={roundEndInfo.points}
+          onContinue={onContinue}
         />
         <GameOverModal
           open={false}
