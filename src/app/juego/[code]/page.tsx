@@ -10,6 +10,8 @@ import { SeatGrid } from "@/components/waiting-room/seat-grid";
 import { ShareLink } from "@/components/waiting-room/share-link";
 import { Button } from "@/components/ui/button";
 import { Hand } from "@/components/game/hand";
+import { RoundEndModal } from "@/components/game/round-end-modal";
+import { GameOverModal } from "@/components/game/game-over-modal";
 import { createClient } from "@/lib/supabase/client";
 import { useToastStore } from "@/components/ui/toast";
 import { dealRound } from "@/lib/game/actions";
@@ -105,6 +107,8 @@ export default function GamePage() {
         pushToast(e.message || "No se pudo pasar", "error");
       }
     };
+    const showRoundEndModal =
+      gameState?.phase === "round_end" && status === "playing";
     return (
       <div className="min-h-screen p-4 flex flex-col gap-3">
         <Hand
@@ -135,6 +139,22 @@ export default function GamePage() {
             <Button onClick={onPass}>Pasar</Button>
           </div>
         )}
+        <RoundEndModal
+          open={showRoundEndModal}
+          reason={gameState?.roundEndReason ?? null}
+          winnerTeam={null}
+          points={0}
+          onContinue={() => {
+            /* wired up in Task 30a */
+          }}
+        />
+        <GameOverModal
+          open={false}
+          winnerTeam={0}
+          finalScores={{ team0: 0, team1: 0 }}
+          onNewGame={() => {}}
+          onExit={() => router.push("/")}
+        />
       </div>
     );
   }
