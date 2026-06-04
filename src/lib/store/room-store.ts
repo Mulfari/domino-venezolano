@@ -1,6 +1,7 @@
 "use client";
 import { create } from "zustand";
 import type { GameState, MoveRow } from "@/lib/game/state";
+import { createClient } from "@/lib/supabase/client";
 
 export interface Player {
   id: string;
@@ -34,10 +35,11 @@ interface RoomStore {
   addTeamScore: (team: 0 | 1, points: number) => void;
   addRoundScore: (team: 0 | 1, points: number) => void;
   setCurrentRound: (round: number) => void;
+  resync: () => Promise<void>;
   reset: () => void;
 }
 
-export const useRoomStore = create<RoomStore>((set) => ({
+export const useRoomStore = create<RoomStore>((set, get) => ({
   roomId: null,
   status: "waiting",
   players: [],
@@ -67,6 +69,19 @@ export const useRoomStore = create<RoomStore>((set) => ({
       team1Score: team === 1 ? s.team1Score + points : s.team1Score,
     })),
   setCurrentRound: (round) => set({ currentRound: round }),
+  resync: async () => {
+    const { roomId } = get();
+    if (!roomId) return;
+    const supabase = createClient();
+    const [{ data: ms }, { data: ps }, { data: room }] = await Promise.all([
+      supabase.from("moves").select("*").eq("room_id", roomId).order("seq"),
+      supabase.from("players").select("*").eq("room_id", roomId).order("seat"),
+      supabase.from("rooms").select("status").eq("id", roomId).single(),
+    ]);
+    if (ms) set({ moves: ms as MoveRow[] });
+    if (ps) set({ players: ps as Player[] });
+    if (room) set({ status: room.status as "waiting" | "playing" | "finished" });
+  },
   reset: () =>
     set({
       roomId: null,

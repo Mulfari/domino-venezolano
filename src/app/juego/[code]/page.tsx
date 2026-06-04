@@ -6,6 +6,7 @@ import { useRoomStore } from "@/lib/store/room-store";
 import { useRoom } from "@/hooks/use-room";
 import { useHand } from "@/hooks/use-hand";
 import { useTurnTimer } from "@/hooks/use-turn-timer";
+import { useResync } from "@/hooks/use-room";
 import { JoinByName } from "@/components/lobby/join-by-name";
 import { SeatGrid } from "@/components/waiting-room/seat-grid";
 import { ShareLink } from "@/components/waiting-room/share-link";
@@ -61,6 +62,7 @@ export default function GamePage() {
   useHand();
   useTurnTimer();
   const presence = usePresence();
+  const resync = useResync();
 
   // Open the join modal if not yet in the room
   useEffect(() => {
@@ -165,7 +167,12 @@ export default function GamePage() {
       <div className="min-h-screen p-2 md:p-4 flex flex-col gap-3">
         <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-2">
           <ScorePanel />
-          <TurnIndicator />
+          <div className="flex items-center gap-2">
+            <TurnIndicator />
+            <Button variant="ghost" onClick={() => void resync()}>
+              Re-sincronizar
+            </Button>
+          </div>
         </div>
         <div className="flex-1 flex flex-col md:flex-row gap-2">
           <div className="hidden md:block md:w-20">

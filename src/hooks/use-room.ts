@@ -108,3 +108,7 @@ export function useRoom() {
     return () => clearInterval(interval);
   }, [roomId, playerId]);
 }
+
+export function useResync() {
+  return useRoomStore((s) => s.resync);
+}
