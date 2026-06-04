@@ -162,13 +162,13 @@ export default function GamePage() {
       }
     };
     return (
-      <div className="min-h-screen p-4 flex flex-col gap-3">
-        <div className="flex items-center justify-between gap-2">
+      <div className="min-h-screen p-2 md:p-4 flex flex-col gap-3">
+        <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-2">
           <ScorePanel />
           <TurnIndicator />
         </div>
-        <div className="flex-1 flex gap-2">
-          <div className="w-20">
+        <div className="flex-1 flex flex-col md:flex-row gap-2">
+          <div className="hidden md:block md:w-20">
             {(() => {
               const p = presence.find((pp) => pp.seat === 1);
               if (!p) return null;
@@ -184,7 +184,7 @@ export default function GamePage() {
               );
             })()}
           </div>
-          <div className="flex-1 flex flex-col gap-2">
+          <div className="flex-1 flex flex-col gap-2 min-w-0">
             <div className="flex justify-center">
               {(() => {
                 const p = presence.find((pp) => pp.seat === 2);
@@ -201,7 +201,9 @@ export default function GamePage() {
                 );
               })()}
             </div>
-            <Board />
+            <div className="md:flex-1">
+              <Board />
+            </div>
             <Hand
               onTileClick={(tile) => {
                 if (!gameState) return;
@@ -231,7 +233,7 @@ export default function GamePage() {
               </div>
             )}
           </div>
-          <div className="w-20">
+          <div className="hidden md:block md:w-20">
             {(() => {
               const p = presence.find((pp) => pp.seat === 3);
               if (!p) return null;
@@ -248,7 +250,12 @@ export default function GamePage() {
             })()}
           </div>
         </div>
-        <ChatPanel />
+        <div className="md:hidden">
+          <ChatPanel />
+        </div>
+        <div className="hidden md:block">
+          <ChatPanel />
+        </div>
         <RoundEndModal
           open={showRoundEndModal}
           reason={gameState?.roundEndReason ?? null}

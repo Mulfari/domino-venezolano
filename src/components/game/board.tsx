@@ -22,7 +22,7 @@ export function Board() {
 
   return (
     <div
-      className="relative w-full h-96 overflow-hidden rounded-2xl border-4"
+      className="relative w-full h-64 sm:h-80 md:h-96 overflow-hidden rounded-2xl border-2 md:border-4"
       style={{
         background: `linear-gradient(135deg, ${COLORS.felt}, #08443A)`,
         borderColor: COLORS.gold,
