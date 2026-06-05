@@ -82,9 +82,23 @@ export function useRoom() {
       )
       .subscribe();
 
+    // Subscribe to room status (waiting → playing → finished)
+    const roomChannel = supabase
+      .channel(`room:${roomId}`)
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "rooms", filter: `id=eq.${roomId}` },
+        (payload) => {
+          const next = (payload.new as { status?: string }).status;
+          if (next) setStatus(next as "waiting" | "playing" | "finished");
+        }
+      )
+      .subscribe();
+
     return () => {
       supabase.removeChannel(movesChannel);
       supabase.removeChannel(playersChannel);
+      supabase.removeChannel(roomChannel);
     };
   }, [roomId, playerId, setMoves, setPlayers, setStatus]);
 
